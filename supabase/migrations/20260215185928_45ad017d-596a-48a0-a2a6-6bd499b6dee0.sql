@@ -1,0 +1,1 @@
+ALTER TABLE public.students ADD COLUMN lesson_price numeric NOT NULL DEFAULT 0;

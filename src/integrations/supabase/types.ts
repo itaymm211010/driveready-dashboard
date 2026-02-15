@@ -244,6 +244,7 @@ export type Database = {
           created_at: string
           email: string | null
           id: string
+          lesson_price: number
           name: string
           phone: string | null
           readiness_percentage: number
@@ -257,6 +258,7 @@ export type Database = {
           created_at?: string
           email?: string | null
           id?: string
+          lesson_price?: number
           name: string
           phone?: string | null
           readiness_percentage?: number
@@ -270,6 +272,7 @@ export type Database = {
           created_at?: string
           email?: string | null
           id?: string
+          lesson_price?: number
           name?: string
           phone?: string | null
           readiness_percentage?: number

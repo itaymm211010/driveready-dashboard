@@ -113,7 +113,7 @@ export default function StudentProfile() {
               <p className="text-xs text-muted-foreground">{hasDebt ? 'Owes' : 'Balance'}</p>
             </CardContent>
           </Card>
-          <Card>
+        <Card>
             <CardContent className="p-3 text-center">
               <BookOpen className="h-5 w-5 mx-auto text-primary mb-1" />
               <p className="text-2xl font-bold text-foreground">{student.total_lessons}</p>
@@ -121,6 +121,14 @@ export default function StudentProfile() {
             </CardContent>
           </Card>
         </div>
+
+        {/* Lesson Price */}
+        <Card>
+          <CardContent className="p-3 flex items-center justify-between">
+            <p className="text-sm text-muted-foreground">מחיר שיעור</p>
+            <p className="text-lg font-bold text-foreground">₪{student.lesson_price ?? 0}</p>
+          </CardContent>
+        </Card>
 
         {/* Skill Breakdown */}
         <Card>
