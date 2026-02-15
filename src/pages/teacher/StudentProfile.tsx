@@ -1,5 +1,5 @@
 import { useParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft, Phone, MessageCircle, TrendingUp, Wallet, BookOpen, CheckCircle, Clock, AlertTriangle } from 'lucide-react';
+import { ArrowLeft, Phone, MessageCircle, TrendingUp, Wallet, BookOpen, CheckCircle, Clock, AlertTriangle, ExternalLink } from 'lucide-react';
 import { format } from 'date-fns';
 import { useStudentProfile } from '@/hooks/use-student-profile';
 import { BottomNav } from '@/components/teacher/BottomNav';
@@ -63,6 +63,9 @@ export default function StudentProfile() {
             <p className="text-xs text-muted-foreground">{student.phone ?? 'No phone'}</p>
           </div>
           <div className="flex gap-1">
+            <Button variant="outline" size="icon" onClick={() => navigate(`/student/${id}/report`)}>
+              <ExternalLink className="h-4 w-4" />
+            </Button>
             {student.phone && (
               <>
                 <Button variant="outline" size="icon" onClick={() => window.open(`tel:${student.phone}`)}>
