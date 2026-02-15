@@ -17,13 +17,16 @@ interface EndLessonModalProps {
   duration: string;
   amount: number;
   studentName: string;
+  onPayment: (method: 'cash' | 'receipt' | 'debt') => void;
+  isSaving?: boolean;
 }
 
-export function EndLessonModal({ open, onOpenChange, duration, amount, studentName }: EndLessonModalProps) {
+export function EndLessonModal({ open, onOpenChange, duration, amount, studentName, onPayment, isSaving }: EndLessonModalProps) {
   const navigate = useNavigate();
   const [success, setSuccess] = useState<string | null>(null);
 
-  const handlePayment = (method: string) => {
+  const handlePayment = (method: 'cash' | 'receipt' | 'debt') => {
+    onPayment(method);
     setSuccess(method);
     setTimeout(() => {
       onOpenChange(false);
