@@ -1,5 +1,6 @@
+import { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft, Phone, MessageCircle, TrendingUp, Wallet, BookOpen, CheckCircle, Clock, AlertTriangle, ExternalLink } from 'lucide-react';
+import { ArrowLeft, Phone, MessageCircle, TrendingUp, Wallet, BookOpen, CheckCircle, Clock, AlertTriangle, ExternalLink, Pencil, Trash2 } from 'lucide-react';
 import { format } from 'date-fns';
 import { useStudentProfile } from '@/hooks/use-student-profile';
 import { BottomNav } from '@/components/teacher/BottomNav';
@@ -9,6 +10,8 @@ import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Progress } from '@/components/ui/progress';
 import { Separator } from '@/components/ui/separator';
+import { EditStudentModal } from '@/components/teacher/EditStudentModal';
+import { DeleteStudentDialog } from '@/components/teacher/DeleteStudentDialog';
 import { cn } from '@/lib/utils';
 
 const STATUS_CONFIG: Record<string, { label: string; color: string; icon: React.ReactNode }> = {
@@ -21,6 +24,8 @@ export default function StudentProfile() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { data, isLoading } = useStudentProfile(id);
+  const [showEdit, setShowEdit] = useState(false);
+  const [showDelete, setShowDelete] = useState(false);
 
   if (isLoading) {
     return (
@@ -63,6 +68,12 @@ export default function StudentProfile() {
             <p className="text-xs text-muted-foreground">{student.phone ?? 'No phone'}</p>
           </div>
           <div className="flex gap-1">
+            <Button variant="outline" size="icon" onClick={() => setShowEdit(true)}>
+              <Pencil className="h-4 w-4" />
+            </Button>
+            <Button variant="outline" size="icon" onClick={() => setShowDelete(true)} className="text-destructive hover:text-destructive">
+              <Trash2 className="h-4 w-4" />
+            </Button>
             <Button variant="outline" size="icon" onClick={() => navigate(`/student/${id}/report`)}>
               <ExternalLink className="h-4 w-4" />
             </Button>
@@ -201,6 +212,8 @@ export default function StudentProfile() {
         </Card>
       </main>
 
+      <EditStudentModal open={showEdit} onOpenChange={setShowEdit} student={student} />
+      <DeleteStudentDialog open={showDelete} onOpenChange={setShowDelete} studentId={student.id} studentName={student.name} />
       <BottomNav />
     </div>
   );
