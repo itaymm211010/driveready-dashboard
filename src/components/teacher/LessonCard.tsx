@@ -1,4 +1,4 @@
-import { MapPin, Phone, Play } from 'lucide-react';
+import { MapPin, Phone, Play, CheckCircle } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
@@ -23,13 +23,14 @@ interface LessonCardProps {
 export function LessonCard({ lesson, student }: LessonCardProps) {
   const navigate = useNavigate();
   const hasDebt = student.balance < 0;
+  const isCompleted = lesson.status === 'completed';
 
   return (
     <Card
       className={cn(
         'transition-all active:scale-[0.98]',
-        hasDebt && 'border-destructive/50 border-2',
-        lesson.status === 'completed' && 'opacity-60'
+        hasDebt && !isCompleted && 'border-destructive/50 border-2',
+        isCompleted && 'opacity-50 border-muted'
       )}
     >
       <CardContent className="p-4">
@@ -39,12 +40,19 @@ export function LessonCard({ lesson, student }: LessonCardProps) {
             onClick={() => navigate(`/teacher/student/${student.id}`)}
             className="text-start"
           >
-            <h3 className="text-lg font-bold text-foreground">{student.name}</h3>
+            <h3 className={cn("text-lg font-bold text-foreground", isCompleted && "line-through text-muted-foreground")}>
+              {student.name}
+            </h3>
             <p className="text-sm text-muted-foreground">
               ⏰ {lesson.time_start} - {lesson.time_end}
             </p>
           </button>
-          {hasDebt ? (
+          {isCompleted ? (
+            <Badge className="shrink-0 bg-muted text-muted-foreground border-0 gap-1">
+              <CheckCircle className="h-3.5 w-3.5" />
+              Done
+            </Badge>
+          ) : hasDebt ? (
             <Badge variant="destructive" className="shrink-0">
               ⚠️ Owes ₪{Math.abs(student.balance)}
             </Badge>
@@ -77,12 +85,12 @@ export function LessonCard({ lesson, student }: LessonCardProps) {
           </Button>
           <Button
             size="sm"
-            className="flex-[2] min-h-[44px] font-bold"
-            disabled={lesson.status === 'completed'}
+            className={cn("flex-[2] min-h-[44px] font-bold", isCompleted && "bg-muted text-muted-foreground hover:bg-muted")}
+            disabled={isCompleted}
             onClick={() => navigate(`/teacher/lesson/${lesson.id}`)}
           >
-            <Play className="h-4 w-4" />
-            {lesson.status === 'completed' ? 'Completed' : 'Start Lesson'}
+            {isCompleted ? <CheckCircle className="h-4 w-4" /> : <Play className="h-4 w-4" />}
+            {isCompleted ? 'Completed' : 'Start Lesson'}
           </Button>
         </div>
       </CardContent>
