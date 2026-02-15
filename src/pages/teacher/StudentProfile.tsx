@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { Plus } from 'lucide-react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { ArrowLeft, Phone, MessageCircle, TrendingUp, Wallet, BookOpen, CheckCircle, Clock, AlertTriangle, ExternalLink, Pencil, Trash2 } from 'lucide-react';
 import { format } from 'date-fns';
@@ -12,6 +13,7 @@ import { Progress } from '@/components/ui/progress';
 import { Separator } from '@/components/ui/separator';
 import { EditStudentModal } from '@/components/teacher/EditStudentModal';
 import { DeleteStudentDialog } from '@/components/teacher/DeleteStudentDialog';
+import { AddLessonModal } from '@/components/teacher/AddLessonModal';
 import { cn } from '@/lib/utils';
 
 const STATUS_CONFIG: Record<string, { label: string; color: string; icon: React.ReactNode }> = {
@@ -26,6 +28,7 @@ export default function StudentProfile() {
   const { data, isLoading } = useStudentProfile(id);
   const [showEdit, setShowEdit] = useState(false);
   const [showDelete, setShowDelete] = useState(false);
+  const [showAddLesson, setShowAddLesson] = useState(false);
 
   if (isLoading) {
     return (
@@ -164,7 +167,12 @@ export default function StudentProfile() {
         {/* Lesson History */}
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-base">Lesson History</CardTitle>
+            <CardTitle className="text-base flex items-center justify-between">
+              Lesson History
+              <Button variant="outline" size="icon" className="h-7 w-7" onClick={() => setShowAddLesson(true)}>
+                <Plus className="h-4 w-4" />
+              </Button>
+            </CardTitle>
           </CardHeader>
           <CardContent>
             {lessons.length === 0 ? (
@@ -214,6 +222,7 @@ export default function StudentProfile() {
 
       <EditStudentModal open={showEdit} onOpenChange={setShowEdit} student={student} />
       <DeleteStudentDialog open={showDelete} onOpenChange={setShowDelete} studentId={student.id} studentName={student.name} />
+      <AddLessonModal open={showAddLesson} onOpenChange={setShowAddLesson} preselectedStudentId={student.id} />
       <BottomNav />
     </div>
   );
