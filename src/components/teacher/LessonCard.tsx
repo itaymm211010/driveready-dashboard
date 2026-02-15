@@ -4,11 +4,20 @@ import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import type { Lesson, Student } from '@/data/mock';
-
 interface LessonCardProps {
-  lesson: Lesson;
-  student: Student;
+  lesson: {
+    id: string;
+    time_start: string;
+    time_end: string;
+    status: string;
+    amount: number;
+  };
+  student: {
+    id: string;
+    name: string;
+    phone: string | null;
+    balance: number;
+  };
 }
 
 export function LessonCard({ lesson, student }: LessonCardProps) {
@@ -61,7 +70,7 @@ export function LessonCard({ lesson, student }: LessonCardProps) {
             variant="outline"
             size="sm"
             className="flex-1 min-h-[44px]"
-            onClick={() => window.open(`tel:${student.phone}`)}
+            onClick={() => student.phone && window.open(`tel:${student.phone}`)}
           >
             <Phone className="h-4 w-4" />
             Call
