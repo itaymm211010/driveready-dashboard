@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { format } from 'date-fns';
 import { CalendarIcon } from 'lucide-react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
@@ -49,6 +49,14 @@ export function AddLessonModal({ open, onOpenChange, preselectedStudentId }: Add
   const [timeStart, setTimeStart] = useState('');
   const [timeEnd, setTimeEnd] = useState('');
   const [amount, setAmount] = useState('');
+
+  // Auto-fill amount when student changes
+  useEffect(() => {
+    const selected = (students ?? []).find((s) => s.id === studentId);
+    if (selected?.lesson_price) {
+      setAmount(String(selected.lesson_price));
+    }
+  }, [studentId, students]);
 
   // Reset form when modal opens
   const handleOpenChange = (next: boolean) => {

@@ -16,13 +16,14 @@ import { Label } from '@/components/ui/label';
 interface EditStudentModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  student: { id: string; name: string; phone: string | null; email: string | null };
+  student: { id: string; name: string; phone: string | null; email: string | null; lesson_price: number };
 }
 
 export function EditStudentModal({ open, onOpenChange, student }: EditStudentModalProps) {
   const [name, setName] = useState(student.name);
   const [phone, setPhone] = useState(student.phone ?? '');
   const [email, setEmail] = useState(student.email ?? '');
+  const [lessonPrice, setLessonPrice] = useState(String(student.lesson_price ?? 0));
   const queryClient = useQueryClient();
 
   const mutation = useMutation({
@@ -33,6 +34,7 @@ export function EditStudentModal({ open, onOpenChange, student }: EditStudentMod
           name: name.trim(),
           phone: phone.trim() || null,
           email: email.trim() || null,
+          lesson_price: Number(lessonPrice) || 0,
         })
         .eq('id', student.id);
       if (error) throw error;
@@ -90,6 +92,16 @@ export function EditStudentModal({ open, onOpenChange, student }: EditStudentMod
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               maxLength={255}
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="edit-lesson-price">מחיר שיעור (₪)</Label>
+            <Input
+              id="edit-lesson-price"
+              type="number"
+              min={0}
+              value={lessonPrice}
+              onChange={(e) => setLessonPrice(e.target.value)}
             />
           </div>
           <div className="flex justify-end gap-2 pt-2">

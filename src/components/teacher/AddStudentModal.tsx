@@ -24,6 +24,7 @@ export function AddStudentModal({ open, onOpenChange }: AddStudentModalProps) {
   const [name, setName] = useState('');
   const [phone, setPhone] = useState('');
   const [email, setEmail] = useState('');
+  const [lessonPrice, setLessonPrice] = useState('');
   const queryClient = useQueryClient();
 
   const mutation = useMutation({
@@ -32,6 +33,7 @@ export function AddStudentModal({ open, onOpenChange }: AddStudentModalProps) {
         name: name.trim(),
         phone: phone.trim() || null,
         email: email.trim() || null,
+        lesson_price: Number(lessonPrice) || 0,
         teacher_id: TEACHER_ID,
       });
       if (error) throw error;
@@ -50,6 +52,7 @@ export function AddStudentModal({ open, onOpenChange }: AddStudentModalProps) {
     setName('');
     setPhone('');
     setEmail('');
+    setLessonPrice('');
     onOpenChange(false);
   };
 
@@ -98,6 +101,17 @@ export function AddStudentModal({ open, onOpenChange }: AddStudentModalProps) {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               maxLength={255}
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="student-lesson-price">מחיר שיעור (₪)</Label>
+            <Input
+              id="student-lesson-price"
+              placeholder="0"
+              type="number"
+              min={0}
+              value={lessonPrice}
+              onChange={(e) => setLessonPrice(e.target.value)}
             />
           </div>
           <div className="flex justify-end gap-2 pt-2">
