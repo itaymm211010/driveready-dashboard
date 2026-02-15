@@ -1,70 +1,51 @@
 
 
-# Add New Lesson Feature
+# Fix: Lesson Data Not Showing on Student Profile
 
-## Overview
-Add the ability to create a new lesson for a student. The feature will be accessible from two places:
-1. The **Today** page (`TeacherToday`) -- a floating "+" button to schedule a lesson for today
-2. The **Student Profile** page -- a button in the Lesson History section to add a lesson for that specific student
+## Problem Analysis
 
-## What Gets Built
+I found **3 bugs** preventing lesson data from appearing correctly on the student profile:
 
-### 1. New Component: `AddLessonModal.tsx`
-A reusable modal (Dialog) for creating a new lesson with the following fields:
-- **Student** -- a dropdown select (pre-filled if opened from a student profile)
-- **Date** -- a date picker (defaults to today)
-- **Start Time** -- time input (e.g. "14:00")
-- **End Time** -- time input (e.g. "14:45")
-- **Amount** -- number input for payment amount in shekels
+### Bug 1: Database Constraint Violation (Critical)
+When ending a lesson, the code tries to save `payment_status: 'unpaid'` but the database only allows: `'paid'`, `'debt'`, or `'pending'`. This causes the entire save to fail silently -- no data gets written.
 
-On submit, inserts a row into the `lessons` table with `status: 'scheduled'` and `payment_status: 'pending'`.
+This matches the database error log: *"new row for relation lessons violates check constraint lessons_payment_status_check"*
 
-### 2. Integration Points
-- **TeacherToday.tsx**: Add a floating action button (FAB) at the bottom-right corner with a "+" icon. Opens the modal without a pre-selected student.
-- **StudentProfile.tsx**: Add a "+" button next to the "Lesson History" card title. Opens the modal with the student pre-selected and the select field disabled.
+**Fix**: Change `'unpaid'` to `'debt'` in `use-save-lesson.ts`.
 
-### 3. Data Flow
-- The modal fetches the students list for the dropdown (reuses the existing `students` table query)
-- On successful creation, invalidates `today-lessons` and `student-profile` queries so both pages refresh
-- Shows a success toast via `sonner`
+### Bug 2: Total Lessons Never Updated
+When a lesson is completed, the `total_lessons` counter on the student record is never incremented. The profile always shows the original seed value.
 
-## Technical Details
+**Fix**: Add an update to increment `students.total_lessons` in the save-lesson mutation.
 
-### New File: `src/components/teacher/AddLessonModal.tsx`
-```
-Props:
-- open: boolean
-- onOpenChange: (open: boolean) => void
-- preselectedStudentId?: string  // when opened from student profile
-```
+### Bug 3: Readiness Percentage Never Recalculated
+The `readiness_percentage` on the student record is never updated after skill statuses change during a lesson.
 
-Uses:
-- `Dialog` from Shadcn UI
-- `Input` for time and amount fields
-- `Select` from Shadcn UI for student picker
-- `Popover` + `Calendar` for date picker (following the Shadcn datepicker pattern with `pointer-events-auto`)
-- `useMutation` from TanStack Query to insert into `lessons`
+**Fix**: After updating skills, recalculate readiness as `(mastered skills / total skills) * 100` and update the student record.
 
-### Insert Shape
-```typescript
-{
-  student_id: selectedStudentId,
-  teacher_id: currentTeacherId,  // hardcoded or from context for now
-  date: selectedDate,
-  time_start: startTime,
-  time_end: endTime,
-  amount: amount,
-  status: 'scheduled',
-  payment_status: 'pending'
-}
-```
+## Technical Changes
 
-Note: Since there's no authentication yet, `teacher_id` will need a temporary placeholder (same pattern used elsewhere in the app).
+### File: `src/hooks/use-save-lesson.ts`
 
-### Edited Files
+1. **Fix payment status value** (line ~26):
+   - Change `const paymentStatus = paymentMethod === 'debt' ? 'unpaid' : 'paid';` 
+   - To: `const paymentStatus = paymentMethod === 'debt' ? 'debt' : 'paid';`
+
+2. **Increment `total_lessons`** after lesson update:
+   - Read current `total_lessons` from the student record
+   - Update it to `total_lessons + 1`
+
+3. **Recalculate `readiness_percentage`** after all skill updates:
+   - Count total skills for this teacher
+   - Count mastered student_skills for this student
+   - Compute `Math.round((mastered / total) * 100)`
+   - Update the student record
+
+4. **Invalidate `student-profile` query** in `onSuccess` so the profile page refreshes.
+
+### Summary of Changes
+
 | File | Change |
 |------|--------|
-| `src/components/teacher/AddLessonModal.tsx` | Create -- lesson creation modal |
-| `src/pages/teacher/TeacherToday.tsx` | Edit -- add floating "+" button |
-| `src/pages/teacher/StudentProfile.tsx` | Edit -- add "+" button in Lesson History header |
+| `src/hooks/use-save-lesson.ts` | Fix payment_status value, add total_lessons increment, add readiness recalculation, add query invalidation |
 
