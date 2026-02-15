@@ -1,16 +1,19 @@
 import { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Search, User, TrendingUp, Wallet } from 'lucide-react';
+import { Search, User, TrendingUp, Wallet, Plus } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Card } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Button } from '@/components/ui/button';
 import { BottomNav } from '@/components/teacher/BottomNav';
 import { CircularProgress } from '@/components/shared/CircularProgress';
+import { AddStudentModal } from '@/components/teacher/AddStudentModal';
 import { useStudentsList } from '@/hooks/use-students-list';
 
 export default function StudentsList() {
   const { data: students, isLoading } = useStudentsList();
   const [search, setSearch] = useState('');
+  const [showAdd, setShowAdd] = useState(false);
   const navigate = useNavigate();
 
   const filtered = useMemo(() => {
@@ -29,9 +32,14 @@ export default function StudentsList() {
     <div className="min-h-screen bg-background pb-24">
       {/* Header */}
       <header className="sticky top-0 z-40 bg-card border-b px-4 py-4">
-        <h1 className="text-xl font-bold text-foreground tracking-tight mb-3">
-          👥 Students
-        </h1>
+        <div className="flex items-center justify-between mb-3">
+          <h1 className="text-xl font-bold text-foreground tracking-tight">
+            👥 Students
+          </h1>
+          <Button size="sm" onClick={() => setShowAdd(true)}>
+            <Plus className="h-4 w-4 mr-1" /> Add
+          </Button>
+        </div>
         <div className="relative">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
@@ -104,6 +112,7 @@ export default function StudentsList() {
         )}
       </main>
 
+      <AddStudentModal open={showAdd} onOpenChange={setShowAdd} />
       <BottomNav />
     </div>
   );
