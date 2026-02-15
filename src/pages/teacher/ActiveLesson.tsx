@@ -7,6 +7,7 @@ import { SkillRow } from '@/components/teacher/SkillRow';
 import { EndLessonModal } from '@/components/teacher/EndLessonModal';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useLessonWithStudent, useStudentSkillTree } from '@/hooks/use-teacher-data';
+import { useSaveLesson } from '@/hooks/use-save-lesson';
 import type { DbSkillCategory } from '@/hooks/use-teacher-data';
 import type { SkillStatus } from '@/data/mock';
 
@@ -25,10 +26,25 @@ export default function ActiveLesson() {
   const studentId = lessonData?.student?.id;
   const { data: dbCategories, isLoading: skillsLoading } = useStudentSkillTree(studentId);
 
+  const saveLessonMutation = useSaveLesson();
+
   const [timer, setTimer] = useState(0);
   const [localOverrides, setLocalOverrides] = useState<Record<string, SkillStatus>>({});
   const [notes, setNotes] = useState<Record<string, string>>({});
   const [showEndModal, setShowEndModal] = useState(false);
+
+  const handleEndLesson = useCallback((method: 'cash' | 'receipt' | 'debt') => {
+    if (!id || !studentId) return;
+    saveLessonMutation.mutate({
+      lessonId: id,
+      studentId,
+      paymentMethod: method,
+      amount: Number(lessonData?.lesson?.amount ?? 0),
+      skillOverrides: localOverrides,
+      notes,
+      durationSeconds: timer,
+    });
+  }, [id, studentId, localOverrides, notes, timer, saveLessonMutation, lessonData]);
 
   // Auto timer
   useEffect(() => {
@@ -185,6 +201,8 @@ export default function ActiveLesson() {
         duration={formatTimer(timer)}
         amount={Number(lesson.amount)}
         studentName={student.name}
+        onPayment={handleEndLesson}
+        isSaving={saveLessonMutation.isPending}
       />
     </div>
   );
