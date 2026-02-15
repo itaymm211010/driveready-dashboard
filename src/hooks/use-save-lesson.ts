@@ -2,6 +2,8 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import type { SkillStatus } from '@/data/mock';
 
+const TEACHER_ID = 'a1b2c3d4-e5f6-7890-abcd-ef1234567890';
+
 interface SaveLessonParams {
   lessonId: string;
   studentId: string;
@@ -29,7 +31,7 @@ export function useSaveLesson() {
       const durationMinutes = Math.round(durationSeconds / 60);
 
       // 1. Update lesson status & payment
-      const paymentStatus = paymentMethod === 'debt' ? 'unpaid' : 'paid';
+      const paymentStatus = paymentMethod === 'debt' ? 'debt' : 'paid';
       const practicedSkillIds = [
         ...new Set([...Object.keys(skillOverrides), ...Object.keys(notes)]),
       ];
@@ -123,10 +125,47 @@ export function useSaveLesson() {
         });
         if (histErr) throw histErr;
       }
+
+      // 4. Increment total_lessons
+      const { data: studentData, error: stErr } = await supabase
+        .from('students')
+        .select('total_lessons')
+        .eq('id', studentId)
+        .single();
+      if (stErr) throw stErr;
+
+      const { error: tlErr } = await supabase
+        .from('students')
+        .update({ total_lessons: (studentData.total_lessons ?? 0) + 1 })
+        .eq('id', studentId);
+      if (tlErr) throw tlErr;
+
+      // 5. Recalculate readiness_percentage
+      const { count: totalSkills } = await supabase
+        .from('skills')
+        .select('id', { count: 'exact', head: true })
+        .eq('teacher_id', TEACHER_ID);
+
+      const { count: masteredSkills } = await supabase
+        .from('student_skills')
+        .select('id', { count: 'exact', head: true })
+        .eq('student_id', studentId)
+        .eq('current_status', 'mastered');
+
+      const readiness = totalSkills && totalSkills > 0
+        ? Math.round(((masteredSkills ?? 0) / totalSkills) * 100)
+        : 0;
+
+      const { error: rErr } = await supabase
+        .from('students')
+        .update({ readiness_percentage: readiness })
+        .eq('id', studentId);
+      if (rErr) throw rErr;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['today-lessons'] });
       queryClient.invalidateQueries({ queryKey: ['skill-tree'] });
+      queryClient.invalidateQueries({ queryKey: ['student-profile'] });
     },
   });
 }
