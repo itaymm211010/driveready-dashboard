@@ -1,85 +1,91 @@
 
 
-# DRIVEKAL - Premium CRM for Driving Instructors
+# Student Dashboard (Driver Card) - `/student/:id/report`
 
 ## Overview
-A mobile-first web app with two distinct interfaces: a utility-focused **Teacher App** (light mode) for managing lessons and tracking skills, and a gamified **Student Dashboard** (dark mode) with a premium "Driver Card" aesthetic.
 
----
+A public-facing, dark-mode "FIFA Ultimate Team"-style report card that a student (or anyone with the link) can view and share. It displays the student's driving readiness, skill radar chart, progress timeline, and a shareable link -- all fetched from the live database.
 
-## Phase 1: Foundation & Design System
+## What Gets Built
 
-### Design Tokens & Theming
-- Teacher theme: Emerald green primary, high-contrast light mode optimized for sunlight
-- Student theme: Neon blue/purple dark mode with glassmorphism and glow effects
-- RTL-ready layout using logical CSS properties
-- Large tap targets (44px+) throughout
+### 1. New Data Hook: `use-student-report.ts`
+- Fetches student info, skill categories with student_skills, and skill_history for progress over time
+- Computes radar chart data (one axis per skill category, value = average proficiency or mastery %)
+- Computes progress timeline data (readiness or mastered-count over lesson dates from skill_history)
+- No authentication required -- this is a public report page (existing "Temp: allow all reads" RLS policies cover it)
 
-### Mock Data Layer
-- Create comprehensive mock data: 5 students, today's lessons, full skill tree with categories and history
-- Simulated API delays for realistic feel
+### 2. New Page: `src/pages/student/StudentReport.tsx`
+- **Dark mode forced** via a wrapper `<div className="dark">` so the page always renders in the dark/neon theme defined in `index.css`
+- **Layout sections:**
 
-### Shared Components
-- Bottom navigation bar (Teacher app)
-- Circular and linear progress bars
-- Lesson cards with debt indicators
-- Skill status toggle (Not Learned / In Progress / Mastered)
+  **A. Header Card (Driver Card)**
+  - Student avatar (or initials fallback), name, total lessons
+  - Large circular readiness percentage using the existing `CircularProgress` component with neon glow styling
+  - Glassmorphism card background (`glass` + `glow-primary` CSS utilities already exist)
 
----
+  **B. Radar Chart -- Skill Categories**
+  - One axis per skill category (Vehicle Control, Road Awareness, etc.)
+  - Value = percentage of mastered skills in that category
+  - Uses Recharts `RadarChart`, `PolarGrid`, `PolarAngleAxis`, `Radar` with neon blue fill
+  - Wrapped in the existing `ChartContainer` component
 
-## Phase 2: Teacher App - Core Screens
+  **C. Progress Timeline -- Line Chart**
+  - X-axis: lesson dates (from skill_history, grouped by lesson_date)
+  - Y-axis: cumulative mastered skill count at each date
+  - Uses Recharts `LineChart`, `Line`, `XAxis`, `YAxis`, `CartesianGrid`
+  - Neon gradient stroke with glow effect
 
-### Screen 1: Today's Dashboard (`/teacher/today`)
-- Date header with daily stats (lesson count, expected income)
-- Scrollable lesson cards showing student name, time, debt status
-- Action buttons per lesson: Navigate (Waze deep link), Call (tel: link), Start Lesson
-- Color-coded debt indicators (red border for owing students, green for clear)
+  **D. Skill Breakdown Grid**
+  - Cards per category showing mastered/in_progress/not_learned counts
+  - Each skill displayed as a small badge with status color (reusing existing status config pattern)
 
-### Screen 2: Active Lesson & Skill Tracking (`/teacher/lesson/:id`)
-- Sticky header with student name, auto-running timer, and overall progress bar
-- Skills grouped by category with sticky category headers
-- Collapsed skill rows showing: name, last proficiency %, times practiced, truncated last note
-- Expandable full history view per skill with all past lesson entries
-- 3-state toggle buttons (pill style) for instant status updates
-- Optional note field per skill
-- Smart badges: ⚠️ for low proficiency, ⏰ for skills not practiced recently
-- Sticky bottom bar with "End Lesson & Bill" CTA
+  **E. Share Section**
+  - "Share Report" button that copies the current URL to clipboard using `navigator.clipboard`
+  - WhatsApp share button that opens `https://wa.me/?text=...` with the report URL
+  - Uses `sonner` toast to confirm "Link copied!"
 
-### Screen 3: Student Profile (`/teacher/student/:id`)
-- Header with readiness percentage and balance
-- Quick action grid: WhatsApp, Report, Charge
-- Lesson history timeline showing skills practiced and payment status
+### 3. Route Registration in `App.tsx`
+- Add route: `/student/:id/report`
+- Points to the new `StudentReport` page
 
-### Screen 4: End Lesson & Payment (Modal)
-- Lesson summary (duration, amount)
-- Three payment options: Cash, Generate Receipt, Add to Debt
-- Success animation on completion, auto-return to dashboard
+### 4. Link from Teacher Side
+- Add a "View Report" / "Share" button on the existing `StudentProfile.tsx` page that navigates to `/student/{id}/report`
 
----
+## Technical Details
 
-## Phase 3: Student Dashboard
+### Radar Chart Data Shape
+```typescript
+// One entry per skill_category
+[
+  { category: "Vehicle Control", value: 75 },  // 3/4 mastered = 75%
+  { category: "Road Awareness", value: 50 },
+  ...
+]
+```
 
-### Screen 5: Driver Card (`/student/:id/report`)
-- Dark mode premium aesthetic with glassmorphism cards
-- Large circular progress indicator showing overall readiness %
-- Radar chart (recharts) visualizing 5 skill categories
-- Progress timeline line chart showing improvement over months
-- Action plan card with next lesson focus and latest teacher feedback
-- Shareable link (no auth required)
+### Progress Timeline Data Shape
+```typescript
+// Grouped by lesson_date from skill_history, counting cumulative mastered
+[
+  { date: "Jan 20", mastered: 3 },
+  { date: "Feb 05", mastered: 5 },
+  { date: "Feb 12", mastered: 8 },
+]
+```
 
----
+### Dark Mode Approach
+The page wraps all content in `<div className="dark">` which activates the existing `.dark` CSS variables (neon blue/purple theme). No theme provider or `next-themes` needed -- it's purely a class-based override.
 
-## Phase 4: Polish & Nice-to-Haves
+### Styling
+- Reuse existing CSS utilities: `glass`, `glow-primary`, `glow-accent`
+- Neon color palette from CSS variables: `--primary` (blue), `--secondary` (purple), `--accent` (cyan)
+- Framer Motion for entrance animations (fade-in, slide-up on cards)
 
-### Animations & Micro-interactions
-- Page transitions with fade + slide
-- Button press scale feedback
-- Skill status change animations
-- Success states with checkmark animations
-
-### Additional Features (time permitting)
-- Students list page with search/filter
-- Monthly reports page with income charts
-- WhatsApp share with pre-filled message
-- Teacher suggestions based on skill history patterns
+### Files Changed
+| File | Action |
+|------|--------|
+| `src/hooks/use-student-report.ts` | Create -- data fetching + chart data computation |
+| `src/pages/student/StudentReport.tsx` | Create -- full report page UI |
+| `src/App.tsx` | Edit -- add `/student/:id/report` route |
+| `src/pages/teacher/StudentProfile.tsx` | Edit -- add "View Report" link button |
 
