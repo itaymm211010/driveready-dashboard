@@ -1,11 +1,16 @@
+import { useState } from 'react';
 import { format } from 'date-fns';
+import { Plus } from 'lucide-react';
 import { LessonCard } from '@/components/teacher/LessonCard';
 import { BottomNav } from '@/components/teacher/BottomNav';
+import { AddLessonModal } from '@/components/teacher/AddLessonModal';
 import { useTodayLessons } from '@/hooks/use-teacher-data';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Button } from '@/components/ui/button';
 
 export default function TeacherToday() {
   const { data: lessonsWithStudents, isLoading } = useTodayLessons();
+  const [showAddLesson, setShowAddLesson] = useState(false);
   const today = new Date();
   const totalExpected = (lessonsWithStudents ?? []).reduce((sum, l) => sum + Number(l.amount), 0);
 
@@ -60,6 +65,16 @@ export default function TeacherToday() {
         )}
       </main>
 
+      {/* FAB */}
+      <Button
+        size="icon"
+        className="fixed bottom-24 right-6 z-50 h-14 w-14 rounded-full shadow-lg"
+        onClick={() => setShowAddLesson(true)}
+      >
+        <Plus className="h-6 w-6" />
+      </Button>
+
+      <AddLessonModal open={showAddLesson} onOpenChange={setShowAddLesson} />
       <BottomNav />
     </div>
   );
