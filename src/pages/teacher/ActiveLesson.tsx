@@ -5,8 +5,10 @@ import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { SkillRow } from '@/components/teacher/SkillRow';
 import { EndLessonModal } from '@/components/teacher/EndLessonModal';
-import { mockTodayLessons, mockStudents, mockSkillCategories } from '@/data/mock';
-import type { SkillStatus, SkillCategory } from '@/data/mock';
+import { Skeleton } from '@/components/ui/skeleton';
+import { useLessonWithStudent, useStudentSkillTree } from '@/hooks/use-teacher-data';
+import type { DbSkillCategory } from '@/hooks/use-teacher-data';
+import type { SkillStatus } from '@/data/mock';
 
 function formatTimer(seconds: number) {
   const h = Math.floor(seconds / 3600);
@@ -19,13 +21,12 @@ export default function ActiveLesson() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
 
-  const lesson = mockTodayLessons.find((l) => l.id === id);
-  const student = lesson ? mockStudents.find((s) => s.id === lesson.student_id) : null;
+  const { data: lessonData, isLoading: lessonLoading } = useLessonWithStudent(id);
+  const studentId = lessonData?.student?.id;
+  const { data: dbCategories, isLoading: skillsLoading } = useStudentSkillTree(studentId);
 
   const [timer, setTimer] = useState(0);
-  const [categories, setCategories] = useState<SkillCategory[]>(() =>
-    JSON.parse(JSON.stringify(mockSkillCategories))
-  );
+  const [localOverrides, setLocalOverrides] = useState<Record<string, SkillStatus>>({});
   const [notes, setNotes] = useState<Record<string, string>>({});
   const [showEndModal, setShowEndModal] = useState(false);
 
@@ -36,21 +37,26 @@ export default function ActiveLesson() {
   }, []);
 
   const handleStatusChange = useCallback((skillId: string, newStatus: SkillStatus) => {
-    setCategories((prev) =>
-      prev.map((cat) => ({
-        ...cat,
-        skills: cat.skills.map((s) =>
-          s.id === skillId ? { ...s, current_status: newStatus } : s
-        ),
-      }))
-    );
+    setLocalOverrides((prev) => ({ ...prev, [skillId]: newStatus }));
   }, []);
 
   const handleNoteChange = useCallback((skillId: string, note: string) => {
     setNotes((prev) => ({ ...prev, [skillId]: note }));
   }, []);
 
-  if (!lesson || !student) {
+  if (lessonLoading || skillsLoading) {
+    return (
+      <div className="min-h-screen bg-background p-4 space-y-4">
+        <Skeleton className="h-20 w-full rounded-xl" />
+        <Skeleton className="h-12 w-full rounded-xl" />
+        {Array.from({ length: 4 }).map((_, i) => (
+          <Skeleton key={i} className="h-24 w-full rounded-xl" />
+        ))}
+      </div>
+    );
+  }
+
+  if (!lessonData?.lesson || !lessonData?.student) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
         <p className="text-muted-foreground">Lesson not found.</p>
@@ -58,16 +64,44 @@ export default function ActiveLesson() {
     );
   }
 
-  // Stats
-  const allSkills = categories.flatMap((c) => c.skills);
-  const mastered = allSkills.filter((s) => s.current_status === 'mastered').length;
+  const { lesson, student } = lessonData;
+  const categories: DbSkillCategory[] = dbCategories ?? [];
+
+  // Build flat skill list with local overrides applied
+  const allSkills = categories.flatMap((c) =>
+    c.skills.map((s) => ({
+      ...s,
+      effectiveStatus: localOverrides[s.id] ?? s.student_skill?.current_status ?? 'not_learned',
+    }))
+  );
+
+  const mastered = allSkills.filter((s) => s.effectiveStatus === 'mastered').length;
   const total = allSkills.length;
-  const progressPct = Math.round((mastered / total) * 100);
+  const progressPct = total > 0 ? Math.round((mastered / total) * 100) : 0;
   const skillsPracticedToday = allSkills.filter(
-    (s) => notes[s.id] || s.current_status !== mockSkillCategories
-      .flatMap((c) => c.skills)
-      .find((ms) => ms.id === s.id)?.current_status
+    (s) => notes[s.id] || localOverrides[s.id]
   ).length;
+
+  // Adapt DB skills to the Skill shape expected by SkillRow
+  const toSkillRowData = (s: (typeof allSkills)[number]) => ({
+    id: s.id,
+    name: s.name,
+    category: '',
+    current_status: s.effectiveStatus as SkillStatus,
+    times_practiced: s.student_skill?.times_practiced ?? 0,
+    last_practiced_date: s.student_skill?.last_practiced_date ?? undefined,
+    last_proficiency: s.student_skill?.last_proficiency ?? undefined,
+    last_note: s.student_skill?.last_note ?? undefined,
+    history: s.history.map((h) => ({
+      lesson_id: h.id,
+      lesson_number: h.lesson_number ?? 0,
+      lesson_date: h.lesson_date,
+      status: h.status as SkillStatus,
+      proficiency_estimate: h.proficiency_estimate ?? undefined,
+      teacher_note: h.teacher_note ?? undefined,
+      practice_duration_minutes: h.practice_duration_minutes ?? undefined,
+    })),
+  });
 
   return (
     <div className="min-h-screen bg-background pb-28">
@@ -98,13 +132,16 @@ export default function ActiveLesson() {
       {/* Skill Categories */}
       <main className="p-4 space-y-5">
         {categories.map((cat) => {
-          const catMastered = cat.skills.filter((s) => s.current_status === 'mastered').length;
-          const catTotal = cat.skills.length;
-          const catPct = Math.round((catMastered / catTotal) * 100);
+          const catSkills = cat.skills.map((s) => ({
+            ...s,
+            effectiveStatus: localOverrides[s.id] ?? s.student_skill?.current_status ?? 'not_learned',
+          }));
+          const catMastered = catSkills.filter((s) => s.effectiveStatus === 'mastered').length;
+          const catTotal = catSkills.length;
+          const catPct = catTotal > 0 ? Math.round((catMastered / catTotal) * 100) : 0;
 
           return (
             <section key={cat.id}>
-              {/* Sticky Category Header */}
               <div className="sticky top-[105px] z-30 bg-background py-2">
                 <div className="flex items-center justify-between bg-muted rounded-lg px-3 py-2">
                   <span className="font-semibold text-sm text-foreground">
@@ -116,12 +153,11 @@ export default function ActiveLesson() {
                 </div>
               </div>
 
-              {/* Skills */}
               <div className="space-y-2 mt-2">
-                {cat.skills.map((skill) => (
+                {catSkills.map((skill) => (
                   <SkillRow
                     key={skill.id}
-                    skill={skill}
+                    skill={toSkillRowData(skill)}
                     onStatusChange={handleStatusChange}
                     onNoteChange={handleNoteChange}
                     noteValue={notes[skill.id] || ''}
@@ -143,12 +179,11 @@ export default function ActiveLesson() {
         </Button>
       </div>
 
-      {/* End Lesson Modal */}
       <EndLessonModal
         open={showEndModal}
         onOpenChange={setShowEndModal}
         duration={formatTimer(timer)}
-        amount={lesson.amount}
+        amount={Number(lesson.amount)}
         studentName={student.name}
       />
     </div>
