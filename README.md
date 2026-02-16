@@ -1,5 +1,7 @@
 # DriveReady Dashboard
 
+[![CI Pipeline](https://github.com/itaymm211010/driveready-dashboard/actions/workflows/ci.yml/badge.svg)](https://github.com/itaymm211010/driveready-dashboard/actions/workflows/ci.yml)
+
 A comprehensive driving school management system for instructors to manage students, lessons, skill tracking, and progress reporting.
 
 ## 🎯 Overview
