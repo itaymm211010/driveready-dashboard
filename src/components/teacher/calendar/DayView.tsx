@@ -46,8 +46,8 @@ export function DayView({ date, lessons, onLessonClick, onEmptySlotClick }: DayV
         const hourLessons = lessonsByHour[hour] ?? [];
         const timeStr = `${String(hour).padStart(2, '0')}:00`;
         return (
-          <div key={hour} className="flex gap-2 min-h-[56px]">
-            <span className="text-[10px] text-muted-foreground w-10 pt-1 text-left shrink-0">
+          <div key={hour} className="flex flex-row-reverse gap-2 min-h-[56px]">
+            <span className="text-[10px] text-muted-foreground w-10 pt-1 text-left shrink-0" dir="ltr">
               {timeStr}
             </span>
             <div className="flex-1 border-t border-border/30">
@@ -55,7 +55,7 @@ export function DayView({ date, lessons, onLessonClick, onEmptySlotClick }: DayV
                 hourLessons.map((lesson) => (
                   <motion.div
                     key={lesson.id}
-                    initial={{ opacity: 0, x: 10 }}
+                    initial={{ opacity: 0, x: -10 }}
                     animate={{ opacity: 1, x: 0 }}
                     className={cn(
                       'rounded-xl border p-3 mb-1 cursor-pointer transition-smooth hover:scale-[1.01]',
@@ -64,15 +64,15 @@ export function DayView({ date, lessons, onLessonClick, onEmptySlotClick }: DayV
                     onClick={() => onLessonClick(lesson)}
                   >
                     <div className="flex justify-between items-start">
-                      <div className="text-right flex-1 min-w-0">
+                      <div className="flex-1 min-w-0">
                         <p className="font-heading font-bold text-sm truncate">{lesson.student.name}</p>
-                        <p className="text-xs text-muted-foreground">{lesson.time_start} - {lesson.time_end}</p>
+                        <p className="text-xs text-muted-foreground" dir="ltr">{lesson.time_start} - {lesson.time_end}</p>
                         <p className="text-xs font-medium mt-0.5">₪{Number(lesson.amount).toLocaleString()}</p>
                         {lesson.student.balance < 0 && (
                           <p className="text-[10px] text-destructive">חוב: ₪{Math.abs(lesson.student.balance)}</p>
                         )}
                       </div>
-                      <div className="flex gap-1 shrink-0 ml-2">
+                      <div className="flex gap-1 shrink-0 me-2">
                         {lesson.student.phone && (
                           <>
                             <Button

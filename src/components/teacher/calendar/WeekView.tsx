@@ -14,6 +14,7 @@ const HOURS = Array.from({ length: 15 }, (_, i) => i + 6);
 
 export function WeekView({ date, lessons, onLessonClick, onEmptySlotClick }: WeekViewProps) {
   const weekStart = startOfWeek(date, { weekStartsOn: 0 });
+  // RTL: Days ordered right-to-left (Sunday on the right = first in array, rendered from right)
   const days = Array.from({ length: 7 }, (_, i) => addDays(weekStart, i));
   const today = new Date();
 
@@ -29,9 +30,8 @@ export function WeekView({ date, lessons, onLessonClick, onEmptySlotClick }: Wee
   return (
     <div className="overflow-x-auto -mx-4 px-4">
       <div className="min-w-[700px]">
-        {/* Header */}
-        <div className="grid grid-cols-[40px_repeat(7,1fr)] gap-px mb-1">
-          <div />
+        {/* Header - RTL: time column on the right, days flow right-to-left */}
+        <div className="grid grid-cols-[repeat(7,1fr)_40px] gap-px mb-1">
           {days.map((d) => (
             <div
               key={d.toISOString()}
@@ -41,13 +41,13 @@ export function WeekView({ date, lessons, onLessonClick, onEmptySlotClick }: Wee
               <div className="text-sm font-heading">{format(d, 'd')}</div>
             </div>
           ))}
+          <div />
         </div>
 
         {/* Grid */}
         <div className="space-y-px">
           {HOURS.map((hour) => (
-            <div key={hour} className="grid grid-cols-[40px_repeat(7,1fr)] gap-px min-h-[48px]">
-              <span className="text-[9px] text-muted-foreground pt-1">{`${String(hour).padStart(2, '0')}:00`}</span>
+            <div key={hour} className="grid grid-cols-[repeat(7,1fr)_40px] gap-px min-h-[48px]">
               {days.map((d) => {
                 const dateStr = format(d, 'yyyy-MM-dd');
                 const key = `${dateStr}-${hour}`;
@@ -64,6 +64,7 @@ export function WeekView({ date, lessons, onLessonClick, onEmptySlotClick }: Wee
                   </div>
                 );
               })}
+              <span className="text-[9px] text-muted-foreground pt-1 text-center" dir="ltr">{`${String(hour).padStart(2, '0')}:00`}</span>
             </div>
           ))}
         </div>

@@ -33,6 +33,7 @@ export function MonthView({ date, lessons, onDayClick }: MonthViewProps) {
     weeks.push(week);
   }
 
+  // RTL Hebrew day names: Sunday (א׳) first on the right
   const dayNames = ['א׳', 'ב׳', 'ג׳', 'ד׳', 'ה׳', 'ו׳', 'ש׳'];
 
   // Month stats
