@@ -132,8 +132,9 @@ export default function StudentProfile() {
     const total = cat.skills.length;
     const mastered = cat.skills.filter((s: any) => s.studentSkill?.current_status === 'mastered').length;
     const inProgress = cat.skills.filter((s: any) => s.studentSkill?.current_status === 'in_progress').length;
+    const notLearned = total - mastered - inProgress;
     const score = mastered + inProgress * 0.5;
-    return { category: cat.name, value: total > 0 ? Math.round((score / total) * 100) : 0 };
+    return { category: cat.name, value: total > 0 ? Math.round((score / total) * 100) : 0, mastered, inProgress, notLearned, total };
   }).filter(d => d.category);
 
   // Progress over time data from completed lessons
@@ -282,6 +283,21 @@ export default function StudentProfile() {
                     <PolarGrid stroke="hsl(var(--border))" />
                     <PolarAngleAxis dataKey="category" tick={{ fontSize: 11, fill: 'hsl(var(--muted-foreground))' }} />
                     <Radar dataKey="value" stroke="hsl(var(--primary))" fill="hsl(var(--primary))" fillOpacity={0.25} strokeWidth={2} />
+                    <Tooltip content={({ active, payload }) => {
+                      if (!active || !payload?.length) return null;
+                      const d = payload[0].payload;
+                      return (
+                        <div className="rounded-lg border bg-background p-2.5 text-xs shadow-xl" dir="rtl">
+                          <p className="font-semibold text-foreground mb-1.5">{d.category}</p>
+                          <div className="space-y-0.5 text-muted-foreground">
+                            <p>✅ נשלטו: <span className="text-foreground font-medium">{d.mastered}</span></p>
+                            <p>🔄 בתהליך: <span className="text-foreground font-medium">{d.inProgress}</span></p>
+                            <p>⬜ לא נלמדו: <span className="text-foreground font-medium">{d.notLearned}</span></p>
+                          </div>
+                          <p className="mt-1.5 text-primary font-semibold">{d.value}%</p>
+                        </div>
+                      );
+                    }} />
                   </RadarChart>
                 </ResponsiveContainer>
               </CardContent>
