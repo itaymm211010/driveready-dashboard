@@ -11,6 +11,7 @@ import { CircularProgress } from '@/components/shared/CircularProgress';
 import { AddStudentModal } from '@/components/teacher/AddStudentModal';
 import { useStudentsList } from '@/hooks/use-students-list';
 import { cn } from '@/lib/utils';
+import { ThemeToggle } from '@/components/ThemeToggle';
 
 const fadeUp = {
   hidden: { opacity: 0, y: 15 },
@@ -46,9 +47,12 @@ export default function StudentsList() {
           <h1 className="text-xl font-heading font-bold text-foreground tracking-tight">
             👥 Students
           </h1>
-          <Button size="sm" onClick={() => setShowAdd(true)} className="shimmer gap-1">
-            <Plus className="h-4 w-4" /> Add
-          </Button>
+          <div className="flex items-center gap-2">
+            <ThemeToggle />
+            <Button size="sm" onClick={() => setShowAdd(true)} className="shimmer gap-1">
+              <Plus className="h-4 w-4" /> Add
+            </Button>
+          </div>
         </div>
         <div className="relative">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
