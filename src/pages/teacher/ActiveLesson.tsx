@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { ArrowLeft, Plus, BookOpen } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { EndLessonModal } from '@/components/teacher/EndLessonModal';
@@ -197,18 +198,28 @@ export default function ActiveLesson() {
             </div>
 
             {/* Skill cards */}
-            {selectedSkills.map(skill => (
-              <LessonSkillCard
-                key={skill.id}
-                skill={skill}
-                currentStatus={(localOverrides[skill.id] ?? skill.student_skill?.current_status ?? 'not_learned') as SkillStatus}
-                noteValue={notes[skill.id] || ''}
-                onStatusChange={handleStatusChange}
-                onNoteChange={handleNoteChange}
-                onShowHistory={setHistorySkill}
-                onRemove={handleRemoveSkill}
-              />
-            ))}
+            <AnimatePresence mode="popLayout">
+              {selectedSkills.map(skill => (
+                <motion.div
+                  key={skill.id}
+                  layout
+                  initial={{ opacity: 0, scale: 0.95, y: 10 }}
+                  animate={{ opacity: 1, scale: 1, y: 0 }}
+                  exit={{ opacity: 0, scale: 0.95, x: -50 }}
+                  transition={{ duration: 0.25, ease: [0.25, 0.46, 0.45, 0.94] }}
+                >
+                  <LessonSkillCard
+                    skill={skill}
+                    currentStatus={(localOverrides[skill.id] ?? skill.student_skill?.current_status ?? 'not_learned') as SkillStatus}
+                    noteValue={notes[skill.id] || ''}
+                    onStatusChange={handleStatusChange}
+                    onNoteChange={handleNoteChange}
+                    onShowHistory={setHistorySkill}
+                    onRemove={handleRemoveSkill}
+                  />
+                </motion.div>
+              ))}
+            </AnimatePresence>
 
             {/* Add more button */}
             <Button
