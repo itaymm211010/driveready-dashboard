@@ -30,7 +30,7 @@ export default function TeacherToday() {
   const totalExpected = (lessonsWithStudents ?? []).reduce((sum, l) => sum + Number(l.amount), 0);
 
   return (
-    <div className="min-h-screen bg-background pb-24">
+    <div dir="rtl" className="min-h-screen bg-background pb-24">
       {/* Header */}
       <header className="sticky top-0 z-40 glass-strong border-b border-border/50 px-4 py-4">
         <div className="flex items-center justify-between">

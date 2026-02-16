@@ -43,7 +43,7 @@ export default function StudentProfile() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-background pb-24 p-4 space-y-4">
+      <div dir="rtl" className="min-h-screen bg-background pb-24 p-4 space-y-4">
         <Skeleton className="h-10 w-32" />
         <Skeleton className="h-40 w-full rounded-xl" />
         <Skeleton className="h-60 w-full rounded-xl" />
@@ -54,7 +54,7 @@ export default function StudentProfile() {
 
   if (!data) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
+      <div dir="rtl" className="min-h-screen bg-background flex items-center justify-center">
         <p className="text-muted-foreground font-body">Student not found.</p>
       </div>
     );
@@ -69,7 +69,7 @@ export default function StudentProfile() {
   );
 
   return (
-    <div className="min-h-screen bg-background pb-24">
+    <div dir="rtl" className="min-h-screen bg-background pb-24">
       {/* Header */}
       <header className="sticky top-0 z-40 glass-strong border-b border-border/50 px-4 py-3">
         <div className="flex items-center gap-3">

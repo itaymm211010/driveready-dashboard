@@ -49,7 +49,7 @@ export default function StudentReport() {
   if (isLoading) {
     return (
       <div className="dark">
-        <div className="min-h-screen bg-background p-4 space-y-4">
+        <div dir="rtl" className="min-h-screen bg-background p-4 space-y-4">
           <Skeleton className="h-48 w-full rounded-2xl" />
           <Skeleton className="h-64 w-full rounded-2xl" />
           <Skeleton className="h-48 w-full rounded-2xl" />
@@ -61,7 +61,7 @@ export default function StudentReport() {
   if (!data) {
     return (
       <div className="dark">
-        <div className="min-h-screen bg-background flex items-center justify-center">
+        <div dir="rtl" className="min-h-screen bg-background flex items-center justify-center">
           <p className="text-muted-foreground font-body">Student not found.</p>
         </div>
       </div>
@@ -78,7 +78,7 @@ export default function StudentReport() {
 
   return (
     <div className="dark">
-      <div className="min-h-screen bg-background pb-8">
+      <div dir="rtl" className="min-h-screen bg-background pb-8">
         {/* Header / Driver Card - FIFA Ultimate Team Style */}
         <motion.div
           className="glass glow-neon rounded-b-3xl p-6 pb-8 relative overflow-hidden"
