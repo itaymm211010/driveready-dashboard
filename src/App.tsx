@@ -4,6 +4,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { ThemeProvider } from "@/components/ThemeProvider";
+import { FontSizeProvider } from "@/components/FontSizeProvider";
 import TeacherToday from "./pages/teacher/TeacherToday";
 import ActiveLesson from "./pages/teacher/ActiveLesson";
 import StudentProfile from "./pages/teacher/StudentProfile";
@@ -18,6 +19,7 @@ const queryClient = new QueryClient();
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <ThemeProvider defaultTheme="light" storageKey="drivekal-theme">
+      <FontSizeProvider>
       <TooltipProvider>
         <Toaster />
         <Sonner />
@@ -36,6 +38,7 @@ const App = () => (
           </Routes>
         </BrowserRouter>
       </TooltipProvider>
+      </FontSizeProvider>
     </ThemeProvider>
   </QueryClientProvider>
 );

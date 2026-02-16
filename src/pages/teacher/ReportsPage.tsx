@@ -8,6 +8,7 @@ import {
 } from 'recharts';
 import { BottomNav } from '@/components/teacher/BottomNav';
 import { ThemeToggle } from '@/components/ThemeToggle';
+import { FontSizeSelector } from '@/components/FontSizeSelector';
 import { useReportsData } from '@/hooks/use-reports-data';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -36,7 +37,10 @@ export default function ReportsPage() {
             <h1 className="text-xl font-heading font-bold text-foreground">📊 דוחות</h1>
             <p className="text-sm text-muted-foreground font-body">סיכום חודשי ומגמות</p>
           </div>
-          <ThemeToggle />
+          <div className="flex items-center gap-1">
+            <FontSizeSelector />
+            <ThemeToggle />
+          </div>
         </div>
       </header>
 

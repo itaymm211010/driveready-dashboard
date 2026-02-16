@@ -15,6 +15,7 @@ import { EditLessonModal } from '@/components/teacher/EditLessonModal';
 import { CancelLessonModal } from '@/components/teacher/CancelLessonModal';
 import { AddLessonModal } from '@/components/teacher/AddLessonModal';
 import { ThemeToggle } from '@/components/ThemeToggle';
+import { FontSizeSelector } from '@/components/FontSizeSelector';
 import { useCalendarLessons, type CalendarView, type CalendarLesson } from '@/hooks/use-calendar-lessons';
 import { Skeleton } from '@/components/ui/skeleton';
 
@@ -77,6 +78,7 @@ export default function CalendarPage() {
             <Button variant="ghost" size="sm" className="text-xs h-7" onClick={() => setDate(new Date())}>
               היום
             </Button>
+            <FontSizeSelector />
             <ThemeToggle />
           </div>
         </div>
