@@ -53,17 +53,54 @@ export type Database = {
           },
         ]
       }
+      lesson_time_log: {
+        Row: {
+          event_type: string
+          id: string
+          lesson_id: string
+          notes: string | null
+          timestamp: string
+        }
+        Insert: {
+          event_type: string
+          id?: string
+          lesson_id: string
+          notes?: string | null
+          timestamp?: string
+        }
+        Update: {
+          event_type?: string
+          id?: string
+          lesson_id?: string
+          notes?: string | null
+          timestamp?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "lesson_time_log_lesson_id_fkey"
+            columns: ["lesson_id"]
+            isOneToOne: false
+            referencedRelation: "lessons"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       lessons: {
         Row: {
+          actual_duration_minutes: number | null
+          actual_end_time: string | null
+          actual_start_time: string | null
           amount: number
           cancellation_reason: string | null
           cancelled_at: string | null
           cancelled_by: string | null
           created_at: string
           date: string
+          duration_variance_minutes: number | null
           id: string
           notes: string | null
           payment_status: string | null
+          scheduled_duration_minutes: number | null
           skills_practiced: string[] | null
           status: string
           student_id: string
@@ -73,15 +110,20 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          actual_duration_minutes?: number | null
+          actual_end_time?: string | null
+          actual_start_time?: string | null
           amount?: number
           cancellation_reason?: string | null
           cancelled_at?: string | null
           cancelled_by?: string | null
           created_at?: string
           date: string
+          duration_variance_minutes?: number | null
           id?: string
           notes?: string | null
           payment_status?: string | null
+          scheduled_duration_minutes?: number | null
           skills_practiced?: string[] | null
           status?: string
           student_id: string
@@ -91,15 +133,20 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          actual_duration_minutes?: number | null
+          actual_end_time?: string | null
+          actual_start_time?: string | null
           amount?: number
           cancellation_reason?: string | null
           cancelled_at?: string | null
           cancelled_by?: string | null
           created_at?: string
           date?: string
+          duration_variance_minutes?: number | null
           id?: string
           notes?: string | null
           payment_status?: string | null
+          scheduled_duration_minutes?: number | null
           skills_practiced?: string[] | null
           status?: string
           student_id?: string
@@ -298,6 +345,7 @@ export type Database = {
           phone: string | null
           readiness_percentage: number
           teacher_id: string
+          teacher_notes: string | null
           total_lessons: number
           updated_at: string
         }
@@ -313,6 +361,7 @@ export type Database = {
           phone?: string | null
           readiness_percentage?: number
           teacher_id: string
+          teacher_notes?: string | null
           total_lessons?: number
           updated_at?: string
         }
@@ -328,6 +377,7 @@ export type Database = {
           phone?: string | null
           readiness_percentage?: number
           teacher_id?: string
+          teacher_notes?: string | null
           total_lessons?: number
           updated_at?: string
         }

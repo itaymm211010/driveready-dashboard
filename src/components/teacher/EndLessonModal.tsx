@@ -2,6 +2,8 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { Separator } from '@/components/ui/separator';
 import {
   Dialog,
   DialogContent,
@@ -9,7 +11,8 @@ import {
   DialogTitle,
   DialogDescription,
 } from '@/components/ui/dialog';
-import { CheckCircle2 } from 'lucide-react';
+import { CheckCircle2, Clock, Timer, TrendingDown, TrendingUp } from 'lucide-react';
+import { cn } from '@/lib/utils';
 
 interface EndLessonModalProps {
   open: boolean;
@@ -19,11 +22,23 @@ interface EndLessonModalProps {
   studentName: string;
   onPayment: (method: 'cash' | 'receipt' | 'debt') => void;
   isSaving?: boolean;
+  startedAt?: string | null;
+  scheduledEnd?: string | null;
+  scheduledMinutes?: number | null;
+  elapsedSeconds?: number;
 }
 
-export function EndLessonModal({ open, onOpenChange, duration, amount, studentName, onPayment, isSaving }: EndLessonModalProps) {
+export function EndLessonModal({
+  open, onOpenChange, duration, amount, studentName, onPayment, isSaving,
+  startedAt, scheduledEnd, scheduledMinutes, elapsedSeconds,
+}: EndLessonModalProps) {
   const navigate = useNavigate();
   const [success, setSuccess] = useState<string | null>(null);
+
+  const actualMinutes = elapsedSeconds != null ? Math.round(elapsedSeconds / 60) : null;
+  const variance = actualMinutes != null && scheduledMinutes != null
+    ? actualMinutes - scheduledMinutes
+    : null;
 
   const handlePayment = (method: 'cash' | 'receipt' | 'debt') => {
     onPayment(method);
@@ -60,6 +75,65 @@ export function EndLessonModal({ open, onOpenChange, duration, amount, studentNa
                 {studentName} • משך: {duration} • סכום: ₪{amount}
               </DialogDescription>
             </DialogHeader>
+
+            {/* Time Summary */}
+            {(startedAt || scheduledEnd || variance != null) && (
+              <div className="rounded-lg border border-border bg-muted/30 p-3 space-y-2">
+                <div className="flex items-center gap-2 text-sm font-heading font-semibold text-foreground">
+                  <Timer className="h-4 w-4" />
+                  סיכום זמנים
+                </div>
+                <div className="grid grid-cols-2 gap-2 text-sm">
+                  {startedAt && (
+                    <div>
+                      <span className="text-muted-foreground">התחלה:</span>{' '}
+                      <span className="font-medium">{startedAt}</span>
+                    </div>
+                  )}
+                  {scheduledEnd && (
+                    <div>
+                      <span className="text-muted-foreground">סיום מתוכנן:</span>{' '}
+                      <span className="font-medium">{scheduledEnd}</span>
+                    </div>
+                  )}
+                  {scheduledMinutes != null && (
+                    <div>
+                      <span className="text-muted-foreground">מתוכנן:</span>{' '}
+                      <span className="font-medium">{scheduledMinutes} דקות</span>
+                    </div>
+                  )}
+                  {actualMinutes != null && (
+                    <div>
+                      <span className="text-muted-foreground">בפועל:</span>{' '}
+                      <span className="font-medium">{actualMinutes} דקות</span>
+                    </div>
+                  )}
+                </div>
+                {variance != null && (
+                  <>
+                    <Separator />
+                    <div className="flex items-center justify-center gap-2">
+                      {variance > 0 ? (
+                        <Badge variant="outline" className="text-destructive border-destructive/30 gap-1">
+                          <TrendingUp className="h-3 w-3" />
+                          +{variance} דקות חריגה
+                        </Badge>
+                      ) : variance < 0 ? (
+                        <Badge variant="outline" className="text-success border-success/30 gap-1">
+                          <TrendingDown className="h-3 w-3" />
+                          {variance} דקות מוקדם
+                        </Badge>
+                      ) : (
+                        <Badge variant="outline" className="text-success border-success/30 gap-1">
+                          <Clock className="h-3 w-3" />
+                          בדיוק בזמן!
+                        </Badge>
+                      )}
+                    </div>
+                  </>
+                )}
+              </div>
+            )}
 
             <div className="space-y-3 pt-2">
               <p className="text-sm font-medium text-foreground">התלמיד שילם?</p>

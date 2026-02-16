@@ -4,6 +4,7 @@ import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { useStartLesson } from '@/hooks/use-start-lesson';
 
 interface LessonCardProps {
   lesson: {
@@ -23,8 +24,21 @@ interface LessonCardProps {
 
 export function LessonCard({ lesson, student }: LessonCardProps) {
   const navigate = useNavigate();
+  const startLessonMutation = useStartLesson();
   const hasDebt = student.balance < 0;
   const isCompleted = lesson.status === 'completed';
+  const isInProgress = lesson.status === 'in_progress';
+
+  const handleStartLesson = () => {
+    if (isInProgress) {
+      navigate(`/teacher/lesson/${lesson.id}`);
+      return;
+    }
+    startLessonMutation.mutate(
+      { lessonId: lesson.id, timeStart: lesson.time_start, timeEnd: lesson.time_end },
+      { onSuccess: () => navigate(`/teacher/lesson/${lesson.id}`) }
+    );
+  };
 
   return (
     <Card
@@ -36,7 +50,6 @@ export function LessonCard({ lesson, student }: LessonCardProps) {
       )}
     >
       <CardContent className="p-4">
-        {/* Header */}
         <div className="flex items-start justify-between mb-3">
           <button
             onClick={() => navigate(`/teacher/student/${student.id}`)}
@@ -57,6 +70,10 @@ export function LessonCard({ lesson, student }: LessonCardProps) {
               <CheckCircle className="h-3.5 w-3.5" />
               הושלם
             </Badge>
+          ) : isInProgress ? (
+            <Badge className="shrink-0 bg-primary/15 text-primary border border-primary/30 animate-pulse">
+              🔴 בשיעור
+            </Badge>
           ) : hasDebt ? (
             <Badge variant="destructive" className="shrink-0 animate-pulse-glow">
               ⚠️ חייב ₪{Math.abs(student.balance)}
@@ -68,25 +85,14 @@ export function LessonCard({ lesson, student }: LessonCardProps) {
           )}
         </div>
 
-        {/* Actions */}
         <div className="flex gap-2">
-          <Button
-            variant="outline"
-            size="sm"
-            className="flex-1 min-h-[44px] transition-smooth"
-            onClick={() => window.open(`https://waze.com/ul`, '_blank')}
-          >
-            <MapPin className="h-4 w-4" />
-            נווט
+          <Button variant="outline" size="sm" className="flex-1 min-h-[44px] transition-smooth"
+            onClick={() => window.open(`https://waze.com/ul`, '_blank')}>
+            <MapPin className="h-4 w-4" /> נווט
           </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            className="flex-1 min-h-[44px] transition-smooth"
-            onClick={() => student.phone && window.open(`tel:${student.phone}`)}
-          >
-            <Phone className="h-4 w-4" />
-            התקשר
+          <Button variant="outline" size="sm" className="flex-1 min-h-[44px] transition-smooth"
+            onClick={() => student.phone && window.open(`tel:${student.phone}`)}>
+            <Phone className="h-4 w-4" /> התקשר
           </Button>
           <Button
             size="sm"
@@ -95,11 +101,11 @@ export function LessonCard({ lesson, student }: LessonCardProps) {
               isCompleted && "bg-muted text-muted-foreground hover:bg-muted",
               !isCompleted && "shimmer"
             )}
-            disabled={isCompleted}
-            onClick={() => navigate(`/teacher/lesson/${lesson.id}`)}
+            disabled={isCompleted || startLessonMutation.isPending}
+            onClick={handleStartLesson}
           >
             {isCompleted ? <CheckCircle className="h-4 w-4" /> : <Play className="h-4 w-4" />}
-            {isCompleted ? 'הושלם' : 'התחל שיעור'}
+            {isCompleted ? 'הושלם' : isInProgress ? 'המשך שיעור' : 'התחל שיעור'}
           </Button>
         </div>
       </CardContent>

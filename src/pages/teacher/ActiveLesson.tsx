@@ -12,6 +12,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { useLessonWithStudent, useStudentSkillTree } from '@/hooks/use-teacher-data';
 import { useLessonPlannedSkills, useAddPlannedSkills, useRemovePlannedSkill } from '@/hooks/use-lesson-planned-skills';
 import { useSaveLesson } from '@/hooks/use-save-lesson';
+import { cn } from '@/lib/utils';
 import type { DbSkill } from '@/hooks/use-teacher-data';
 import type { SkillStatus } from '@/data/mock';
 
@@ -20,6 +21,25 @@ function formatTimer(seconds: number) {
   const m = Math.floor((seconds % 3600) / 60);
   const s = seconds % 60;
   return `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+}
+
+function getTimerColor(elapsedSeconds: number, scheduledMinutes: number | null): string {
+  if (!scheduledMinutes) return 'text-foreground';
+  const scheduledSeconds = scheduledMinutes * 60;
+  const ratio = elapsedSeconds / scheduledSeconds;
+  if (ratio >= 1) return 'text-destructive';
+  if (ratio >= 0.85) return 'text-warning';
+  return 'text-success';
+}
+
+function getRemainingText(elapsedSeconds: number, scheduledMinutes: number | null): string | null {
+  if (!scheduledMinutes) return null;
+  const scheduledSeconds = scheduledMinutes * 60;
+  const diff = scheduledSeconds - elapsedSeconds;
+  const absMins = Math.abs(Math.floor(diff / 60));
+  if (diff > 0) return `נותרו ${absMins} דקות`;
+  if (diff === 0) return 'הזמן המתוכנן תם';
+  return `חריגה של ${absMins} דקות`;
 }
 
 export default function ActiveLesson() {
@@ -43,6 +63,37 @@ export default function ActiveLesson() {
   const [historySkill, setHistorySkill] = useState<DbSkill | null>(null);
   const [hasStarted, setHasStarted] = useState(false);
 
+  // Derive time tracking data from lesson
+  const actualStartTime = (lessonData?.lesson as any)?.actual_start_time
+    ? new Date((lessonData?.lesson as any).actual_start_time)
+    : null;
+  const scheduledMinutes = (lessonData?.lesson as any)?.scheduled_duration_minutes as number | null ?? null;
+  const scheduledEndTime = useMemo(() => {
+    if (!lessonData?.lesson) return null;
+    const { time_end } = lessonData.lesson;
+    return time_end;
+  }, [lessonData?.lesson]);
+
+  const startedAtDisplay = actualStartTime
+    ? actualStartTime.toLocaleTimeString('he-IL', { hour: '2-digit', minute: '2-digit' })
+    : null;
+
+  // Timer based on actual_start_time
+  useEffect(() => {
+    if (!actualStartTime) {
+      // Fallback: simple timer
+      const interval = setInterval(() => setTimer((t) => t + 1), 1000);
+      return () => clearInterval(interval);
+    }
+    const updateTimer = () => {
+      const elapsed = Math.floor((Date.now() - actualStartTime.getTime()) / 1000);
+      setTimer(Math.max(0, elapsed));
+    };
+    updateTimer();
+    const interval = setInterval(updateTimer, 1000);
+    return () => clearInterval(interval);
+  }, [actualStartTime]);
+
   // Show initial selection if no planned skills yet
   useEffect(() => {
     if (!plannedLoading && plannedSkills && plannedSkills.length === 0 && !hasStarted) {
@@ -64,12 +115,6 @@ export default function ActiveLesson() {
       durationSeconds: timer,
     });
   }, [id, studentId, localOverrides, notes, timer, saveLessonMutation, lessonData]);
-
-  // Auto timer
-  useEffect(() => {
-    const interval = setInterval(() => setTimer((t) => t + 1), 1000);
-    return () => clearInterval(interval);
-  }, []);
 
   const handleStatusChange = useCallback((skillId: string, newStatus: SkillStatus) => {
     setLocalOverrides((prev) => ({ ...prev, [skillId]: newStatus }));
@@ -142,6 +187,9 @@ export default function ActiveLesson() {
   const progressPct = totalSkills > 0 ? Math.round((mastered / totalSkills) * 100) : 0;
   const alreadySelectedIds = plannedSkills?.map(ps => ps.skill_id) ?? [];
 
+  const timerColor = getTimerColor(timer, scheduledMinutes);
+  const remainingText = getRemainingText(timer, scheduledMinutes);
+
   return (
     <div dir="rtl" className="min-h-screen bg-background pb-28">
       {/* Sticky Header */}
@@ -155,10 +203,26 @@ export default function ActiveLesson() {
           </button>
           <div className="flex-1 min-w-0">
             <h1 className="text-lg font-heading font-bold text-foreground truncate">{student.name}</h1>
-            <p className="text-xs text-muted-foreground font-body">
-              ⏱️ <span className="font-mono text-foreground">{formatTimer(timer)}</span> &nbsp;•&nbsp; מיומנויות בשיעור: {selectedSkills.length}
-            </p>
+            <div className="flex items-center gap-2 text-xs text-muted-foreground font-body flex-wrap">
+              <span className={cn('font-mono text-sm font-bold', timerColor)}>
+                ⏱️ {formatTimer(timer)}
+              </span>
+              {startedAtDisplay && (
+                <span>התחלה: {startedAtDisplay}</span>
+              )}
+              {scheduledEndTime && (
+                <span>סיום מתוכנן: {scheduledEndTime}</span>
+              )}
+            </div>
+            {remainingText && (
+              <p className={cn('text-xs font-body font-medium', timerColor)}>
+                {remainingText}
+              </p>
+            )}
           </div>
+          <span className="text-xs text-muted-foreground whitespace-nowrap">
+            מיומנויות: {selectedSkills.length}
+          </span>
         </div>
         <div className="flex items-center gap-2">
           <Progress value={progressPct} className="h-2.5 flex-1" />
@@ -268,6 +332,10 @@ export default function ActiveLesson() {
         studentName={student.name}
         onPayment={handleEndLesson}
         isSaving={saveLessonMutation.isPending}
+        startedAt={startedAtDisplay}
+        scheduledEnd={scheduledEndTime}
+        scheduledMinutes={scheduledMinutes}
+        elapsedSeconds={timer}
       />
     </div>
   );

@@ -29,8 +29,23 @@ export function useSaveLesson() {
     }: SaveLessonParams) => {
       const today = new Date().toISOString().slice(0, 10);
       const durationMinutes = Math.round(durationSeconds / 60);
+      const now = new Date().toISOString();
 
-      // 1. Update lesson status & payment
+      // 1. Read lesson to get actual_start_time and scheduled_duration
+      const { data: currentLesson } = await supabase
+        .from('lessons')
+        .select('actual_start_time, scheduled_duration_minutes')
+        .eq('id', lessonId)
+        .single();
+
+      const actualStartTime = (currentLesson as any)?.actual_start_time;
+      const scheduledDuration = (currentLesson as any)?.scheduled_duration_minutes;
+      const actualDuration = actualStartTime
+        ? Math.round((new Date(now).getTime() - new Date(actualStartTime).getTime()) / 60000)
+        : durationMinutes;
+      const variance = scheduledDuration != null ? actualDuration - scheduledDuration : null;
+
+      // 2. Update lesson status, payment & time fields
       const paymentStatus = paymentMethod === 'debt' ? 'debt' : 'paid';
       const practicedSkillIds = [
         ...new Set([...Object.keys(skillOverrides), ...Object.keys(notes)]),
@@ -42,14 +57,22 @@ export function useSaveLesson() {
           status: 'completed',
           payment_status: paymentStatus,
           skills_practiced: practicedSkillIds,
-        })
+          actual_end_time: now,
+          actual_duration_minutes: actualDuration,
+          duration_variance_minutes: variance,
+        } as any)
         .eq('id', lessonId);
 
       if (lessonErr) throw lessonErr;
 
-      // 2. If debt, add amount to student balance
+      // 3. Insert time log entry for 'ended'
+      await supabase.from('lesson_time_log' as any).insert({
+        lesson_id: lessonId,
+        event_type: 'ended',
+      });
+
+      // 4. If debt, add amount to student balance
       if (paymentMethod === 'debt') {
-        // Read current balance then update
         const { data: student, error: sErr } = await supabase
           .from('students')
           .select('balance')
@@ -64,12 +87,11 @@ export function useSaveLesson() {
         if (balErr) throw balErr;
       }
 
-      // 3. Upsert student_skills and insert skill_history for each practiced skill
+      // 5. Upsert student_skills and insert skill_history
       for (const skillId of practicedSkillIds) {
         const newStatus = skillOverrides[skillId];
         const note = notes[skillId] || null;
 
-        // Check if student_skill exists
         const { data: existing, error: checkErr } = await supabase
           .from('student_skills')
           .select('id, times_practiced, current_status')
@@ -82,7 +104,6 @@ export function useSaveLesson() {
         let studentSkillId: string;
 
         if (existing) {
-          // Update existing
           const updates: Record<string, unknown> = {
             times_practiced: existing.times_practiced + 1,
             last_practiced_date: today,
@@ -97,7 +118,6 @@ export function useSaveLesson() {
           if (upErr) throw upErr;
           studentSkillId = existing.id;
         } else {
-          // Insert new
           const { data: inserted, error: insErr } = await supabase
             .from('student_skills')
             .insert({
@@ -114,7 +134,6 @@ export function useSaveLesson() {
           studentSkillId = inserted.id;
         }
 
-        // Insert skill_history entry
         const { error: histErr } = await supabase.from('skill_history').insert({
           student_skill_id: studentSkillId,
           lesson_id: lessonId,
@@ -126,7 +145,7 @@ export function useSaveLesson() {
         if (histErr) throw histErr;
       }
 
-      // 4. Increment total_lessons
+      // 6. Increment total_lessons
       const { data: studentData, error: stErr } = await supabase
         .from('students')
         .select('total_lessons')
@@ -140,7 +159,7 @@ export function useSaveLesson() {
         .eq('id', studentId);
       if (tlErr) throw tlErr;
 
-      // 5. Recalculate readiness_percentage
+      // 7. Recalculate readiness_percentage
       const { count: totalSkills } = await supabase
         .from('skills')
         .select('id', { count: 'exact', head: true })
