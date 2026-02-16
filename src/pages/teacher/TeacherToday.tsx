@@ -1,6 +1,6 @@
 import { useState } from 'react';
-import { format } from 'date-fns';
-import { Plus, TrendingUp, CheckCircle, AlertTriangle, CalendarDays } from 'lucide-react';
+import { format, subMonths, addMonths, isSameMonth } from 'date-fns';
+import { Plus, TrendingUp, CheckCircle, AlertTriangle, CalendarDays, ChevronLeft, ChevronRight } from 'lucide-react';
 import { LessonCard } from '@/components/teacher/LessonCard';
 import { BottomNav } from '@/components/teacher/BottomNav';
 import { AddLessonModal } from '@/components/teacher/AddLessonModal';
@@ -12,9 +12,11 @@ import { Card, CardContent } from '@/components/ui/card';
 
 export default function TeacherToday() {
   const { data: lessonsWithStudents, isLoading } = useTodayLessons();
-  const { data: monthly, isLoading: monthlyLoading } = useMonthlySummary();
+  const [selectedMonth, setSelectedMonth] = useState(new Date());
+  const { data: monthly, isLoading: monthlyLoading } = useMonthlySummary(selectedMonth);
   const [showAddLesson, setShowAddLesson] = useState(false);
   const today = new Date();
+  const isCurrentMonth = isSameMonth(selectedMonth, today);
   const totalExpected = (lessonsWithStudents ?? []).reduce((sum, l) => sum + Number(l.amount), 0);
 
   return (
@@ -54,10 +56,29 @@ export default function TeacherToday() {
         {/* Monthly Summary */}
         <Card className="border-none shadow-md bg-gradient-to-br from-primary/10 to-primary/5">
           <CardContent className="p-4">
-            <h2 className="text-sm font-semibold text-muted-foreground mb-3 flex items-center gap-1.5">
-              <CalendarDays className="h-4 w-4" />
-              {monthlyLoading ? 'Loading...' : monthly?.monthLabel}
-            </h2>
+            <div className="flex items-center justify-between mb-3">
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-7 w-7"
+                onClick={() => setSelectedMonth((m) => subMonths(m, 1))}
+              >
+                <ChevronLeft className="h-4 w-4" />
+              </Button>
+              <h2 className="text-sm font-semibold text-muted-foreground flex items-center gap-1.5">
+                <CalendarDays className="h-4 w-4" />
+                {monthlyLoading ? 'Loading...' : monthly?.monthLabel}
+              </h2>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-7 w-7"
+                disabled={isCurrentMonth}
+                onClick={() => setSelectedMonth((m) => addMonths(m, 1))}
+              >
+                <ChevronRight className="h-4 w-4" />
+              </Button>
+            </div>
             {monthlyLoading ? (
               <div className="grid grid-cols-2 gap-3">
                 {Array.from({ length: 4 }).map((_, i) => (
