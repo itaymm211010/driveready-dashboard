@@ -81,22 +81,14 @@ export default function ActiveLesson() {
 
   const handleInitialSelection = useCallback((skillIds: string[]) => {
     if (!id) return;
-    addPlannedSkillsMutation.mutate({
-      lessonId: id,
-      skillIds,
-      addedBeforeLesson: true,
-    });
+    addPlannedSkillsMutation.mutate({ lessonId: id, skillIds, addedBeforeLesson: true });
     setHasStarted(true);
     setShowSkillSelectionInitial(false);
   }, [id, addPlannedSkillsMutation]);
 
   const handleAddMoreSkills = useCallback((skillIds: string[]) => {
     if (!id) return;
-    addPlannedSkillsMutation.mutate({
-      lessonId: id,
-      skillIds,
-      addedBeforeLesson: false,
-    });
+    addPlannedSkillsMutation.mutate({ lessonId: id, skillIds, addedBeforeLesson: false });
   }, [id, addPlannedSkillsMutation]);
 
   const handleSkipSelection = useCallback(() => {
@@ -109,7 +101,6 @@ export default function ActiveLesson() {
     removePlannedSkillMutation.mutate({ lessonId: id, skillId });
   }, [id, removePlannedSkillMutation]);
 
-  // Build the selected skills list from planned skills + categories
   const selectedSkills = useMemo(() => {
     if (!dbCategories || !plannedSkills) return [];
     const plannedIds = new Set(plannedSkills.map(ps => ps.skill_id));
@@ -134,7 +125,7 @@ export default function ActiveLesson() {
   if (!lessonData?.lesson || !lessonData?.student) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
-        <p className="text-muted-foreground">שיעור לא נמצא.</p>
+        <p className="text-muted-foreground font-body">שיעור לא נמצא.</p>
       </div>
     );
   }
@@ -154,24 +145,24 @@ export default function ActiveLesson() {
   return (
     <div className="min-h-screen bg-background pb-28">
       {/* Sticky Header */}
-      <header className="sticky top-0 z-40 bg-card border-b px-4 py-3 space-y-2">
+      <header className="sticky top-0 z-40 glass-strong border-b border-border/50 px-4 py-3 space-y-2">
         <div className="flex items-center gap-2">
           <button
             onClick={() => navigate('/teacher/today')}
-            className="min-h-[44px] min-w-[44px] flex items-center justify-center rounded-md hover:bg-muted transition-colors"
+            className="min-h-[44px] min-w-[44px] flex items-center justify-center rounded-full hover:bg-muted transition-smooth"
           >
             <ArrowLeft className="h-5 w-5" />
           </button>
           <div className="flex-1 min-w-0">
-            <h1 className="text-lg font-bold text-foreground truncate">{student.name}</h1>
-            <p className="text-xs text-muted-foreground">
-              ⏱️ {formatTimer(timer)} &nbsp;•&nbsp; מיומנויות בשיעור: {selectedSkills.length}
+            <h1 className="text-lg font-heading font-bold text-foreground truncate">{student.name}</h1>
+            <p className="text-xs text-muted-foreground font-body">
+              ⏱️ <span className="font-mono text-foreground">{formatTimer(timer)}</span> &nbsp;•&nbsp; מיומנויות בשיעור: {selectedSkills.length}
             </p>
           </div>
         </div>
         <div className="flex items-center gap-2">
-          <Progress value={progressPct} className="h-2 flex-1" />
-          <span className="text-xs font-medium text-muted-foreground whitespace-nowrap">
+          <Progress value={progressPct} className="h-2.5 flex-1" />
+          <span className="text-xs font-heading font-semibold text-muted-foreground whitespace-nowrap">
             {mastered}/{totalSkills} נשלטו
           </span>
         </div>
@@ -180,24 +171,23 @@ export default function ActiveLesson() {
       {/* Main Content */}
       <main className="p-4 space-y-4">
         {selectedSkills.length === 0 && hasStarted ? (
-          /* Empty state */
           <div className="flex flex-col items-center justify-center py-16 text-center space-y-4">
-            <BookOpen className="h-12 w-12 text-muted-foreground/40" />
-            <p className="text-muted-foreground">לא נבחרו מיומנויות עדיין</p>
-            <Button onClick={() => setShowSkillSelection(true)} className="gap-2">
+            <div className="h-16 w-16 rounded-full bg-muted/50 flex items-center justify-center">
+              <BookOpen className="h-8 w-8 text-muted-foreground/40" />
+            </div>
+            <p className="text-muted-foreground font-body">לא נבחרו מיומנויות עדיין</p>
+            <Button onClick={() => setShowSkillSelection(true)} className="gap-2 shimmer">
               <Plus className="h-4 w-4" /> הוסף מיומנות
             </Button>
           </div>
         ) : (
           <>
-            {/* Section title */}
             <div className="flex items-center justify-between">
-              <h2 className="text-sm font-semibold text-foreground">
+              <h2 className="text-sm font-heading font-semibold text-foreground">
                 📚 מיומנויות להיום ({selectedSkills.length})
               </h2>
             </div>
 
-            {/* Skill cards */}
             <AnimatePresence mode="popLayout">
               {selectedSkills.map(skill => (
                 <motion.div
@@ -221,10 +211,9 @@ export default function ActiveLesson() {
               ))}
             </AnimatePresence>
 
-            {/* Add more button */}
             <Button
               variant="outline"
-              className="w-full gap-2 border-dashed"
+              className="w-full gap-2 border-dashed border-primary/30 hover:border-primary/60 transition-smooth"
               onClick={() => setShowSkillSelection(true)}
             >
               <Plus className="h-4 w-4" /> הוסף מיומנות נוספת
@@ -234,21 +223,18 @@ export default function ActiveLesson() {
       </main>
 
       {/* Sticky Bottom Bar */}
-      <div className="fixed bottom-0 inset-x-0 z-50 bg-card border-t p-4 safe-area-bottom">
+      <div className="fixed bottom-0 inset-x-0 z-50 nav-glass border-t border-border/50 p-4 safe-area-bottom">
         <Button
-          className="w-full min-h-[52px] text-base font-bold bg-success hover:bg-success/90 text-success-foreground"
+          className="w-full min-h-[52px] text-base font-heading font-bold bg-success hover:bg-success/90 text-success-foreground glow-primary transition-smooth"
           onClick={() => setShowEndModal(true)}
         >
           ✅ סיים שיעור וחייב
         </Button>
       </div>
 
-      {/* Initial Skill Selection Modal */}
       <SkillSelectionModal
         open={showSkillSelectionInitial}
-        onOpenChange={(open) => {
-          if (!open) handleSkipSelection();
-        }}
+        onOpenChange={(open) => { if (!open) handleSkipSelection(); }}
         categories={categories}
         alreadySelected={[]}
         studentName={student.name}
@@ -257,7 +243,6 @@ export default function ActiveLesson() {
         confirmLabel="התחל שיעור עם הנבחרים"
       />
 
-      {/* Add More Skills Modal */}
       <SkillSelectionModal
         open={showSkillSelection}
         onOpenChange={setShowSkillSelection}
@@ -269,14 +254,12 @@ export default function ActiveLesson() {
         confirmLabel="הוסף מיומנויות"
       />
 
-      {/* Skill History Modal */}
       <SkillHistoryModal
         open={!!historySkill}
         onOpenChange={(open) => { if (!open) setHistorySkill(null); }}
         skill={historySkill}
       />
 
-      {/* End Lesson Modal */}
       <EndLessonModal
         open={showEndModal}
         onOpenChange={setShowEndModal}
