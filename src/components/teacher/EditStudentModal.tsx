@@ -44,7 +44,7 @@ export function EditStudentModal({ open, onOpenChange, student }: EditStudentMod
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['student-profile', student.id] });
       queryClient.invalidateQueries({ queryKey: ['students-list'] });
-      toast.success('Student updated!');
+      toast.success('תלמיד עודכן בהצלחה!');
       onOpenChange(false);
     },
     onError: (err: Error) => {
@@ -62,12 +62,12 @@ export function EditStudentModal({ open, onOpenChange, student }: EditStudentMod
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>Edit Student</DialogTitle>
-          <DialogDescription>Update the student's details.</DialogDescription>
+          <DialogTitle>עריכת תלמיד</DialogTitle>
+          <DialogDescription>עדכן את פרטי התלמיד.</DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4 pt-2">
           <div className="space-y-2">
-            <Label htmlFor="edit-name">Name *</Label>
+            <Label htmlFor="edit-name">שם *</Label>
             <Input
               id="edit-name"
               value={name}
@@ -77,7 +77,7 @@ export function EditStudentModal({ open, onOpenChange, student }: EditStudentMod
             />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="edit-phone">Phone</Label>
+            <Label htmlFor="edit-phone">טלפון</Label>
             <Input
               id="edit-phone"
               type="tel"
@@ -87,7 +87,7 @@ export function EditStudentModal({ open, onOpenChange, student }: EditStudentMod
             />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="edit-email">Email</Label>
+            <Label htmlFor="edit-email">אימייל</Label>
             <Input
               id="edit-email"
               type="email"
@@ -117,10 +117,10 @@ export function EditStudentModal({ open, onOpenChange, student }: EditStudentMod
           </div>
           <div className="flex justify-end gap-2 pt-2">
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
-              Cancel
+              ביטול
             </Button>
             <Button type="submit" disabled={!name.trim() || mutation.isPending}>
-              {mutation.isPending ? 'Saving…' : 'Save'}
+              {mutation.isPending ? 'שומר…' : 'שמור'}
             </Button>
           </div>
         </form>

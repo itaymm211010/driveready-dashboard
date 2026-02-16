@@ -48,14 +48,14 @@ export default function TeacherToday() {
           <div className="flex items-center gap-2.5 bg-primary/10 border border-primary/20 rounded-xl px-3.5 py-2.5 transition-smooth">
             <span className="text-lg">📊</span>
             <div>
-              <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-medium">Lessons</p>
+              <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-medium">שיעורים</p>
               <p className="text-base font-heading font-bold text-foreground">{isLoading ? '…' : (lessonsWithStudents?.length ?? 0)}</p>
             </div>
           </div>
           <div className="flex items-center gap-2.5 bg-success/10 border border-success/20 rounded-xl px-3.5 py-2.5 transition-smooth">
             <span className="text-lg">💰</span>
             <div>
-              <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-medium">Expected</p>
+              <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-medium">צפוי</p>
               <p className="text-base font-heading font-bold text-foreground">₪{isLoading ? '…' : totalExpected.toLocaleString()}</p>
             </div>
           </div>
@@ -79,7 +79,7 @@ export default function TeacherToday() {
                 </Button>
                 <h2 className="text-sm font-heading font-semibold text-muted-foreground flex items-center gap-1.5">
                   <CalendarDays className="h-4 w-4" />
-                  {monthlyLoading ? 'Loading...' : monthly?.monthLabel}
+                  {monthlyLoading ? 'טוען...' : monthly?.monthLabel}
                 </h2>
                 <Button
                   variant="ghost"
@@ -104,7 +104,7 @@ export default function TeacherToday() {
                       <CalendarDays className="h-4 w-4 text-primary" />
                     </div>
                     <div>
-                      <p className="text-[10px] uppercase tracking-wider text-muted-foreground">Lessons</p>
+                      <p className="text-[10px] uppercase tracking-wider text-muted-foreground">שיעורים</p>
                       <p className="text-lg font-heading font-bold text-foreground">{monthly?.completedLessons}/{monthly?.totalLessons}</p>
                     </div>
                   </div>
@@ -113,7 +113,7 @@ export default function TeacherToday() {
                       <TrendingUp className="h-4 w-4 text-success" />
                     </div>
                     <div>
-                      <p className="text-[10px] uppercase tracking-wider text-muted-foreground">Income</p>
+                      <p className="text-[10px] uppercase tracking-wider text-muted-foreground">הכנסה</p>
                       <p className="text-lg font-heading font-bold text-foreground">₪{monthly?.totalIncome.toLocaleString()}</p>
                     </div>
                   </div>
@@ -122,7 +122,7 @@ export default function TeacherToday() {
                       <CheckCircle className="h-4 w-4 text-success" />
                     </div>
                     <div>
-                      <p className="text-[10px] uppercase tracking-wider text-muted-foreground">Paid</p>
+                      <p className="text-[10px] uppercase tracking-wider text-muted-foreground">שולם</p>
                       <p className="text-lg font-heading font-bold text-foreground">₪{monthly?.paidIncome.toLocaleString()}</p>
                     </div>
                   </div>
@@ -131,7 +131,7 @@ export default function TeacherToday() {
                       <AlertTriangle className="h-4 w-4 text-destructive" />
                     </div>
                     <div>
-                      <p className="text-[10px] uppercase tracking-wider text-muted-foreground">Debt</p>
+                      <p className="text-[10px] uppercase tracking-wider text-muted-foreground">חוב</p>
                       <p className="text-lg font-heading font-bold text-destructive">₪{monthly?.debtAmount.toLocaleString()}</p>
                     </div>
                   </div>
@@ -146,7 +146,7 @@ export default function TeacherToday() {
             <Skeleton key={i} className="h-32 w-full rounded-xl" />
           ))
         ) : (lessonsWithStudents ?? []).length === 0 ? (
-          <p className="text-center text-muted-foreground py-12 font-body">No lessons scheduled for today.</p>
+          <p className="text-center text-muted-foreground py-12 font-body">אין שיעורים מתוזמנים להיום.</p>
         ) : (
           (lessonsWithStudents ?? []).map((item, i) => (
             <motion.div

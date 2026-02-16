@@ -15,7 +15,7 @@ interface SkillRowProps {
 
 function formatDate(dateStr: string) {
   const d = new Date(dateStr);
-  return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+  return d.toLocaleDateString('he-IL', { month: 'short', day: 'numeric' });
 }
 
 function getStatusIcon(status: SkillStatus) {
@@ -55,13 +55,13 @@ export function SkillRow({ skill, onStatusChange, onNoteChange, noteValue }: Ski
             {stale && (
               <span className="inline-flex items-center gap-0.5 text-xs text-destructive font-medium">
                 <Clock className="h-3 w-3" />
-                {days}d ago
+                לפני {days} ימים
               </span>
             )}
           </div>
           {skill.last_note && (
             <p className="text-xs text-muted-foreground mt-0.5 truncate">
-              └─ Last: "{skill.last_note}"
+              └─ אחרון: "{skill.last_note}"
             </p>
           )}
         </div>
@@ -78,7 +78,7 @@ export function SkillRow({ skill, onStatusChange, onNoteChange, noteValue }: Ski
       {skill.history.length > 0 && (
         <Collapsible open={expanded} onOpenChange={setExpanded}>
           <CollapsibleTrigger className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors min-h-[32px]">
-            📖 {expanded ? 'Hide' : 'Show'} History
+            📖 {expanded ? 'הסתר' : 'הצג'} היסטוריה
             {expanded ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />}
           </CollapsibleTrigger>
           <CollapsibleContent>
@@ -91,23 +91,23 @@ export function SkillRow({ skill, onStatusChange, onNoteChange, noteValue }: Ski
                   className="mt-2 space-y-2 border-t pt-2"
                 >
                   <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">
-                    Practice History
+                    היסטוריית תרגול
                   </p>
                   {skill.history.map((entry, i) => (
                     <div key={i} className="text-xs space-y-0.5 border-b border-border/50 pb-2 last:border-0">
                       <div className="flex items-center justify-between">
                         <span className="font-medium text-foreground">
-                          📅 Lesson #{entry.lesson_number} – {formatDate(entry.lesson_date)}
+                          📅 שיעור #{entry.lesson_number} – {formatDate(entry.lesson_date)}
                         </span>
                         {entry.proficiency_estimate !== undefined && (
                           <span className="text-muted-foreground">({entry.proficiency_estimate}%)</span>
                         )}
                       </div>
                       <p className="text-muted-foreground">
-                        Status: {getStatusIcon(entry.status)} {entry.status.replace('_', ' ')}
+                        סטטוס: {getStatusIcon(entry.status)} {entry.status === 'mastered' ? 'נשלט' : entry.status === 'in_progress' ? 'בתהליך' : 'לא נלמד'}
                       </p>
                       {entry.practice_duration_minutes && (
-                        <p className="text-muted-foreground">Duration: {entry.practice_duration_minutes} min</p>
+                        <p className="text-muted-foreground">משך: {entry.practice_duration_minutes} דקות</p>
                       )}
                       {entry.teacher_note && (
                         <p className="text-muted-foreground italic">📝 "{entry.teacher_note}"</p>
@@ -123,7 +123,7 @@ export function SkillRow({ skill, onStatusChange, onNoteChange, noteValue }: Ski
                     if (diff === 0) return null;
                     return (
                       <p className={cn('text-xs font-medium', diff > 0 ? 'text-success' : 'text-destructive')}>
-                        💡 {diff > 0 ? `+${diff}%` : `${diff}%`} since first attempt {diff > 0 ? '📈' : '📉'}
+                        💡 {diff > 0 ? `+${diff}%` : `${diff}%`} מהניסיון הראשון {diff > 0 ? '📈' : '📉'}
                       </p>
                     );
                   })()}
@@ -137,7 +137,7 @@ export function SkillRow({ skill, onStatusChange, onNoteChange, noteValue }: Ski
       {/* Note field */}
       <input
         type="text"
-        placeholder="Add note (optional)..."
+        placeholder="הוסף הערה (אופציונלי)..."
         value={noteValue}
         onChange={(e) => onNoteChange(skill.id, e.target.value)}
         className="w-full text-xs bg-muted/50 border border-border rounded-md px-2.5 py-2 min-h-[36px] placeholder:text-muted-foreground/50 focus:outline-none focus:ring-1 focus:ring-ring"
