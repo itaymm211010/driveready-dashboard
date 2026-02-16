@@ -72,11 +72,16 @@ export function useStudentReport(studentId: string | undefined) {
         const inProgress = cat.skills.filter(
           (s) => s.studentSkill?.current_status === 'in_progress'
         ).length;
+        const notLearned = total - mastered - inProgress;
         const score = mastered + inProgress * 0.5;
         return {
           category: cat.name,
           value: total > 0 ? Math.round((score / total) * 100) : 0,
           fullMark: 100,
+          mastered,
+          inProgress,
+          notLearned,
+          total,
         };
       });
 

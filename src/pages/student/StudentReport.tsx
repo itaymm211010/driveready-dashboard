@@ -146,6 +146,21 @@ export default function StudentReport() {
                       fillOpacity={0.2}
                       strokeWidth={2}
                     />
+                    <Tooltip content={({ active, payload }) => {
+                      if (!active || !payload?.length) return null;
+                      const d = payload[0].payload;
+                      return (
+                        <div className="rounded-lg border bg-background p-2.5 text-xs shadow-xl" dir="rtl">
+                          <p className="font-semibold text-foreground mb-1.5">{d.category}</p>
+                          <div className="space-y-0.5 text-muted-foreground">
+                            <p>✅ נשלטו: <span className="text-foreground font-medium">{d.mastered}</span></p>
+                            <p>🔄 בתהליך: <span className="text-foreground font-medium">{d.inProgress}</span></p>
+                            <p>⬜ לא נלמדו: <span className="text-foreground font-medium">{d.notLearned}</span></p>
+                          </div>
+                          <p className="mt-1.5 text-primary font-semibold">{d.value}%</p>
+                        </div>
+                      );
+                    }} />
                   </RadarChart>
                 </ResponsiveContainer>
               </div>
