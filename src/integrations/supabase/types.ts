@@ -14,6 +14,45 @@ export type Database = {
   }
   public: {
     Tables: {
+      lesson_planned_skills: {
+        Row: {
+          added_at: string
+          added_before_lesson: boolean
+          id: string
+          lesson_id: string
+          skill_id: string
+        }
+        Insert: {
+          added_at?: string
+          added_before_lesson?: boolean
+          id?: string
+          lesson_id: string
+          skill_id: string
+        }
+        Update: {
+          added_at?: string
+          added_before_lesson?: boolean
+          id?: string
+          lesson_id?: string
+          skill_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "lesson_planned_skills_lesson_id_fkey"
+            columns: ["lesson_id"]
+            isOneToOne: false
+            referencedRelation: "lessons"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "lesson_planned_skills_skill_id_fkey"
+            columns: ["skill_id"]
+            isOneToOne: false
+            referencedRelation: "skills"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       lessons: {
         Row: {
           amount: number
