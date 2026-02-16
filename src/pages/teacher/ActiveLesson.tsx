@@ -1,14 +1,17 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft, Plus, BookOpen } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
-import { SkillRow } from '@/components/teacher/SkillRow';
 import { EndLessonModal } from '@/components/teacher/EndLessonModal';
+import { SkillSelectionModal } from '@/components/teacher/SkillSelectionModal';
+import { SkillHistoryModal } from '@/components/teacher/SkillHistoryModal';
+import { LessonSkillCard } from '@/components/teacher/LessonSkillCard';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useLessonWithStudent, useStudentSkillTree } from '@/hooks/use-teacher-data';
+import { useLessonPlannedSkills, useAddPlannedSkills } from '@/hooks/use-lesson-planned-skills';
 import { useSaveLesson } from '@/hooks/use-save-lesson';
-import type { DbSkillCategory } from '@/hooks/use-teacher-data';
+import type { DbSkill } from '@/hooks/use-teacher-data';
 import type { SkillStatus } from '@/data/mock';
 
 function formatTimer(seconds: number) {
@@ -25,13 +28,27 @@ export default function ActiveLesson() {
   const { data: lessonData, isLoading: lessonLoading } = useLessonWithStudent(id);
   const studentId = lessonData?.student?.id;
   const { data: dbCategories, isLoading: skillsLoading } = useStudentSkillTree(studentId);
-
+  const { data: plannedSkills, isLoading: plannedLoading } = useLessonPlannedSkills(id);
+  const addPlannedSkillsMutation = useAddPlannedSkills();
   const saveLessonMutation = useSaveLesson();
 
   const [timer, setTimer] = useState(0);
   const [localOverrides, setLocalOverrides] = useState<Record<string, SkillStatus>>({});
   const [notes, setNotes] = useState<Record<string, string>>({});
   const [showEndModal, setShowEndModal] = useState(false);
+  const [showSkillSelection, setShowSkillSelection] = useState(false);
+  const [showSkillSelectionInitial, setShowSkillSelectionInitial] = useState(false);
+  const [historySkill, setHistorySkill] = useState<DbSkill | null>(null);
+  const [hasStarted, setHasStarted] = useState(false);
+
+  // Show initial selection if no planned skills yet
+  useEffect(() => {
+    if (!plannedLoading && plannedSkills && plannedSkills.length === 0 && !hasStarted) {
+      setShowSkillSelectionInitial(true);
+    } else if (plannedSkills && plannedSkills.length > 0) {
+      setHasStarted(true);
+    }
+  }, [plannedSkills, plannedLoading, hasStarted]);
 
   const handleEndLesson = useCallback((method: 'cash' | 'receipt' | 'debt') => {
     if (!id || !studentId) return;
@@ -60,13 +77,48 @@ export default function ActiveLesson() {
     setNotes((prev) => ({ ...prev, [skillId]: note }));
   }, []);
 
-  if (lessonLoading || skillsLoading) {
+  const handleInitialSelection = useCallback((skillIds: string[]) => {
+    if (!id) return;
+    addPlannedSkillsMutation.mutate({
+      lessonId: id,
+      skillIds,
+      addedBeforeLesson: true,
+    });
+    setHasStarted(true);
+    setShowSkillSelectionInitial(false);
+  }, [id, addPlannedSkillsMutation]);
+
+  const handleAddMoreSkills = useCallback((skillIds: string[]) => {
+    if (!id) return;
+    addPlannedSkillsMutation.mutate({
+      lessonId: id,
+      skillIds,
+      addedBeforeLesson: false,
+    });
+  }, [id, addPlannedSkillsMutation]);
+
+  const handleSkipSelection = useCallback(() => {
+    setHasStarted(true);
+    setShowSkillSelectionInitial(false);
+  }, []);
+
+  // Build the selected skills list from planned skills + categories
+  const selectedSkills = useMemo(() => {
+    if (!dbCategories || !plannedSkills) return [];
+    const plannedIds = new Set(plannedSkills.map(ps => ps.skill_id));
+    const allSkills = dbCategories.flatMap(c => c.skills);
+    return allSkills.filter(s => plannedIds.has(s.id));
+  }, [dbCategories, plannedSkills]);
+
+  const isLoading = lessonLoading || skillsLoading || plannedLoading;
+
+  if (isLoading) {
     return (
       <div className="min-h-screen bg-background p-4 space-y-4">
         <Skeleton className="h-20 w-full rounded-xl" />
         <Skeleton className="h-12 w-full rounded-xl" />
-        {Array.from({ length: 4 }).map((_, i) => (
-          <Skeleton key={i} className="h-24 w-full rounded-xl" />
+        {Array.from({ length: 3 }).map((_, i) => (
+          <Skeleton key={i} className="h-32 w-full rounded-xl" />
         ))}
       </div>
     );
@@ -75,49 +127,22 @@ export default function ActiveLesson() {
   if (!lessonData?.lesson || !lessonData?.student) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
-        <p className="text-muted-foreground">Lesson not found.</p>
+        <p className="text-muted-foreground">שיעור לא נמצא.</p>
       </div>
     );
   }
 
   const { lesson, student } = lessonData;
-  const categories: DbSkillCategory[] = dbCategories ?? [];
-
-  // Build flat skill list with local overrides applied
-  const allSkills = categories.flatMap((c) =>
-    c.skills.map((s) => ({
-      ...s,
-      effectiveStatus: localOverrides[s.id] ?? s.student_skill?.current_status ?? 'not_learned',
-    }))
-  );
-
-  const mastered = allSkills.filter((s) => s.effectiveStatus === 'mastered').length;
-  const total = allSkills.length;
-  const progressPct = total > 0 ? Math.round((mastered / total) * 100) : 0;
-  const skillsPracticedToday = allSkills.filter(
-    (s) => notes[s.id] || localOverrides[s.id]
-  ).length;
-
-  // Adapt DB skills to the Skill shape expected by SkillRow
-  const toSkillRowData = (s: (typeof allSkills)[number]) => ({
-    id: s.id,
-    name: s.name,
-    category: '',
-    current_status: s.effectiveStatus as SkillStatus,
-    times_practiced: s.student_skill?.times_practiced ?? 0,
-    last_practiced_date: s.student_skill?.last_practiced_date ?? undefined,
-    last_proficiency: s.student_skill?.last_proficiency ?? undefined,
-    last_note: s.student_skill?.last_note ?? undefined,
-    history: s.history.map((h) => ({
-      lesson_id: h.id,
-      lesson_number: h.lesson_number ?? 0,
-      lesson_date: h.lesson_date,
-      status: h.status as SkillStatus,
-      proficiency_estimate: h.proficiency_estimate ?? undefined,
-      teacher_note: h.teacher_note ?? undefined,
-      practice_duration_minutes: h.practice_duration_minutes ?? undefined,
-    })),
-  });
+  const categories = dbCategories ?? [];
+  const allSkillsFlat = categories.flatMap(c => c.skills);
+  const totalSkills = allSkillsFlat.length;
+  const mastered = allSkillsFlat.filter(s => {
+    const override = localOverrides[s.id];
+    const status = override ?? s.student_skill?.current_status ?? 'not_learned';
+    return status === 'mastered';
+  }).length;
+  const progressPct = totalSkills > 0 ? Math.round((mastered / totalSkills) * 100) : 0;
+  const alreadySelectedIds = plannedSkills?.map(ps => ps.skill_id) ?? [];
 
   return (
     <div className="min-h-screen bg-background pb-28">
@@ -133,56 +158,61 @@ export default function ActiveLesson() {
           <div className="flex-1 min-w-0">
             <h1 className="text-lg font-bold text-foreground truncate">{student.name}</h1>
             <p className="text-xs text-muted-foreground">
-              ⏱️ {formatTimer(timer)} &nbsp;•&nbsp; Today's Focus: {skillsPracticedToday} skills
+              ⏱️ {formatTimer(timer)} &nbsp;•&nbsp; מיומנויות בשיעור: {selectedSkills.length}
             </p>
           </div>
         </div>
         <div className="flex items-center gap-2">
           <Progress value={progressPct} className="h-2 flex-1" />
           <span className="text-xs font-medium text-muted-foreground whitespace-nowrap">
-            {mastered}/{total} Mastered
+            {mastered}/{totalSkills} נשלטו
           </span>
         </div>
       </header>
 
-      {/* Skill Categories */}
-      <main className="p-4 space-y-5">
-        {categories.map((cat) => {
-          const catSkills = cat.skills.map((s) => ({
-            ...s,
-            effectiveStatus: localOverrides[s.id] ?? s.student_skill?.current_status ?? 'not_learned',
-          }));
-          const catMastered = catSkills.filter((s) => s.effectiveStatus === 'mastered').length;
-          const catTotal = catSkills.length;
-          const catPct = catTotal > 0 ? Math.round((catMastered / catTotal) * 100) : 0;
+      {/* Main Content */}
+      <main className="p-4 space-y-4">
+        {selectedSkills.length === 0 && hasStarted ? (
+          /* Empty state */
+          <div className="flex flex-col items-center justify-center py-16 text-center space-y-4">
+            <BookOpen className="h-12 w-12 text-muted-foreground/40" />
+            <p className="text-muted-foreground">לא נבחרו מיומנויות עדיין</p>
+            <Button onClick={() => setShowSkillSelection(true)} className="gap-2">
+              <Plus className="h-4 w-4" /> הוסף מיומנות
+            </Button>
+          </div>
+        ) : (
+          <>
+            {/* Section title */}
+            <div className="flex items-center justify-between">
+              <h2 className="text-sm font-semibold text-foreground">
+                📚 מיומנויות להיום ({selectedSkills.length})
+              </h2>
+            </div>
 
-          return (
-            <section key={cat.id}>
-              <div className="sticky top-[105px] z-30 bg-background py-2">
-                <div className="flex items-center justify-between bg-muted rounded-lg px-3 py-2">
-                  <span className="font-semibold text-sm text-foreground">
-                    {cat.icon} {cat.name}
-                  </span>
-                  <span className="text-xs text-muted-foreground">
-                    {catMastered}/{catTotal} ({catPct}%)
-                  </span>
-                </div>
-              </div>
+            {/* Skill cards */}
+            {selectedSkills.map(skill => (
+              <LessonSkillCard
+                key={skill.id}
+                skill={skill}
+                currentStatus={(localOverrides[skill.id] ?? skill.student_skill?.current_status ?? 'not_learned') as SkillStatus}
+                noteValue={notes[skill.id] || ''}
+                onStatusChange={handleStatusChange}
+                onNoteChange={handleNoteChange}
+                onShowHistory={setHistorySkill}
+              />
+            ))}
 
-              <div className="space-y-2 mt-2">
-                {catSkills.map((skill) => (
-                  <SkillRow
-                    key={skill.id}
-                    skill={toSkillRowData(skill)}
-                    onStatusChange={handleStatusChange}
-                    onNoteChange={handleNoteChange}
-                    noteValue={notes[skill.id] || ''}
-                  />
-                ))}
-              </div>
-            </section>
-          );
-        })}
+            {/* Add more button */}
+            <Button
+              variant="outline"
+              className="w-full gap-2 border-dashed"
+              onClick={() => setShowSkillSelection(true)}
+            >
+              <Plus className="h-4 w-4" /> הוסף מיומנות נוספת
+            </Button>
+          </>
+        )}
       </main>
 
       {/* Sticky Bottom Bar */}
@@ -191,10 +221,44 @@ export default function ActiveLesson() {
           className="w-full min-h-[52px] text-base font-bold bg-success hover:bg-success/90 text-success-foreground"
           onClick={() => setShowEndModal(true)}
         >
-          ✅ End Lesson & Bill
+          ✅ סיים שיעור וחייב
         </Button>
       </div>
 
+      {/* Initial Skill Selection Modal */}
+      <SkillSelectionModal
+        open={showSkillSelectionInitial}
+        onOpenChange={(open) => {
+          if (!open) handleSkipSelection();
+        }}
+        categories={categories}
+        alreadySelected={[]}
+        studentName={student.name}
+        lessonNumber={student.total_lessons + 1}
+        onConfirm={handleInitialSelection}
+        confirmLabel="התחל שיעור עם הנבחרים"
+      />
+
+      {/* Add More Skills Modal */}
+      <SkillSelectionModal
+        open={showSkillSelection}
+        onOpenChange={setShowSkillSelection}
+        categories={categories}
+        alreadySelected={alreadySelectedIds}
+        studentName={student.name}
+        lessonNumber={student.total_lessons + 1}
+        onConfirm={handleAddMoreSkills}
+        confirmLabel="הוסף מיומנויות"
+      />
+
+      {/* Skill History Modal */}
+      <SkillHistoryModal
+        open={!!historySkill}
+        onOpenChange={(open) => { if (!open) setHistorySkill(null); }}
+        skill={historySkill}
+      />
+
+      {/* End Lesson Modal */}
       <EndLessonModal
         open={showEndModal}
         onOpenChange={setShowEndModal}
