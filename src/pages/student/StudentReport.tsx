@@ -1,6 +1,6 @@
 import { useParams } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Share2, MessageCircle, Trophy, BookOpen, CheckCircle, Clock, AlertTriangle } from 'lucide-react';
+import { Share2, MessageCircle, Trophy, BookOpen, CheckCircle, Clock, AlertTriangle, Moon, Sun } from 'lucide-react';
 import {
   RadarChart, PolarGrid, PolarAngleAxis, Radar, ResponsiveContainer,
   LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip,
@@ -12,6 +12,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { cn } from '@/lib/utils';
+import { useTheme } from '@/components/ThemeProvider';
 
 const STATUS_CONFIG: Record<string, { label: string; className: string; icon: React.ReactNode }> = {
   mastered: { label: 'נשלט', className: 'bg-success/20 text-success border-success/30', icon: <CheckCircle className="h-3 w-3" /> },
@@ -30,6 +31,8 @@ const fadeUp = {
 export default function StudentReport() {
   const { id } = useParams<{ id: string }>();
   const { data, isLoading } = useStudentReport(id);
+  const { theme, setTheme } = useTheme();
+  const isDark = theme === 'dark';
 
   const handleShare = async () => {
     const url = window.location.href;
@@ -48,22 +51,18 @@ export default function StudentReport() {
 
   if (isLoading) {
     return (
-      <div className="dark">
-        <div dir="rtl" className="min-h-screen bg-background p-4 space-y-4">
-          <Skeleton className="h-48 w-full rounded-2xl" />
-          <Skeleton className="h-64 w-full rounded-2xl" />
-          <Skeleton className="h-48 w-full rounded-2xl" />
-        </div>
+      <div dir="rtl" className="min-h-screen bg-background p-4 space-y-4">
+        <Skeleton className="h-48 w-full rounded-2xl" />
+        <Skeleton className="h-64 w-full rounded-2xl" />
+        <Skeleton className="h-48 w-full rounded-2xl" />
       </div>
     );
   }
 
   if (!data) {
     return (
-      <div className="dark">
-        <div dir="rtl" className="min-h-screen bg-background flex items-center justify-center">
-          <p className="text-muted-foreground font-body">תלמיד לא נמצא.</p>
-        </div>
+      <div dir="rtl" className="min-h-screen bg-background flex items-center justify-center">
+        <p className="text-muted-foreground font-body">תלמיד לא נמצא.</p>
       </div>
     );
   }
@@ -77,9 +76,18 @@ export default function StudentReport() {
   );
 
   return (
-    <div className="dark">
-      <div dir="rtl" className="min-h-screen bg-background pb-8">
-        {/* Header / Driver Card - FIFA Ultimate Team Style */}
+    <div dir="rtl" className="min-h-screen bg-background pb-8">
+      {/* Theme Toggle */}
+      <div className="fixed top-4 left-4 z-50">
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={() => setTheme(isDark ? 'light' : 'dark')}
+          className="h-9 w-9 rounded-full glass border border-border/50"
+        >
+          {isDark ? <Sun className="h-4 w-4 text-warning" /> : <Moon className="h-4 w-4 text-muted-foreground" />}
+        </Button>
+      </div>
         <motion.div
           className="glass glow-neon rounded-b-3xl p-6 pb-8 relative overflow-hidden"
           variants={fadeUp} initial="hidden" animate="visible" custom={0}
@@ -246,7 +254,6 @@ export default function StudentReport() {
               <MessageCircle className="h-4 w-4" /> WhatsApp
             </Button>
           </motion.div>
-        </div>
       </div>
     </div>
   );
