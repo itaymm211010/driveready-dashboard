@@ -1,4 +1,4 @@
-import { Info } from 'lucide-react';
+import { Info, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { SkillStatusToggle } from '@/components/shared/SkillStatusToggle';
 import type { DbSkill } from '@/hooks/use-teacher-data';
@@ -11,6 +11,7 @@ interface LessonSkillCardProps {
   onStatusChange: (skillId: string, status: SkillStatus) => void;
   onNoteChange: (skillId: string, note: string) => void;
   onShowHistory: (skill: DbSkill) => void;
+  onRemove?: (skillId: string) => void;
 }
 
 export function LessonSkillCard({
@@ -20,6 +21,7 @@ export function LessonSkillCard({
   onStatusChange,
   onNoteChange,
   onShowHistory,
+  onRemove,
 }: LessonSkillCardProps) {
   const isFirstTime = !skill.student_skill || skill.student_skill.times_practiced === 0;
 
@@ -41,14 +43,26 @@ export function LessonSkillCard({
             </p>
           ) : null}
         </div>
-        <Button
-          variant="ghost"
-          size="sm"
-          className="h-8 w-8 p-0 flex-shrink-0"
-          onClick={() => onShowHistory(skill)}
-        >
-          <Info className="h-4 w-4" />
-        </Button>
+        <div className="flex items-center gap-1 flex-shrink-0">
+          <Button
+            variant="ghost"
+            size="sm"
+            className="h-8 w-8 p-0"
+            onClick={() => onShowHistory(skill)}
+          >
+            <Info className="h-4 w-4" />
+          </Button>
+          {onRemove && (
+            <Button
+              variant="ghost"
+              size="sm"
+              className="h-8 w-8 p-0 text-muted-foreground hover:text-destructive"
+              onClick={() => onRemove(skill.id)}
+            >
+              <X className="h-4 w-4" />
+            </Button>
+          )}
+        </div>
       </div>
 
       {/* Status Toggle */}
