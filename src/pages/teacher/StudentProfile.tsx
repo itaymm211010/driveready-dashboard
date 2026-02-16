@@ -1,9 +1,11 @@
-import { useState } from 'react';
-import { Plus } from 'lucide-react';
+import { useState, useCallback, useRef, useEffect } from 'react';
+import { Plus, ArrowLeft, Phone, MessageCircle, TrendingUp, Wallet, BookOpen, CheckCircle, Clock, AlertTriangle, ExternalLink, Pencil, Trash2, Calendar, FileText, CreditCard, StickyNote } from 'lucide-react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft, Phone, MessageCircle, TrendingUp, Wallet, BookOpen, CheckCircle, Clock, AlertTriangle, ExternalLink, Pencil, Trash2 } from 'lucide-react';
-import { format } from 'date-fns';
+import { format, formatDistanceToNow } from 'date-fns';
+import { he } from 'date-fns/locale';
 import { motion } from 'framer-motion';
+import { RadarChart, PolarGrid, PolarAngleAxis, Radar, ResponsiveContainer, LineChart, Line, XAxis, YAxis, Tooltip, CartesianGrid } from 'recharts';
+import { supabase } from '@/integrations/supabase/client';
 import { useStudentProfile } from '@/hooks/use-student-profile';
 import { BottomNav } from '@/components/teacher/BottomNav';
 import { Button } from '@/components/ui/button';
@@ -12,11 +14,13 @@ import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Progress } from '@/components/ui/progress';
 import { Separator } from '@/components/ui/separator';
+import { Textarea } from '@/components/ui/textarea';
 import { EditStudentModal } from '@/components/teacher/EditStudentModal';
 import { DeleteStudentDialog } from '@/components/teacher/DeleteStudentDialog';
 import { AddLessonModal } from '@/components/teacher/AddLessonModal';
 import { SkillHistoryModal } from '@/components/teacher/SkillHistoryModal';
 import { cn } from '@/lib/utils';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 
 const STATUS_CONFIG: Record<string, { label: string; color: string; icon: React.ReactNode }> = {
   mastered: { label: 'נשלט', color: 'bg-success/15 text-success border-success/30', icon: <CheckCircle className="h-3 w-3" /> },
@@ -32,14 +36,70 @@ const fadeUp = {
   }),
 };
 
+function useNextLesson(studentId: string | undefined) {
+  return useQuery({
+    queryKey: ['next-lesson', studentId],
+    enabled: !!studentId,
+    queryFn: async () => {
+      const today = new Date().toISOString().slice(0, 10);
+      const { data } = await supabase
+        .from('lessons')
+        .select('*')
+        .eq('student_id', studentId!)
+        .gte('date', today)
+        .in('status', ['scheduled', 'in_progress'])
+        .order('date')
+        .order('time_start')
+        .limit(1);
+      return data?.[0] ?? null;
+    },
+  });
+}
+
+function useUpdateTeacherNotes() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ studentId, notes }: { studentId: string; notes: string }) => {
+      const { error } = await supabase
+        .from('students')
+        .update({ teacher_notes: notes } as any)
+        .eq('id', studentId);
+      if (error) throw error;
+    },
+    onSuccess: (_, { studentId }) => {
+      queryClient.invalidateQueries({ queryKey: ['student-profile', studentId] });
+    },
+  });
+}
+
 export default function StudentProfile() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { data, isLoading } = useStudentProfile(id);
+  const { data: nextLesson } = useNextLesson(id);
+  const updateNotes = useUpdateTeacherNotes();
   const [showEdit, setShowEdit] = useState(false);
   const [showDelete, setShowDelete] = useState(false);
   const [showAddLesson, setShowAddLesson] = useState(false);
   const [historySkill, setHistorySkill] = useState<any>(null);
+  const [teacherNotes, setTeacherNotes] = useState('');
+  const notesInitialized = useRef(false);
+  const debounceRef = useRef<ReturnType<typeof setTimeout>>();
+
+  useEffect(() => {
+    if (data?.student && !notesInitialized.current) {
+      setTeacherNotes((data.student as any).teacher_notes ?? '');
+      notesInitialized.current = true;
+    }
+  }, [data?.student]);
+
+  const handleNotesBlur = useCallback(() => {
+    if (!id) return;
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+    debounceRef.current = setTimeout(() => {
+      updateNotes.mutate({ studentId: id, notes: teacherNotes });
+    }, 500);
+  }, [id, teacherNotes, updateNotes]);
 
   if (isLoading) {
     return (
@@ -64,9 +124,24 @@ export default function StudentProfile() {
   const hasDebt = student.balance < 0;
   const totalSkills = skillTree.reduce((sum, cat) => sum + cat.skills.length, 0);
   const masteredSkills = skillTree.reduce(
-    (sum, cat) => sum + cat.skills.filter((s) => s.studentSkill?.current_status === 'mastered').length,
-    0
+    (sum, cat) => sum + cat.skills.filter((s: any) => s.studentSkill?.current_status === 'mastered').length, 0
   );
+
+  // Radar chart data
+  const radarData = skillTree.map((cat) => {
+    const total = cat.skills.length;
+    const mastered = cat.skills.filter((s: any) => s.studentSkill?.current_status === 'mastered').length;
+    return { category: cat.name, value: total > 0 ? Math.round((mastered / total) * 100) : 0 };
+  }).filter(d => d.category);
+
+  // Progress over time data from completed lessons
+  const progressData = [...lessons]
+    .filter((l: any) => l.status === 'completed')
+    .reverse()
+    .map((l: any, idx: number) => ({
+      date: format(new Date(l.date), 'dd/MM', { locale: he }),
+      lesson: idx + 1,
+    }));
 
   return (
     <div dir="rtl" className="min-h-screen bg-background pb-24">
@@ -87,26 +162,39 @@ export default function StudentProfile() {
             <Button variant="outline" size="icon" className="rounded-full h-9 w-9 text-destructive hover:text-destructive" onClick={() => setShowDelete(true)}>
               <Trash2 className="h-4 w-4" />
             </Button>
-            <Button variant="outline" size="icon" className="rounded-full h-9 w-9" onClick={() => navigate(`/student/${id}/report`)}>
-              <ExternalLink className="h-4 w-4" />
-            </Button>
-            {student.phone && (
-              <>
-                <Button variant="outline" size="icon" className="rounded-full h-9 w-9" onClick={() => window.open(`tel:${student.phone}`)}>
-                  <Phone className="h-4 w-4" />
-                </Button>
-                <Button variant="outline" size="icon" className="rounded-full h-9 w-9" onClick={() => window.open(`https://wa.me/${student.phone?.replace(/\D/g, '')}`)}>
-                  <MessageCircle className="h-4 w-4" />
-                </Button>
-              </>
-            )}
           </div>
         </div>
       </header>
 
       <main className="p-4 space-y-4">
+        {/* Quick Actions */}
+        <motion.div variants={fadeUp} initial="hidden" animate="visible" custom={0}
+          className="flex gap-2 overflow-x-auto pb-1 -mx-1 px-1 scrollbar-hide">
+          {student.phone && (
+            <>
+              <Button variant="outline" size="sm" className="shrink-0 gap-1.5" onClick={() => window.open(`tel:${student.phone}`)}>
+                <Phone className="h-4 w-4" /> התקשר
+              </Button>
+              <Button variant="outline" size="sm" className="shrink-0 gap-1.5" onClick={() => window.open(`https://wa.me/${student.phone?.replace(/\D/g, '')}`)}>
+                <MessageCircle className="h-4 w-4" /> וואטסאפ
+              </Button>
+            </>
+          )}
+          <Button variant="outline" size="sm" className="shrink-0 gap-1.5" onClick={() => setShowAddLesson(true)}>
+            <Calendar className="h-4 w-4" /> קבע שיעור
+          </Button>
+          <Button variant="outline" size="sm" className="shrink-0 gap-1.5" onClick={() => navigate(`/student/${id}/report`)}>
+            <FileText className="h-4 w-4" /> דוח תלמיד
+          </Button>
+          {hasDebt && student.phone && (
+            <Button variant="outline" size="sm" className="shrink-0 gap-1.5 text-destructive" onClick={() => window.open(`https://wa.me/${student.phone?.replace(/\D/g, '')}?text=${encodeURIComponent(`שלום, יש יתרת חוב של ₪${Math.abs(student.balance)}. אשמח להסדיר. תודה!`)}`)}>
+              <CreditCard className="h-4 w-4" /> תזכורת תשלום
+            </Button>
+          )}
+        </motion.div>
+
         {/* Stats Row */}
-        <motion.div className="grid grid-cols-3 gap-3" variants={fadeUp} initial="hidden" animate="visible" custom={0}>
+        <motion.div className="grid grid-cols-3 gap-3" variants={fadeUp} initial="hidden" animate="visible" custom={1}>
           <Card className="card-premium overflow-hidden">
             <CardContent className="p-3 text-center">
               <div className="h-10 w-10 rounded-full bg-primary/15 flex items-center justify-center mx-auto mb-1.5">
@@ -138,8 +226,32 @@ export default function StudentProfile() {
           </Card>
         </motion.div>
 
+        {/* Next Lesson Card */}
+        {nextLesson && (
+          <motion.div variants={fadeUp} initial="hidden" animate="visible" custom={2}>
+            <Card className="border-primary/30 bg-primary/5">
+              <CardContent className="p-3">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-xs text-muted-foreground font-body">השיעור הבא</p>
+                    <p className="text-sm font-heading font-bold text-foreground">
+                      {format(new Date(nextLesson.date), 'EEEE, d בMMMM', { locale: he })}
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                      {nextLesson.time_start} - {nextLesson.time_end} • {formatDistanceToNow(new Date(nextLesson.date), { locale: he, addSuffix: true })}
+                    </p>
+                  </div>
+                  <Button size="sm" variant="outline" className="shrink-0" onClick={() => navigate(`/teacher/lesson/${nextLesson.id}`)}>
+                    לשיעור →
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          </motion.div>
+        )}
+
         {/* Lesson Price & ID */}
-        <motion.div variants={fadeUp} initial="hidden" animate="visible" custom={1}>
+        <motion.div variants={fadeUp} initial="hidden" animate="visible" custom={3}>
           <Card className="glass">
             <CardContent className="p-3 space-y-2">
               <div className="flex items-center justify-between">
@@ -155,8 +267,50 @@ export default function StudentProfile() {
           </Card>
         </motion.div>
 
+        {/* Radar Chart */}
+        {radarData.length >= 3 && (
+          <motion.div variants={fadeUp} initial="hidden" animate="visible" custom={4}>
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-base font-heading">מפת מיומנויות</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <ResponsiveContainer width="100%" height={220}>
+                  <RadarChart data={radarData} cx="50%" cy="50%" outerRadius="70%">
+                    <PolarGrid stroke="hsl(var(--border))" />
+                    <PolarAngleAxis dataKey="category" tick={{ fontSize: 11, fill: 'hsl(var(--muted-foreground))' }} />
+                    <Radar dataKey="value" stroke="hsl(var(--primary))" fill="hsl(var(--primary))" fillOpacity={0.25} strokeWidth={2} />
+                  </RadarChart>
+                </ResponsiveContainer>
+              </CardContent>
+            </Card>
+          </motion.div>
+        )}
+
+        {/* Progress Over Time */}
+        {progressData.length >= 2 && (
+          <motion.div variants={fadeUp} initial="hidden" animate="visible" custom={5}>
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-base font-heading">התקדמות לאורך זמן</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <ResponsiveContainer width="100%" height={180}>
+                  <LineChart data={progressData}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+                    <XAxis dataKey="date" tick={{ fontSize: 10, fill: 'hsl(var(--muted-foreground))' }} />
+                    <YAxis tick={{ fontSize: 10, fill: 'hsl(var(--muted-foreground))' }} />
+                    <Tooltip />
+                    <Line type="monotone" dataKey="lesson" stroke="hsl(var(--primary))" strokeWidth={2} dot={{ r: 3 }} name="שיעור מס'" />
+                  </LineChart>
+                </ResponsiveContainer>
+              </CardContent>
+            </Card>
+          </motion.div>
+        )}
+
         {/* Skill Breakdown */}
-        <motion.div variants={fadeUp} initial="hidden" animate="visible" custom={2}>
+        <motion.div variants={fadeUp} initial="hidden" animate="visible" custom={6}>
           <Card className="card-premium overflow-hidden">
             <CardHeader className="pb-2">
               <CardTitle className="text-base font-heading flex items-center justify-between">
@@ -170,7 +324,7 @@ export default function StudentProfile() {
               <Progress value={totalSkills > 0 ? (masteredSkills / totalSkills) * 100 : 0} className="h-2.5" />
 
               {skillTree.map((category) => {
-                const catMastered = category.skills.filter((s) => s.studentSkill?.current_status === 'mastered').length;
+                const catMastered = category.skills.filter((s: any) => s.studentSkill?.current_status === 'mastered').length;
                 return (
                   <div key={category.id}>
                     <div className="flex items-center justify-between mb-2">
@@ -180,7 +334,7 @@ export default function StudentProfile() {
                       <span className="text-xs text-muted-foreground font-body">{catMastered}/{category.skills.length}</span>
                     </div>
                     <div className="flex flex-wrap gap-1.5">
-                      {category.skills.map((skill) => {
+                      {category.skills.map((skill: any) => {
                         const status = skill.studentSkill?.current_status ?? 'not_learned';
                         const cfg = STATUS_CONFIG[status] ?? STATUS_CONFIG.not_learned;
                         return (
@@ -204,8 +358,32 @@ export default function StudentProfile() {
           </Card>
         </motion.div>
 
+        {/* Teacher Notes */}
+        <motion.div variants={fadeUp} initial="hidden" animate="visible" custom={7}>
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-base font-heading flex items-center gap-2">
+                <StickyNote className="h-4 w-4" />
+                הערות מורה פרטיות
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <Textarea
+                value={teacherNotes}
+                onChange={(e) => setTeacherNotes(e.target.value)}
+                onBlur={handleNotesBlur}
+                placeholder="כתוב הערות על התלמיד..."
+                className="min-h-[80px] text-sm resize-none"
+              />
+              {updateNotes.isPending && (
+                <p className="text-xs text-muted-foreground mt-1">שומר...</p>
+              )}
+            </CardContent>
+          </Card>
+        </motion.div>
+
         {/* Lesson History */}
-        <motion.div variants={fadeUp} initial="hidden" animate="visible" custom={3}>
+        <motion.div variants={fadeUp} initial="hidden" animate="visible" custom={8}>
           <Card>
             <CardHeader className="pb-2">
               <CardTitle className="text-base font-heading flex items-center justify-between">
@@ -220,41 +398,66 @@ export default function StudentProfile() {
                 <p className="text-sm text-muted-foreground py-4 text-center font-body">אין שיעורים עדיין.</p>
               ) : (
                 <div className="space-y-2">
-                  {lessons.slice(0, 20).map((lesson) => (
-                    <div
-                      key={lesson.id}
-                      className="flex items-center gap-3 cursor-pointer hover:bg-muted/50 rounded-xl p-2.5 -mx-2 transition-smooth"
-                      onClick={() => lesson.status === 'completed' ? null : navigate(`/teacher/lesson/${lesson.id}`)}
-                    >
-                      <div className={cn(
-                        'h-10 w-10 rounded-full flex items-center justify-center shrink-0',
-                        lesson.status === 'completed' ? 'bg-success/15 text-success' : 'bg-muted text-muted-foreground'
-                      )}>
-                        {lesson.status === 'completed' ? <CheckCircle className="h-5 w-5" /> : <Clock className="h-5 w-5" />}
+                  {lessons.slice(0, 20).map((lesson: any) => {
+                    const actualStart = lesson.actual_start_time
+                      ? new Date(lesson.actual_start_time).toLocaleTimeString('he-IL', { hour: '2-digit', minute: '2-digit' })
+                      : null;
+                    const actualEnd = lesson.actual_end_time
+                      ? new Date(lesson.actual_end_time).toLocaleTimeString('he-IL', { hour: '2-digit', minute: '2-digit' })
+                      : null;
+                    const variance = lesson.duration_variance_minutes;
+                    const actualDuration = lesson.actual_duration_minutes;
+
+                    return (
+                      <div
+                        key={lesson.id}
+                        className="flex items-center gap-3 cursor-pointer hover:bg-muted/50 rounded-xl p-2.5 -mx-2 transition-smooth"
+                        onClick={() => lesson.status === 'completed' ? null : navigate(`/teacher/lesson/${lesson.id}`)}
+                      >
+                        <div className={cn(
+                          'h-10 w-10 rounded-full flex items-center justify-center shrink-0',
+                          lesson.status === 'completed' ? 'bg-success/15 text-success' :
+                          lesson.status === 'cancelled' ? 'bg-destructive/15 text-destructive' :
+                          'bg-muted text-muted-foreground'
+                        )}>
+                          {lesson.status === 'completed' ? <CheckCircle className="h-5 w-5" /> : <Clock className="h-5 w-5" />}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-medium text-foreground font-body">
+                            {format(new Date(lesson.date), 'd בMMM yyyy', { locale: he })}
+                          </p>
+                          <p className="text-xs text-muted-foreground">
+                            {actualStart && actualEnd
+                              ? `${actualStart} - ${actualEnd}${actualDuration ? ` (${actualDuration} דק')` : ''}`
+                              : `${lesson.time_start} – ${lesson.time_end}`}
+                            {lesson.skills_practiced?.length ? ` · ${lesson.skills_practiced.length} מיומנויות` : ''}
+                          </p>
+                        </div>
+                        <div className="text-left shrink-0 flex flex-col items-end gap-1">
+                          <p className="text-sm font-heading font-bold text-foreground">₪{lesson.amount}</p>
+                          <div className="flex gap-1">
+                            {variance != null && variance !== 0 && (
+                              <Badge variant="outline" className={cn(
+                                'text-[10px] px-1.5',
+                                variance > 0 ? 'text-destructive border-destructive/30' : 'text-success border-success/30'
+                              )}>
+                                {variance > 0 ? `+${variance}` : variance} דק'
+                              </Badge>
+                            )}
+                            <Badge
+                              variant="outline"
+                              className={cn(
+                                'text-[10px] px-1.5',
+                                lesson.payment_status === 'paid' ? 'text-success border-success/30' : 'text-warning border-warning/30'
+                              )}
+                            >
+                              {lesson.payment_status === 'paid' ? 'שולם' : lesson.payment_status === 'debt' ? 'חוב' : 'ממתין'}
+                            </Badge>
+                          </div>
+                        </div>
                       </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium text-foreground font-body">
-                          {format(new Date(lesson.date), 'MMM d, yyyy')}
-                        </p>
-                        <p className="text-xs text-muted-foreground">
-                          {lesson.time_start} – {lesson.time_end}
-                          {lesson.skills_practiced?.length ? ` · ${lesson.skills_practiced.length} מיומנויות` : ''}
-                        </p>
-                      </div>
-                      <div className="text-right shrink-0">
-                        <p className="text-sm font-heading font-bold text-foreground">₪{lesson.amount}</p>
-                        <Badge
-                          variant="outline"
-                          className={cn(
-                            'text-[10px] px-1.5',
-                            lesson.payment_status === 'paid' ? 'text-success border-success/30' : 'text-warning border-warning/30'
-                          )}
-                        >
-                          {lesson.payment_status === 'paid' ? 'שולם' : 'ממתין'}
-                        </Badge>
-                      </div>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               )}
             </CardContent>
