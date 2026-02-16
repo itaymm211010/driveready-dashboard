@@ -9,7 +9,7 @@ import { SkillHistoryModal } from '@/components/teacher/SkillHistoryModal';
 import { LessonSkillCard } from '@/components/teacher/LessonSkillCard';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useLessonWithStudent, useStudentSkillTree } from '@/hooks/use-teacher-data';
-import { useLessonPlannedSkills, useAddPlannedSkills } from '@/hooks/use-lesson-planned-skills';
+import { useLessonPlannedSkills, useAddPlannedSkills, useRemovePlannedSkill } from '@/hooks/use-lesson-planned-skills';
 import { useSaveLesson } from '@/hooks/use-save-lesson';
 import type { DbSkill } from '@/hooks/use-teacher-data';
 import type { SkillStatus } from '@/data/mock';
@@ -30,6 +30,7 @@ export default function ActiveLesson() {
   const { data: dbCategories, isLoading: skillsLoading } = useStudentSkillTree(studentId);
   const { data: plannedSkills, isLoading: plannedLoading } = useLessonPlannedSkills(id);
   const addPlannedSkillsMutation = useAddPlannedSkills();
+  const removePlannedSkillMutation = useRemovePlannedSkill();
   const saveLessonMutation = useSaveLesson();
 
   const [timer, setTimer] = useState(0);
@@ -101,6 +102,11 @@ export default function ActiveLesson() {
     setHasStarted(true);
     setShowSkillSelectionInitial(false);
   }, []);
+
+  const handleRemoveSkill = useCallback((skillId: string) => {
+    if (!id) return;
+    removePlannedSkillMutation.mutate({ lessonId: id, skillId });
+  }, [id, removePlannedSkillMutation]);
 
   // Build the selected skills list from planned skills + categories
   const selectedSkills = useMemo(() => {
@@ -200,6 +206,7 @@ export default function ActiveLesson() {
                 onStatusChange={handleStatusChange}
                 onNoteChange={handleNoteChange}
                 onShowHistory={setHistorySkill}
+                onRemove={handleRemoveSkill}
               />
             ))}
 
