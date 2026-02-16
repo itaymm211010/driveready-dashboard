@@ -46,14 +46,37 @@ export function useStudentProfile(studentId: string | undefined) {
 
       const ssMap = new Map((studentSkills ?? []).map((ss) => [ss.skill_id, ss]));
 
+      // Fetch skill history
+      const ssIds = (studentSkills ?? []).map((ss) => ss.id);
+      let historyRows: any[] = [];
+      if (ssIds.length > 0) {
+        const { data: hData } = await supabase
+          .from('skill_history')
+          .select('*')
+          .in('student_skill_id', ssIds)
+          .order('lesson_date', { ascending: false });
+        historyRows = hData ?? [];
+      }
+      const historyBySSId = new Map<string, any[]>();
+      for (const h of historyRows) {
+        const arr = historyBySSId.get(h.student_skill_id) ?? [];
+        arr.push(h);
+        historyBySSId.set(h.student_skill_id, arr);
+      }
+
       const skillTree = (categories ?? []).map((cat) => ({
         ...cat,
         skills: (skills ?? [])
           .filter((s) => s.category_id === cat.id)
-          .map((s) => ({
-            ...s,
-            studentSkill: ssMap.get(s.id) ?? null,
-          })),
+          .map((s) => {
+            const ss = ssMap.get(s.id) ?? null;
+            return {
+              ...s,
+              studentSkill: ss,
+              student_skill: ss,
+              history: ss ? (historyBySSId.get(ss.id) ?? []) : [],
+            };
+          }),
       }));
 
       return { student, lessons: lessons ?? [], skillTree };

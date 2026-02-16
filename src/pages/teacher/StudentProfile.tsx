@@ -14,6 +14,7 @@ import { Separator } from '@/components/ui/separator';
 import { EditStudentModal } from '@/components/teacher/EditStudentModal';
 import { DeleteStudentDialog } from '@/components/teacher/DeleteStudentDialog';
 import { AddLessonModal } from '@/components/teacher/AddLessonModal';
+import { SkillHistoryModal } from '@/components/teacher/SkillHistoryModal';
 import { cn } from '@/lib/utils';
 
 const STATUS_CONFIG: Record<string, { label: string; color: string; icon: React.ReactNode }> = {
@@ -29,6 +30,7 @@ export default function StudentProfile() {
   const [showEdit, setShowEdit] = useState(false);
   const [showDelete, setShowDelete] = useState(false);
   const [showAddLesson, setShowAddLesson] = useState(false);
+  const [historySkill, setHistorySkill] = useState<any>(null);
 
   if (isLoading) {
     return (
@@ -165,10 +167,15 @@ export default function StudentProfile() {
                       const status = skill.studentSkill?.current_status ?? 'not_learned';
                       const cfg = STATUS_CONFIG[status] ?? STATUS_CONFIG.not_learned;
                       return (
-                        <Badge key={skill.id} variant="outline" className={cn('gap-1 text-xs', cfg.color)}>
-                          {cfg.icon}
-                          {skill.name}
-                        </Badge>
+                         <Badge
+                          key={skill.id}
+                          variant="outline"
+                          className={cn('gap-1 text-xs cursor-pointer hover:opacity-80 transition-opacity', cfg.color)}
+                          onClick={() => setHistorySkill(skill)}
+                        >
+                           {cfg.icon}
+                           {skill.name}
+                         </Badge>
                       );
                     })}
                   </div>
@@ -238,6 +245,7 @@ export default function StudentProfile() {
       <EditStudentModal open={showEdit} onOpenChange={setShowEdit} student={student} />
       <DeleteStudentDialog open={showDelete} onOpenChange={setShowDelete} studentId={student.id} studentName={student.name} />
       <AddLessonModal open={showAddLesson} onOpenChange={setShowAddLesson} preselectedStudentId={student.id} />
+      <SkillHistoryModal open={!!historySkill} onOpenChange={(o) => !o && setHistorySkill(null)} skill={historySkill} />
       <BottomNav />
     </div>
   );
