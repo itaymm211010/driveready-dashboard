@@ -11,6 +11,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { ThemeToggle } from '@/components/ThemeToggle';
+import { FontSizeSelector } from '@/components/FontSizeSelector';
 
 const fadeUp = {
   hidden: { opacity: 0, y: 15 },
@@ -42,7 +43,10 @@ export default function TeacherToday() {
               {format(today, 'EEEE, MMM d, yyyy')}
             </p>
           </div>
-          <ThemeToggle />
+          <div className="flex items-center gap-1">
+            <FontSizeSelector />
+            <ThemeToggle />
+          </div>
         </div>
         <div className="flex gap-3 mt-3">
           <div className="flex items-center gap-2.5 bg-primary/10 border border-primary/20 rounded-xl px-3.5 py-2.5 transition-smooth">

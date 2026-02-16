@@ -12,6 +12,7 @@ import { AddStudentModal } from '@/components/teacher/AddStudentModal';
 import { useStudentsList } from '@/hooks/use-students-list';
 import { cn } from '@/lib/utils';
 import { ThemeToggle } from '@/components/ThemeToggle';
+import { FontSizeSelector } from '@/components/FontSizeSelector';
 
 const fadeUp = {
   hidden: { opacity: 0, y: 15 },
@@ -48,6 +49,7 @@ export default function StudentsList() {
             👥 תלמידים
           </h1>
           <div className="flex items-center gap-2">
+            <FontSizeSelector />
             <ThemeToggle />
             <Button size="sm" onClick={() => setShowAdd(true)} className="shimmer gap-1">
               <Plus className="h-4 w-4" /> הוסף
