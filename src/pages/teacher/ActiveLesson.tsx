@@ -112,7 +112,7 @@ export default function ActiveLesson() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-background p-4 space-y-4">
+      <div dir="rtl" className="min-h-screen bg-background p-4 space-y-4">
         <Skeleton className="h-20 w-full rounded-xl" />
         <Skeleton className="h-12 w-full rounded-xl" />
         {Array.from({ length: 3 }).map((_, i) => (
@@ -143,7 +143,7 @@ export default function ActiveLesson() {
   const alreadySelectedIds = plannedSkills?.map(ps => ps.skill_id) ?? [];
 
   return (
-    <div className="min-h-screen bg-background pb-28">
+    <div dir="rtl" className="min-h-screen bg-background pb-28">
       {/* Sticky Header */}
       <header className="sticky top-0 z-40 glass-strong border-b border-border/50 px-4 py-3 space-y-2">
         <div className="flex items-center gap-2">

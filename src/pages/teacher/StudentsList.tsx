@@ -40,7 +40,7 @@ export default function StudentsList() {
   }, [students, search]);
 
   return (
-    <div className="min-h-screen bg-background pb-24">
+    <div dir="rtl" className="min-h-screen bg-background pb-24">
       {/* Header */}
       <header className="sticky top-0 z-40 glass-strong border-b border-border/50 px-4 py-4">
         <div className="flex items-center justify-between mb-3">
