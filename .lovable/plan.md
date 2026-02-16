@@ -1,51 +1,27 @@
 
 
-# Fix: Lesson Data Not Showing on Student Profile
+## הוספת היסטוריית מיומנויות ב-Skill Breakdown בפרופיל תלמיד
 
-## Problem Analysis
+### הבעיה
+כרגע, אזור ה-Skill Breakdown בפרופיל התלמיד מציג רק את הסטטוס הנוכחי של כל מיומנות (Badge צבעוני), אבל אי אפשר ללחוץ על מיומנות ולראות את ההיסטוריה שלה לאורך השיעורים. הרכיב `SkillHistoryModal` כבר קיים בפרויקט ומשמש בדף השיעור הפעיל, אבל לא מחובר לפרופיל.
 
-I found **3 bugs** preventing lesson data from appearing correctly on the student profile:
+### הפתרון
+לחבר את המודאל הקיים לפרופיל התלמיד, עם שני שינויים:
 
-### Bug 1: Database Constraint Violation (Critical)
-When ending a lesson, the code tries to save `payment_status: 'unpaid'` but the database only allows: `'paid'`, `'debt'`, or `'pending'`. This causes the entire save to fail silently -- no data gets written.
+1. **שליפת נתוני היסטוריה (`use-student-profile.ts`)** -- כרגע ה-hook שולף `student_skills` אבל לא שולף `skill_history`. צריך להוסיף שליפה של טבלת `skill_history` (כמו שכבר נעשה ב-`useStudentSkillTree`) ולצרף את הנתונים לכל מיומנות בעץ.
 
-This matches the database error log: *"new row for relation lessons violates check constraint lessons_payment_status_check"*
+2. **הפיכת ה-Badges ללחיצים (`StudentProfile.tsx`)** -- כל Badge מיומנות יהפוך ללחיץ (cursor-pointer + hover effect). לחיצה תפתח את `SkillHistoryModal` עם ההיסטוריה המלאה של אותה מיומנות.
 
-**Fix**: Change `'unpaid'` to `'debt'` in `use-save-lesson.ts`.
+### פרטים טכניים
 
-### Bug 2: Total Lessons Never Updated
-When a lesson is completed, the `total_lessons` counter on the student record is never incremented. The profile always shows the original seed value.
+**קובץ: `src/hooks/use-student-profile.ts`**
+- שליפת `skill_history` לפי `student_skill_id` (כמו שנעשה ב-`useStudentSkillTree`)
+- בניית מפת היסטוריה (`historyBySSId`) וצירוף מערך `history` לכל skill באובייקט `skillTree`
 
-**Fix**: Add an update to increment `students.total_lessons` in the save-lesson mutation.
+**קובץ: `src/pages/teacher/StudentProfile.tsx`**
+- הוספת state: `historySkill` (המיומנות שנבחרה לצפייה בהיסטוריה)
+- הפיכת כל `Badge` ל-`cursor-pointer` עם `onClick` שמעדכן את `historySkill`
+- הוספת רכיב `SkillHistoryModal` בתחתית הדף, מחובר ל-state
 
-### Bug 3: Readiness Percentage Never Recalculated
-The `readiness_percentage` on the student record is never updated after skill statuses change during a lesson.
-
-**Fix**: After updating skills, recalculate readiness as `(mastered skills / total skills) * 100` and update the student record.
-
-## Technical Changes
-
-### File: `src/hooks/use-save-lesson.ts`
-
-1. **Fix payment status value** (line ~26):
-   - Change `const paymentStatus = paymentMethod === 'debt' ? 'unpaid' : 'paid';` 
-   - To: `const paymentStatus = paymentMethod === 'debt' ? 'debt' : 'paid';`
-
-2. **Increment `total_lessons`** after lesson update:
-   - Read current `total_lessons` from the student record
-   - Update it to `total_lessons + 1`
-
-3. **Recalculate `readiness_percentage`** after all skill updates:
-   - Count total skills for this teacher
-   - Count mastered student_skills for this student
-   - Compute `Math.round((mastered / total) * 100)`
-   - Update the student record
-
-4. **Invalidate `student-profile` query** in `onSuccess` so the profile page refreshes.
-
-### Summary of Changes
-
-| File | Change |
-|------|--------|
-| `src/hooks/use-save-lesson.ts` | Fix payment_status value, add total_lessons increment, add readiness recalculation, add query invalidation |
+לא נדרשים שינויים במסד הנתונים -- כל המידע כבר קיים בטבלת `skill_history`.
 
