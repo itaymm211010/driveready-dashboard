@@ -1,12 +1,12 @@
-import { Home, Users, BarChart3, User } from 'lucide-react';
+import { Home, CalendarDays, Users, BarChart3 } from 'lucide-react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 
 const tabs = [
-  { path: '/teacher/today', label: 'Today', icon: Home },
-  { path: '/teacher/students', label: 'Students', icon: Users },
-  { path: '/teacher/reports', label: 'Reports', icon: BarChart3 },
-  { path: '/teacher/profile', label: 'Profile', icon: User },
+  { path: '/teacher/today', label: 'היום', icon: Home },
+  { path: '/teacher/calendar', label: 'יומן', icon: CalendarDays },
+  { path: '/teacher/students', label: 'תלמידים', icon: Users },
+  { path: '/teacher/reports', label: 'דוחות', icon: BarChart3 },
 ];
 
 export function BottomNav() {

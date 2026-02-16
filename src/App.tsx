@@ -9,6 +9,7 @@ import ActiveLesson from "./pages/teacher/ActiveLesson";
 import StudentProfile from "./pages/teacher/StudentProfile";
 import StudentReport from "./pages/student/StudentReport";
 import StudentsList from "./pages/teacher/StudentsList";
+import CalendarPage from "./pages/teacher/CalendarPage";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -24,6 +25,7 @@ const App = () => (
             <Route path="/" element={<Navigate to="/teacher/today" replace />} />
             <Route path="/teacher/today" element={<TeacherToday />} />
             <Route path="/teacher/lesson/:id" element={<ActiveLesson />} />
+            <Route path="/teacher/calendar" element={<CalendarPage />} />
             <Route path="/teacher/students" element={<StudentsList />} />
             <Route path="/teacher/student/:id" element={<StudentProfile />} />
             <Route path="/student/:id/report" element={<StudentReport />} />
