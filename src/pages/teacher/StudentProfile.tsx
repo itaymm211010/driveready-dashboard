@@ -131,7 +131,9 @@ export default function StudentProfile() {
   const radarData = skillTree.map((cat) => {
     const total = cat.skills.length;
     const mastered = cat.skills.filter((s: any) => s.studentSkill?.current_status === 'mastered').length;
-    return { category: cat.name, value: total > 0 ? Math.round((mastered / total) * 100) : 0 };
+    const inProgress = cat.skills.filter((s: any) => s.studentSkill?.current_status === 'in_progress').length;
+    const score = mastered + inProgress * 0.5;
+    return { category: cat.name, value: total > 0 ? Math.round((score / total) * 100) : 0 };
   }).filter(d => d.category);
 
   // Progress over time data from completed lessons
