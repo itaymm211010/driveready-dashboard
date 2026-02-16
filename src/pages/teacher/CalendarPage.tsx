@@ -30,9 +30,14 @@ export default function CalendarPage() {
   const [showAdd, setShowAdd] = useState(false);
   const [addPrefilledTime, setAddPrefilledTime] = useState('');
 
-  const navigate = (dir: 1 | -1) => {
-    const fns = { day: [addDays, subDays], week: [addWeeks, subWeeks], month: [addMonths, subMonths] };
-    setDate(d => (dir === 1 ? fns[view][0] : fns[view][1])(d, 1));
+  // RTL: In Hebrew, "next" goes left and "previous" goes right
+  const navigateForward = () => {
+    const fns = { day: addDays, week: addWeeks, month: addMonths };
+    setDate(d => fns[view](d, 1));
+  };
+  const navigateBack = () => {
+    const fns = { day: subDays, week: subWeeks, month: subMonths };
+    setDate(d => fns[view](d, 1));
   };
 
   const headerLabel = () => {
@@ -54,16 +59,17 @@ export default function CalendarPage() {
   };
 
   return (
-    <div className="min-h-screen bg-background pb-24">
+    <div dir="rtl" className="min-h-screen bg-background pb-24">
       {/* Header */}
       <header className="sticky top-0 z-40 glass-strong border-b border-border/50 px-4 py-3">
         <div className="flex items-center justify-between mb-2">
           <div className="flex items-center gap-2">
-            <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => navigate(-1)}>
+            {/* RTL: Right chevron goes forward (next), Left chevron goes back (previous) */}
+            <Button variant="ghost" size="icon" className="h-8 w-8" onClick={navigateForward}>
               <ChevronRight className="h-4 w-4" />
             </Button>
             <h1 className="text-sm font-heading font-bold text-foreground">{headerLabel()}</h1>
-            <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => navigate(1)}>
+            <Button variant="ghost" size="icon" className="h-8 w-8" onClick={navigateBack}>
               <ChevronLeft className="h-4 w-4" />
             </Button>
           </div>
@@ -116,10 +122,10 @@ export default function CalendarPage() {
         )}
       </main>
 
-      {/* FAB */}
+      {/* FAB - RTL: position on left side */}
       <Button
         size="icon"
-        className="fixed bottom-24 right-6 z-50 h-14 w-14 rounded-full shadow-lg glow-primary"
+        className="fixed bottom-24 left-6 z-50 h-14 w-14 rounded-full shadow-lg glow-primary"
         onClick={() => { setAddPrefilledTime(''); setShowAdd(true); }}
       >
         <Plus className="h-6 w-6" />
