@@ -4,13 +4,12 @@ import { startOfMonth, endOfMonth, format } from 'date-fns';
 
 const TEACHER_ID = 'a1b2c3d4-e5f6-7890-abcd-ef1234567890';
 
-export function useMonthlySummary() {
+export function useMonthlySummary(month: Date) {
   return useQuery({
-    queryKey: ['monthly-summary'],
+    queryKey: ['monthly-summary', format(month, 'yyyy-MM')],
     queryFn: async () => {
-      const now = new Date();
-      const monthStart = format(startOfMonth(now), 'yyyy-MM-dd');
-      const monthEnd = format(endOfMonth(now), 'yyyy-MM-dd');
+      const monthStart = format(startOfMonth(month), 'yyyy-MM-dd');
+      const monthEnd = format(endOfMonth(month), 'yyyy-MM-dd');
 
       const { data: lessons, error } = await supabase
         .from('lessons')
@@ -39,7 +38,7 @@ export function useMonthlySummary() {
         totalIncome,
         paidIncome,
         debtAmount,
-        monthLabel: format(now, 'MMMM yyyy'),
+        monthLabel: format(month, 'MMMM yyyy'),
       };
     },
   });
