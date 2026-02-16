@@ -69,9 +69,13 @@ export function useStudentReport(studentId: string | undefined) {
         const mastered = cat.skills.filter(
           (s) => s.studentSkill?.current_status === 'mastered'
         ).length;
+        const inProgress = cat.skills.filter(
+          (s) => s.studentSkill?.current_status === 'in_progress'
+        ).length;
+        const score = mastered + inProgress * 0.5;
         return {
           category: cat.name,
-          value: total > 0 ? Math.round((mastered / total) * 100) : 0,
+          value: total > 0 ? Math.round((score / total) * 100) : 0,
           fullMark: 100,
         };
       });
