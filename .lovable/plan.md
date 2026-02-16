@@ -1,118 +1,136 @@
 
 
-## Calendar System for DRIVEKAL
+## Lesson Time Logging + Student Profile Enhancement
 
 ### Overview
-Adding a full lesson calendar with Week, Day, and Month views, plus modals for viewing, editing, and cancelling lessons. This is a large feature that will be built incrementally.
+Two improvements from the uploaded spec:
+1. **Lesson Time Logging** -- Track actual start/end times, calculate duration variance, show smart timer with color-coded remaining time
+2. **Student Profile Enhancement** -- Redesigned profile with radar chart, progress over time graph, next lesson card, teacher notes, and improved lesson history with time data
 
-### Phase 1: Database Updates
+---
 
-Add cancellation-related columns to the `lessons` table:
-- `cancellation_reason` (text, nullable)
-- `cancelled_at` (timestamptz, nullable)
-- `cancelled_by` (text, nullable -- 'teacher' or 'student')
+### Part 1: Lesson Time Logging
 
-Add a performance index on `(teacher_id, date)` for fast calendar queries.
+#### 1.1 Database Changes
 
-### Phase 2: Data Hooks
+Add columns to `lessons` table:
+- `actual_start_time` (timestamptz, nullable) -- when teacher clicked "Start"
+- `actual_end_time` (timestamptz, nullable) -- when teacher clicked "End"
+- `actual_duration_minutes` (int, nullable) -- calculated actual duration
+- `scheduled_duration_minutes` (int, nullable) -- planned duration from time_start/time_end
+- `duration_variance_minutes` (int, nullable) -- actual minus scheduled
 
-**New hook: `use-calendar-lessons.ts`**
-- Accepts `view` (week/day/month) and a reference `date`
-- Calculates the date range based on view type
-- Fetches lessons + joined student data (name, phone, balance) for that range
-- Returns lessons grouped by date, plus summary stats (total lessons, expected revenue, students with debt, cancelled count)
+New table `lesson_time_log`:
+- `id` UUID primary key
+- `lesson_id` UUID references lessons(id) ON DELETE CASCADE
+- `event_type` text NOT NULL ('started', 'ended')
+- `timestamp` timestamptz default now()
+- `notes` text nullable
+- Indexes on `lesson_id` and `timestamp`
 
-**New hook: `use-lesson-conflicts.ts`**
-- Accepts date, time_start, duration, and optional exclude_lesson_id
-- Queries for overlapping lessons
-- Returns conflict list for display in add/edit modals
+#### 1.2 Start Lesson Flow
 
-### Phase 3: Calendar Page and Views
+**Modify `LessonCard.tsx`** (or wherever "Start Lesson" is triggered):
+- When clicking "Start", write `actual_start_time = NOW()` and `status = 'in_progress'` to the lesson
+- Insert a `lesson_time_log` entry with event_type = 'started'
+- Calculate `scheduled_duration_minutes` from `time_start`/`time_end` and save it
 
-**New page: `src/pages/teacher/CalendarPage.tsx`**
-- Route: `/teacher/calendar`
-- Header with date navigation arrows and [+] add button
-- View switcher tabs (Week / Day / Month)
-- Renders the active sub-view
-- Applies the existing glassmorphism design system
+**Modify `ActiveLesson.tsx`**:
+- On mount, read `actual_start_time` from the lesson data
+- Use `actual_start_time` as the timer base instead of starting from 0
+- Show enhanced timer header with:
+  - Running timer (color-coded: green = on time, amber = approaching end, red = overtime)
+  - "Started at: HH:MM"
+  - "Scheduled end: HH:MM"  
+  - "X minutes remaining" or "Over by X minutes"
 
-**Week View (`src/components/teacher/calendar/WeekView.tsx`)**
-- 7-column grid with time slots (06:00-20:00)
-- Horizontally scrollable on mobile
-- Lesson cards color-coded by payment status (green = paid, red = debt, amber = in progress, gray = cancelled)
-- Tap lesson card opens details modal; tap empty slot opens add modal with pre-filled time
-- Summary footer with week stats
+#### 1.3 End Lesson Flow
 
-**Day View (`src/components/teacher/calendar/DayView.tsx`)**
-- Vertical timeline for a single day
-- Larger lesson cards showing student name, phone, price, balance
-- Quick action buttons (call, WhatsApp, navigate, start lesson)
-- Available slots clearly marked with dashed borders
+**Modify `use-save-lesson.ts`**:
+- Write `actual_end_time = NOW()` when ending
+- Calculate `actual_duration_minutes` from start to end
+- Calculate `duration_variance_minutes` = actual - scheduled
+- Insert a `lesson_time_log` entry with event_type = 'ended'
 
-**Month View (`src/components/teacher/calendar/MonthView.tsx`)**
-- Standard calendar grid
-- Each day cell shows lesson count badge
-- Color indicators: red dot for debt days, warning for cancellations
-- Tap a day navigates to Day View for that date
-- Month summary panel at bottom
+**Modify `EndLessonModal.tsx`**:
+- Show time summary section: started at, ended at, actual duration, scheduled duration, variance (+/- X min)
+- Pass actual duration data from ActiveLesson
 
-### Phase 4: Modals
+#### 1.4 New Hook: `use-start-lesson.ts`
 
-**Lesson Details Modal (`LessonDetailsModal.tsx`)**
-- Shows full lesson info + student summary (phone, balance, readiness, total lessons)
-- Quick actions: Call, WhatsApp, View Profile
-- Bottom actions: Cancel Lesson, Edit, Start Lesson
+A mutation hook that:
+- Updates the lesson with `actual_start_time`, `scheduled_duration_minutes`, `status = 'in_progress'`
+- Inserts a `lesson_time_log` entry
+- Invalidates relevant queries
+- Returns the updated lesson
 
-**Edit Lesson Modal (`EditLessonModal.tsx`)**
-- Pre-filled form (student name shown but not editable)
-- Can change date, time, duration, price, notes
-- Auto-calculates end time from start + duration
-- Conflict detection warning
-- Uses existing duration presets (30/60/90/120 min)
+---
 
-**Cancel Lesson Modal (`CancelLessonModal.tsx`)**
-- Confirmation dialog with lesson details
-- Reason selector (radio: Student cancelled / Teacher unavailable / Weather / Other)
-- Updates lesson status to 'cancelled' and writes cancellation fields
+### Part 2: Student Profile Enhancement
 
-**Enhanced Add Lesson Modal**
-- Upgrade existing `AddLessonModal` with duration presets and auto-calculated end time
-- Add conflict detection warning
-- Add optional notes field
-- Invalidate calendar queries on success
+#### 2.1 Enhanced Lesson History
 
-### Phase 5: Navigation Integration
+**Modify `StudentProfile.tsx`** lesson history section:
+- Show actual time range (e.g., "08:05 - 09:42 (97 min)")
+- Show variance badge: "+7 min" in red or "-5 min" in green
+- Show skills practiced count
+- Show payment status badge
 
-Update `BottomNav.tsx`:
-```
-[Home Today] [Calendar] [Students] [Reports]
-```
-Add calendar icon tab pointing to `/teacher/calendar`.
+#### 2.2 Radar Chart for Skill Categories
 
-Update `App.tsx` with new route:
-- `/teacher/calendar` -- CalendarPage
+**Add to `StudentProfile.tsx`**:
+- Use `recharts` RadarChart to show mastery % per skill category
+- Each axis = one skill category
+- Value = percentage of mastered skills in that category
+
+#### 2.3 Progress Over Time Line Chart
+
+**Add to `StudentProfile.tsx`**:
+- Use `recharts` LineChart showing readiness % over time
+- X-axis = lesson dates (aggregated monthly)
+- Y-axis = cumulative mastered skills percentage
+- Data derived from `skill_history` entries
+
+#### 2.4 Next Lesson Card
+
+**Add to `StudentProfile.tsx`**:
+- Query upcoming scheduled lessons for this student
+- Show date, time, and "in X days" countdown
+- Quick action buttons: navigate to lesson, prepare plan
+
+#### 2.5 Teacher Notes Section
+
+**Database**: Add `teacher_notes` (text, nullable) column to `students` table
+
+**Add to `StudentProfile.tsx`**:
+- Editable notes textarea
+- Auto-save on blur with debounce
+- Shows "Private teacher notes" label
+
+#### 2.6 Quick Action Cards
+
+**Modify `StudentProfile.tsx`**:
+- Add a horizontal scrollable row of quick action buttons:
+  - Call, WhatsApp, Schedule Lesson, View Report, Send Payment Reminder
+
+---
 
 ### Technical Details
 
-**New files to create:**
-1. `src/pages/teacher/CalendarPage.tsx`
-2. `src/components/teacher/calendar/WeekView.tsx`
-3. `src/components/teacher/calendar/DayView.tsx`
-4. `src/components/teacher/calendar/MonthView.tsx`
-5. `src/components/teacher/calendar/CalendarLessonCard.tsx`
-6. `src/components/teacher/calendar/ViewSwitcher.tsx`
-7. `src/components/teacher/LessonDetailsModal.tsx`
-8. `src/components/teacher/EditLessonModal.tsx`
-9. `src/components/teacher/CancelLessonModal.tsx`
-10. `src/hooks/use-calendar-lessons.ts`
-11. `src/hooks/use-lesson-conflicts.ts`
+**New files:**
+- `src/hooks/use-start-lesson.ts` -- mutation for starting a lesson with time tracking
 
-**Files to modify:**
-- `src/App.tsx` -- add calendar route
-- `src/components/teacher/BottomNav.tsx` -- add calendar tab
-- `src/components/teacher/AddLessonModal.tsx` -- add duration presets, conflict detection, notes field, invalidate calendar queries
+**Modified files:**
+- `src/pages/teacher/ActiveLesson.tsx` -- smart timer based on actual_start_time, color-coded, remaining time
+- `src/components/teacher/EndLessonModal.tsx` -- time summary section with variance
+- `src/hooks/use-save-lesson.ts` -- write actual_end_time, duration fields, time log entry
+- `src/pages/teacher/StudentProfile.tsx` -- radar chart, progress chart, next lesson card, teacher notes, enhanced history
+- `src/components/teacher/LessonCard.tsx` -- call start-lesson hook on "Start" click
 
-**Dependencies:** No new packages needed. Uses existing `date-fns`, `framer-motion`, `lucide-react`, and shadcn/ui components.
+**Database migration:**
+- Add 5 columns to `lessons` table
+- Create `lesson_time_log` table with indexes
+- Add `teacher_notes` column to `students` table
 
-**Scope note:** Recurring lessons, drag-and-drop rescheduling, and external calendar sync are deferred to Phase 2 as specified in the document.
+**Dependencies:** No new packages. Uses existing `recharts`, `date-fns`, `framer-motion`.
 
