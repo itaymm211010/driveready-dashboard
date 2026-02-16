@@ -45,37 +45,37 @@ export function EndLessonModal({ open, onOpenChange, duration, amount, studentNa
             className="flex flex-col items-center py-8 gap-3"
           >
             <CheckCircle2 className="h-16 w-16 text-success" />
-            <p className="text-lg font-bold text-foreground">Lesson Complete!</p>
+            <p className="text-lg font-bold text-foreground">השיעור הושלם!</p>
             <p className="text-sm text-muted-foreground">
-              {success === 'cash' && 'Cash payment recorded.'}
-              {success === 'receipt' && 'Receipt generated.'}
-              {success === 'debt' && `Added ₪${amount} to ${studentName}'s balance.`}
+              {success === 'cash' && 'תשלום במזומן נרשם.'}
+              {success === 'receipt' && 'קבלה הופקה.'}
+              {success === 'debt' && `₪${amount} נוספו ליתרת ${studentName}.`}
             </p>
           </motion.div>
         ) : (
           <>
             <DialogHeader>
-              <DialogTitle>✅ Lesson Complete</DialogTitle>
+              <DialogTitle>✅ סיום שיעור</DialogTitle>
               <DialogDescription>
-                {studentName} • Duration: {duration} • Amount: ₪{amount}
+                {studentName} • משך: {duration} • סכום: ₪{amount}
               </DialogDescription>
             </DialogHeader>
 
             <div className="space-y-3 pt-2">
-              <p className="text-sm font-medium text-foreground">Student paid?</p>
+              <p className="text-sm font-medium text-foreground">התלמיד שילם?</p>
 
               <Button
                 className="w-full min-h-[52px] justify-start text-base bg-success hover:bg-success/90 text-success-foreground"
                 onClick={() => handlePayment('cash')}
               >
-                ✅ Yes – Cash
+                ✅ כן – מזומן
               </Button>
 
               <Button
                 className="w-full min-h-[52px] justify-start text-base"
                 onClick={() => handlePayment('receipt')}
               >
-                🧾 Yes – Generate Receipt
+                🧾 כן – הפק קבלה
               </Button>
 
               <Button
@@ -83,7 +83,7 @@ export function EndLessonModal({ open, onOpenChange, duration, amount, studentNa
                 className="w-full min-h-[52px] justify-start text-base"
                 onClick={() => handlePayment('debt')}
               >
-                ⚠️ No – Add to Debt
+                ⚠️ לא – הוסף לחוב
               </Button>
 
               <Button
@@ -91,7 +91,7 @@ export function EndLessonModal({ open, onOpenChange, duration, amount, studentNa
                 className="w-full"
                 onClick={() => onOpenChange(false)}
               >
-                Cancel
+                ביטול
               </Button>
             </div>
           </>

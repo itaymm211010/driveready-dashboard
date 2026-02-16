@@ -31,7 +31,7 @@ export function DeleteStudentDialog({ open, onOpenChange, studentId, studentName
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['students-list'] });
-      toast.success('Student deleted');
+      toast.success('תלמיד נמחק');
       navigate('/teacher/students', { replace: true });
     },
     onError: (err: Error) => {
@@ -43,18 +43,18 @@ export function DeleteStudentDialog({ open, onOpenChange, studentId, studentName
     <AlertDialog open={open} onOpenChange={onOpenChange}>
       <AlertDialogContent>
         <AlertDialogHeader>
-          <AlertDialogTitle>Delete {studentName}?</AlertDialogTitle>
+          <AlertDialogTitle>למחוק את {studentName}?</AlertDialogTitle>
           <AlertDialogDescription>
-            This will permanently remove the student and cannot be undone. Lessons and skill data linked to this student may also be affected.
+            פעולה זו תמחק לצמיתות את התלמיד ולא ניתן לבטלה. שיעורים ונתוני מיומנויות המקושרים לתלמיד זה עלולים להיות מושפעים.
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
-          <AlertDialogCancel>Cancel</AlertDialogCancel>
+          <AlertDialogCancel>ביטול</AlertDialogCancel>
           <AlertDialogAction
             onClick={() => mutation.mutate()}
             className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
           >
-            {mutation.isPending ? 'Deleting…' : 'Delete'}
+            {mutation.isPending ? 'מוחק…' : 'מחק'}
           </AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>

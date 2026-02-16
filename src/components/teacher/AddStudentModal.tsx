@@ -42,7 +42,7 @@ export function AddStudentModal({ open, onOpenChange }: AddStudentModalProps) {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['students-list'] });
-      toast.success('Student added!');
+      toast.success('תלמיד נוסף בהצלחה!');
       resetAndClose();
     },
     onError: (err: Error) => {
@@ -69,15 +69,15 @@ export function AddStudentModal({ open, onOpenChange }: AddStudentModalProps) {
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>Add New Student</DialogTitle>
-          <DialogDescription>Enter the student's details below.</DialogDescription>
+          <DialogTitle>הוספת תלמיד חדש</DialogTitle>
+          <DialogDescription>הזן את פרטי התלמיד למטה.</DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4 pt-2">
           <div className="space-y-2">
-            <Label htmlFor="student-name">Name *</Label>
+            <Label htmlFor="student-name">שם *</Label>
             <Input
               id="student-name"
-              placeholder="Full name"
+              placeholder="שם מלא"
               value={name}
               onChange={(e) => setName(e.target.value)}
               required
@@ -85,10 +85,10 @@ export function AddStudentModal({ open, onOpenChange }: AddStudentModalProps) {
             />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="student-phone">Phone</Label>
+            <Label htmlFor="student-phone">טלפון</Label>
             <Input
               id="student-phone"
-              placeholder="Phone number"
+              placeholder="מספר טלפון"
               type="tel"
               value={phone}
               onChange={(e) => setPhone(e.target.value)}
@@ -96,10 +96,10 @@ export function AddStudentModal({ open, onOpenChange }: AddStudentModalProps) {
             />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="student-email">Email</Label>
+            <Label htmlFor="student-email">אימייל</Label>
             <Input
               id="student-email"
-              placeholder="Email address"
+              placeholder="כתובת אימייל"
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
@@ -129,10 +129,10 @@ export function AddStudentModal({ open, onOpenChange }: AddStudentModalProps) {
           </div>
           <div className="flex justify-end gap-2 pt-2">
             <Button type="button" variant="outline" onClick={resetAndClose}>
-              Cancel
+              ביטול
             </Button>
             <Button type="submit" disabled={!name.trim() || mutation.isPending}>
-              {mutation.isPending ? 'Adding…' : 'Add Student'}
+              {mutation.isPending ? 'מוסיף…' : 'הוסף תלמיד'}
             </Button>
           </div>
         </form>

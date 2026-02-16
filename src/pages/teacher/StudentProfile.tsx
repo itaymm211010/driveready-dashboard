@@ -19,9 +19,9 @@ import { SkillHistoryModal } from '@/components/teacher/SkillHistoryModal';
 import { cn } from '@/lib/utils';
 
 const STATUS_CONFIG: Record<string, { label: string; color: string; icon: React.ReactNode }> = {
-  mastered: { label: 'Mastered', color: 'bg-success/15 text-success border-success/30', icon: <CheckCircle className="h-3 w-3" /> },
-  in_progress: { label: 'In Progress', color: 'bg-warning/15 text-warning border-warning/30', icon: <Clock className="h-3 w-3" /> },
-  not_learned: { label: 'Not Learned', color: 'bg-muted text-muted-foreground border-border', icon: <AlertTriangle className="h-3 w-3" /> },
+  mastered: { label: 'נשלט', color: 'bg-success/15 text-success border-success/30', icon: <CheckCircle className="h-3 w-3" /> },
+  in_progress: { label: 'בתהליך', color: 'bg-warning/15 text-warning border-warning/30', icon: <Clock className="h-3 w-3" /> },
+  not_learned: { label: 'לא נלמד', color: 'bg-muted text-muted-foreground border-border', icon: <AlertTriangle className="h-3 w-3" /> },
 };
 
 const fadeUp = {
@@ -55,7 +55,7 @@ export default function StudentProfile() {
   if (!data) {
     return (
       <div dir="rtl" className="min-h-screen bg-background flex items-center justify-center">
-        <p className="text-muted-foreground font-body">Student not found.</p>
+        <p className="text-muted-foreground font-body">תלמיד לא נמצא.</p>
       </div>
     );
   }
@@ -78,7 +78,7 @@ export default function StudentProfile() {
           </Button>
           <div className="flex-1 min-w-0">
             <h1 className="text-lg font-heading font-bold text-foreground truncate">{student.name}</h1>
-            <p className="text-xs text-muted-foreground font-body">{student.phone ?? 'No phone'}</p>
+            <p className="text-xs text-muted-foreground font-body">{student.phone ?? 'אין טלפון'}</p>
           </div>
           <div className="flex gap-1">
             <Button variant="outline" size="icon" className="rounded-full h-9 w-9" onClick={() => setShowEdit(true)}>
@@ -113,7 +113,7 @@ export default function StudentProfile() {
                 <TrendingUp className="h-5 w-5 text-primary" />
               </div>
               <p className="text-2xl font-heading font-bold text-foreground">{student.readiness_percentage}%</p>
-              <p className="text-[10px] uppercase tracking-wider text-muted-foreground">Readiness</p>
+              <p className="text-[10px] uppercase tracking-wider text-muted-foreground">מוכנות</p>
             </CardContent>
           </Card>
           <Card className={cn('overflow-hidden', hasDebt && 'border-destructive/40 border-2')}>
@@ -124,7 +124,7 @@ export default function StudentProfile() {
               <p className={cn('text-2xl font-heading font-bold', hasDebt ? 'text-destructive' : 'text-foreground')}>
                 ₪{Math.abs(student.balance)}
               </p>
-              <p className="text-[10px] uppercase tracking-wider text-muted-foreground">{hasDebt ? 'Owes' : 'Balance'}</p>
+              <p className="text-[10px] uppercase tracking-wider text-muted-foreground">{hasDebt ? 'חוב' : 'יתרה'}</p>
             </CardContent>
           </Card>
           <Card className="overflow-hidden">
@@ -133,7 +133,7 @@ export default function StudentProfile() {
                 <BookOpen className="h-5 w-5 text-secondary" />
               </div>
               <p className="text-2xl font-heading font-bold text-foreground">{student.total_lessons}</p>
-              <p className="text-[10px] uppercase tracking-wider text-muted-foreground">Lessons</p>
+              <p className="text-[10px] uppercase tracking-wider text-muted-foreground">שיעורים</p>
             </CardContent>
           </Card>
         </motion.div>
@@ -160,9 +160,9 @@ export default function StudentProfile() {
           <Card className="card-premium overflow-hidden">
             <CardHeader className="pb-2">
               <CardTitle className="text-base font-heading flex items-center justify-between">
-                Skill Breakdown
+                פירוט מיומנויות
                 <span className="text-sm font-normal text-muted-foreground font-body">
-                  {masteredSkills}/{totalSkills} mastered
+                  {masteredSkills}/{totalSkills} נשלטו
                 </span>
               </CardTitle>
             </CardHeader>
@@ -209,7 +209,7 @@ export default function StudentProfile() {
           <Card>
             <CardHeader className="pb-2">
               <CardTitle className="text-base font-heading flex items-center justify-between">
-                Lesson History
+                היסטוריית שיעורים
                 <Button variant="outline" size="icon" className="h-7 w-7 rounded-full" onClick={() => setShowAddLesson(true)}>
                   <Plus className="h-4 w-4" />
                 </Button>
@@ -217,7 +217,7 @@ export default function StudentProfile() {
             </CardHeader>
             <CardContent>
               {lessons.length === 0 ? (
-                <p className="text-sm text-muted-foreground py-4 text-center font-body">No lessons yet.</p>
+                <p className="text-sm text-muted-foreground py-4 text-center font-body">אין שיעורים עדיין.</p>
               ) : (
                 <div className="space-y-2">
                   {lessons.slice(0, 20).map((lesson) => (
@@ -238,7 +238,7 @@ export default function StudentProfile() {
                         </p>
                         <p className="text-xs text-muted-foreground">
                           {lesson.time_start} – {lesson.time_end}
-                          {lesson.skills_practiced?.length ? ` · ${lesson.skills_practiced.length} skills` : ''}
+                          {lesson.skills_practiced?.length ? ` · ${lesson.skills_practiced.length} מיומנויות` : ''}
                         </p>
                       </div>
                       <div className="text-right shrink-0">
@@ -250,7 +250,7 @@ export default function StudentProfile() {
                             lesson.payment_status === 'paid' ? 'text-success border-success/30' : 'text-warning border-warning/30'
                           )}
                         >
-                          {lesson.payment_status === 'paid' ? 'Paid' : 'Pending'}
+                          {lesson.payment_status === 'paid' ? 'שולם' : 'ממתין'}
                         </Badge>
                       </div>
                     </div>

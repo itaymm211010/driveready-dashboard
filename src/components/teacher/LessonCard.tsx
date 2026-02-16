@@ -55,15 +55,15 @@ export function LessonCard({ lesson, student }: LessonCardProps) {
           {isCompleted ? (
             <Badge className="shrink-0 bg-muted text-muted-foreground border-0 gap-1">
               <CheckCircle className="h-3.5 w-3.5" />
-              Done
+              הושלם
             </Badge>
           ) : hasDebt ? (
             <Badge variant="destructive" className="shrink-0 animate-pulse-glow">
-              ⚠️ Owes ₪{Math.abs(student.balance)}
+              ⚠️ חייב ₪{Math.abs(student.balance)}
             </Badge>
           ) : (
             <Badge className="shrink-0 bg-success/15 text-success border border-success/30">
-              ✅ Clear
+              ✅ תקין
             </Badge>
           )}
         </div>
@@ -77,7 +77,7 @@ export function LessonCard({ lesson, student }: LessonCardProps) {
             onClick={() => window.open(`https://waze.com/ul`, '_blank')}
           >
             <MapPin className="h-4 w-4" />
-            Navigate
+            נווט
           </Button>
           <Button
             variant="outline"
@@ -86,7 +86,7 @@ export function LessonCard({ lesson, student }: LessonCardProps) {
             onClick={() => student.phone && window.open(`tel:${student.phone}`)}
           >
             <Phone className="h-4 w-4" />
-            Call
+            התקשר
           </Button>
           <Button
             size="sm"
@@ -99,7 +99,7 @@ export function LessonCard({ lesson, student }: LessonCardProps) {
             onClick={() => navigate(`/teacher/lesson/${lesson.id}`)}
           >
             {isCompleted ? <CheckCircle className="h-4 w-4" /> : <Play className="h-4 w-4" />}
-            {isCompleted ? 'Completed' : 'Start Lesson'}
+            {isCompleted ? 'הושלם' : 'התחל שיעור'}
           </Button>
         </div>
       </CardContent>

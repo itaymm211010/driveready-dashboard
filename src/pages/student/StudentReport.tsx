@@ -14,9 +14,9 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { cn } from '@/lib/utils';
 
 const STATUS_CONFIG: Record<string, { label: string; className: string; icon: React.ReactNode }> = {
-  mastered: { label: 'Mastered', className: 'bg-success/20 text-success border-success/30', icon: <CheckCircle className="h-3 w-3" /> },
-  in_progress: { label: 'In Progress', className: 'bg-warning/20 text-warning border-warning/30', icon: <Clock className="h-3 w-3" /> },
-  not_learned: { label: 'Not Learned', className: 'bg-muted text-muted-foreground border-border', icon: <AlertTriangle className="h-3 w-3" /> },
+  mastered: { label: 'נשלט', className: 'bg-success/20 text-success border-success/30', icon: <CheckCircle className="h-3 w-3" /> },
+  in_progress: { label: 'בתהליך', className: 'bg-warning/20 text-warning border-warning/30', icon: <Clock className="h-3 w-3" /> },
+  not_learned: { label: 'לא נלמד', className: 'bg-muted text-muted-foreground border-border', icon: <AlertTriangle className="h-3 w-3" /> },
 };
 
 const fadeUp = {
@@ -35,15 +35,15 @@ export default function StudentReport() {
     const url = window.location.href;
     try {
       await navigator.clipboard.writeText(url);
-      toast.success('Link copied to clipboard!');
+      toast.success('הקישור הועתק!');
     } catch {
-      toast.error('Failed to copy link');
+      toast.error('שגיאה בהעתקת הקישור');
     }
   };
 
   const handleWhatsApp = () => {
     const url = window.location.href;
-    window.open(`https://wa.me/?text=${encodeURIComponent(`Check out my driving progress! ${url}`)}`, '_blank');
+    window.open(`https://wa.me/?text=${encodeURIComponent(`בדקו את ההתקדמות שלי בנהיגה! ${url}`)}`, '_blank');
   };
 
   if (isLoading) {
@@ -62,7 +62,7 @@ export default function StudentReport() {
     return (
       <div className="dark">
         <div dir="rtl" className="min-h-screen bg-background flex items-center justify-center">
-          <p className="text-muted-foreground font-body">Student not found.</p>
+          <p className="text-muted-foreground font-body">תלמיד לא נמצא.</p>
         </div>
       </div>
     );
@@ -104,7 +104,7 @@ export default function StudentReport() {
             <div className="flex-1 min-w-0">
               <h1 className="text-xl font-heading font-bold text-foreground truncate neon-text">{student.name}</h1>
               <div className="flex items-center gap-3 mt-1 text-sm text-muted-foreground font-body">
-                <span className="flex items-center gap-1"><BookOpen className="h-3.5 w-3.5" /> {student.total_lessons} lessons</span>
+                <span className="flex items-center gap-1"><BookOpen className="h-3.5 w-3.5" /> {student.total_lessons} שיעורים</span>
                 <span className="flex items-center gap-1"><Trophy className="h-3.5 w-3.5 text-warning" /> {masteredSkills}/{totalSkills}</span>
               </div>
             </div>
@@ -116,7 +116,7 @@ export default function StudentReport() {
               size={140}
               strokeWidth={10}
               label={`${student.readiness_percentage}%`}
-              sublabel="Readiness"
+              sublabel="מוכנות"
               className="[&_circle:last-of-type]:drop-shadow-[0_0_12px_hsl(var(--primary)/0.7)]"
             />
           </div>
@@ -129,7 +129,7 @@ export default function StudentReport() {
               className="glass card-premium rounded-2xl p-4 overflow-hidden"
               variants={fadeUp} initial="hidden" animate="visible" custom={1}
             >
-              <h2 className="text-sm font-heading font-semibold text-foreground mb-3">Skill Categories</h2>
+              <h2 className="text-sm font-heading font-semibold text-foreground mb-3">קטגוריות מיומנויות</h2>
               <div className="h-64">
                 <ResponsiveContainer width="100%" height="100%">
                   <RadarChart data={radarData} cx="50%" cy="50%" outerRadius="75%">
@@ -158,7 +158,7 @@ export default function StudentReport() {
               className="glass card-premium rounded-2xl p-4 overflow-hidden"
               variants={fadeUp} initial="hidden" animate="visible" custom={2}
             >
-              <h2 className="text-sm font-heading font-semibold text-foreground mb-3">Progress Over Time</h2>
+              <h2 className="text-sm font-heading font-semibold text-foreground mb-3">התקדמות לאורך זמן</h2>
               <div className="h-48">
                 <ResponsiveContainer width="100%" height="100%">
                   <LineChart data={progressData}>
@@ -193,7 +193,7 @@ export default function StudentReport() {
             className="space-y-3"
             variants={fadeUp} initial="hidden" animate="visible" custom={3}
           >
-            <h2 className="text-sm font-heading font-semibold text-foreground">Skill Breakdown</h2>
+            <h2 className="text-sm font-heading font-semibold text-foreground">פירוט מיומנויות</h2>
             {skillTree.map((cat) => {
               const catMastered = cat.skills.filter((s) => s.studentSkill?.current_status === 'mastered').length;
               return (
@@ -225,7 +225,7 @@ export default function StudentReport() {
             variants={fadeUp} initial="hidden" animate="visible" custom={4}
           >
             <Button onClick={handleShare} className="flex-1 gap-2 glass border-primary/30 text-foreground hover:glow-primary transition-smooth" variant="outline">
-              <Share2 className="h-4 w-4" /> Share Report
+              <Share2 className="h-4 w-4" /> שתף דוח
             </Button>
             <Button onClick={handleWhatsApp} className="flex-1 gap-2 bg-[#25D366] hover:bg-[#20bd5a] text-white border-0 transition-smooth">
               <MessageCircle className="h-4 w-4" /> WhatsApp
