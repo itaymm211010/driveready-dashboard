@@ -16,13 +16,14 @@ import { Label } from '@/components/ui/label';
 interface EditStudentModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  student: { id: string; name: string; phone: string | null; email: string | null; lesson_price: number };
+  student: { id: string; name: string; phone: string | null; email: string | null; lesson_price: number; id_number?: string | null };
 }
 
 export function EditStudentModal({ open, onOpenChange, student }: EditStudentModalProps) {
   const [name, setName] = useState(student.name);
   const [phone, setPhone] = useState(student.phone ?? '');
   const [email, setEmail] = useState(student.email ?? '');
+  const [idNumber, setIdNumber] = useState(student.id_number ?? '');
   const [lessonPrice, setLessonPrice] = useState(String(student.lesson_price ?? 0));
   const queryClient = useQueryClient();
 
@@ -34,6 +35,7 @@ export function EditStudentModal({ open, onOpenChange, student }: EditStudentMod
           name: name.trim(),
           phone: phone.trim() || null,
           email: email.trim() || null,
+          id_number: idNumber.trim() || null,
           lesson_price: Number(lessonPrice) || 0,
         })
         .eq('id', student.id);
@@ -92,6 +94,15 @@ export function EditStudentModal({ open, onOpenChange, student }: EditStudentMod
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               maxLength={255}
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="edit-id-number">ת.ז</Label>
+            <Input
+              id="edit-id-number"
+              value={idNumber}
+              onChange={(e) => setIdNumber(e.target.value)}
+              maxLength={20}
             />
           </div>
           <div className="space-y-2">

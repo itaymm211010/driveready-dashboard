@@ -122,11 +122,18 @@ export default function StudentProfile() {
           </Card>
         </div>
 
-        {/* Lesson Price */}
+        {/* Lesson Price & ID */}
         <Card>
-          <CardContent className="p-3 flex items-center justify-between">
-            <p className="text-sm text-muted-foreground">מחיר שיעור</p>
-            <p className="text-lg font-bold text-foreground">₪{student.lesson_price ?? 0}</p>
+          <CardContent className="p-3 space-y-2">
+            <div className="flex items-center justify-between">
+              <p className="text-sm text-muted-foreground">ת.ז</p>
+              <p className="text-sm font-medium text-foreground">{student.id_number || '—'}</p>
+            </div>
+            <Separator />
+            <div className="flex items-center justify-between">
+              <p className="text-sm text-muted-foreground">מחיר שיעור</p>
+              <p className="text-lg font-bold text-foreground">₪{student.lesson_price ?? 0}</p>
+            </div>
           </CardContent>
         </Card>
 

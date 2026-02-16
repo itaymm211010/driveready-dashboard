@@ -24,6 +24,7 @@ export function AddStudentModal({ open, onOpenChange }: AddStudentModalProps) {
   const [name, setName] = useState('');
   const [phone, setPhone] = useState('');
   const [email, setEmail] = useState('');
+  const [idNumber, setIdNumber] = useState('');
   const [lessonPrice, setLessonPrice] = useState('');
   const queryClient = useQueryClient();
 
@@ -33,6 +34,7 @@ export function AddStudentModal({ open, onOpenChange }: AddStudentModalProps) {
         name: name.trim(),
         phone: phone.trim() || null,
         email: email.trim() || null,
+        id_number: idNumber.trim() || null,
         lesson_price: Number(lessonPrice) || 0,
         teacher_id: TEACHER_ID,
       });
@@ -52,6 +54,7 @@ export function AddStudentModal({ open, onOpenChange }: AddStudentModalProps) {
     setName('');
     setPhone('');
     setEmail('');
+    setIdNumber('');
     setLessonPrice('');
     onOpenChange(false);
   };
@@ -101,6 +104,16 @@ export function AddStudentModal({ open, onOpenChange }: AddStudentModalProps) {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               maxLength={255}
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="student-id-number">ת.ז</Label>
+            <Input
+              id="student-id-number"
+              placeholder="מספר תעודת זהות"
+              value={idNumber}
+              onChange={(e) => setIdNumber(e.target.value)}
+              maxLength={20}
             />
           </div>
           <div className="space-y-2">
