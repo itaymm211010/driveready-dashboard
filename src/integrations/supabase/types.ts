@@ -56,6 +56,9 @@ export type Database = {
       lessons: {
         Row: {
           amount: number
+          cancellation_reason: string | null
+          cancelled_at: string | null
+          cancelled_by: string | null
           created_at: string
           date: string
           id: string
@@ -71,6 +74,9 @@ export type Database = {
         }
         Insert: {
           amount?: number
+          cancellation_reason?: string | null
+          cancelled_at?: string | null
+          cancelled_by?: string | null
           created_at?: string
           date: string
           id?: string
@@ -86,6 +92,9 @@ export type Database = {
         }
         Update: {
           amount?: number
+          cancellation_reason?: string | null
+          cancelled_at?: string | null
+          cancelled_by?: string | null
           created_at?: string
           date?: string
           id?: string

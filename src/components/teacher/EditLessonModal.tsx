@@ -1,45 +1,51 @@
 import { useState, useEffect } from 'react';
-import { format, addMinutes, parse } from 'date-fns';
+import { format, parseISO, addMinutes, parse } from 'date-fns';
 import { CalendarIcon, AlertTriangle } from 'lucide-react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 
-import {
-  Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription,
-} from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { useStudentsList } from '@/hooks/use-students-list';
 import { useLessonConflicts } from '@/hooks/use-lesson-conflicts';
+import type { CalendarLesson } from '@/hooks/use-calendar-lessons';
 
-const TEACHER_ID = 'a1b2c3d4-e5f6-7890-abcd-ef1234567890';
 const DURATION_PRESETS = [30, 45, 60, 90, 120];
 
-interface AddLessonModalProps {
+interface EditLessonModalProps {
+  lesson: CalendarLesson | null;
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  preselectedStudentId?: string;
-  prefilledDate?: Date;
-  prefilledTime?: string;
 }
 
-export function AddLessonModal({ open, onOpenChange, preselectedStudentId, prefilledDate, prefilledTime }: AddLessonModalProps) {
+export function EditLessonModal({ lesson, open, onOpenChange }: EditLessonModalProps) {
   const queryClient = useQueryClient();
-  const { data: students } = useStudentsList();
 
-  const [studentId, setStudentId] = useState(preselectedStudentId ?? '');
-  const [date, setDate] = useState<Date>(prefilledDate ?? new Date());
-  const [timeStart, setTimeStart] = useState(prefilledTime ?? '');
+  const [date, setDate] = useState<Date>(new Date());
+  const [timeStart, setTimeStart] = useState('');
   const [duration, setDuration] = useState(60);
   const [amount, setAmount] = useState('');
   const [notes, setNotes] = useState('');
+
+  useEffect(() => {
+    if (lesson && open) {
+      setDate(parseISO(lesson.date));
+      setTimeStart(lesson.time_start);
+      setAmount(String(lesson.amount));
+      setNotes(lesson.notes ?? '');
+      // Calculate duration from time_start and time_end
+      const start = parse(lesson.time_start, 'HH:mm', new Date());
+      const end = parse(lesson.time_end, 'HH:mm', new Date());
+      const diff = (end.getTime() - start.getTime()) / 60000;
+      setDuration(diff > 0 ? diff : 60);
+    }
+  }, [lesson, open]);
 
   const timeEnd = timeStart
     ? format(addMinutes(parse(timeStart, 'HH:mm', new Date()), duration), 'HH:mm')
@@ -48,89 +54,52 @@ export function AddLessonModal({ open, onOpenChange, preselectedStudentId, prefi
   const { data: conflicts } = useLessonConflicts(
     format(date, 'yyyy-MM-dd'),
     timeStart || null,
-    timeEnd || null
+    timeEnd || null,
+    lesson?.id
   );
-
-  // Auto-fill amount when student changes
-  useEffect(() => {
-    const selected = (students ?? []).find((s) => s.id === studentId);
-    if (selected?.lesson_price) {
-      setAmount(String(selected.lesson_price));
-    }
-  }, [studentId, students]);
-
-  // Reset form when modal opens
-  const handleOpenChange = (next: boolean) => {
-    if (next) {
-      setStudentId(preselectedStudentId ?? '');
-      setDate(prefilledDate ?? new Date());
-      setTimeStart(prefilledTime ?? '');
-      setDuration(60);
-      setAmount('');
-      setNotes('');
-    }
-    onOpenChange(next);
-  };
 
   const mutation = useMutation({
     mutationFn: async () => {
-      const { error } = await supabase.from('lessons').insert({
-        student_id: studentId,
-        teacher_id: TEACHER_ID,
-        date: format(date, 'yyyy-MM-dd'),
-        time_start: timeStart,
-        time_end: timeEnd,
-        amount: Number(amount),
-        status: 'scheduled',
-        payment_status: 'pending',
-        notes: notes || null,
-      });
+      if (!lesson) return;
+      const { error } = await supabase
+        .from('lessons')
+        .update({
+          date: format(date, 'yyyy-MM-dd'),
+          time_start: timeStart,
+          time_end: timeEnd,
+          amount: Number(amount),
+          notes: notes || null,
+        })
+        .eq('id', lesson.id);
       if (error) throw error;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['today-lessons'] });
       queryClient.invalidateQueries({ queryKey: ['calendar-lessons'] });
+      queryClient.invalidateQueries({ queryKey: ['today-lessons'] });
       queryClient.invalidateQueries({ queryKey: ['student-profile'] });
-      toast.success('שיעור נוסף בהצלחה');
-      handleOpenChange(false);
+      toast.success('השיעור עודכן בהצלחה');
+      onOpenChange(false);
     },
-    onError: () => {
-      toast.error('שגיאה ביצירת השיעור');
-    },
+    onError: () => toast.error('שגיאה בעדכון השיעור'),
   });
 
-  const canSubmit = studentId && timeStart && timeEnd && Number(amount) > 0;
+  if (!lesson) return null;
 
   return (
-    <Dialog open={open} onOpenChange={handleOpenChange}>
+    <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>שיעור חדש</DialogTitle>
-          <DialogDescription>הוסף שיעור חדש לתלמיד</DialogDescription>
+          <DialogTitle>עריכת שיעור</DialogTitle>
+          <DialogDescription>{lesson.student.name}</DialogDescription>
         </DialogHeader>
 
         <div className="space-y-4 py-2">
-          {/* Student Select */}
-          <div className="space-y-2">
-            <Label>תלמיד</Label>
-            <Select value={studentId} onValueChange={setStudentId} disabled={!!preselectedStudentId}>
-              <SelectTrigger>
-                <SelectValue placeholder="בחר תלמיד" />
-              </SelectTrigger>
-              <SelectContent className="bg-background z-[100]">
-                {(students ?? []).map((s) => (
-                  <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-
-          {/* Date Picker */}
+          {/* Date */}
           <div className="space-y-2">
             <Label>תאריך</Label>
             <Popover>
               <PopoverTrigger asChild>
-                <Button variant="outline" className={cn('w-full justify-start text-left font-normal', !date && 'text-muted-foreground')}>
+                <Button variant="outline" className="w-full justify-start text-left font-normal">
                   <CalendarIcon className="mr-2 h-4 w-4" />
                   {format(date, 'PPP')}
                 </Button>
@@ -173,7 +142,7 @@ export function AddLessonModal({ open, onOpenChange, preselectedStudentId, prefi
           {/* Amount */}
           <div className="space-y-2">
             <Label>סכום (₪)</Label>
-            <Input type="number" min={0} value={amount} onChange={(e) => setAmount(e.target.value)} placeholder="0" />
+            <Input type="number" min={0} value={amount} onChange={(e) => setAmount(e.target.value)} />
           </div>
 
           {/* Notes */}
@@ -184,8 +153,8 @@ export function AddLessonModal({ open, onOpenChange, preselectedStudentId, prefi
         </div>
 
         <DialogFooter>
-          <Button onClick={() => mutation.mutate()} disabled={!canSubmit || mutation.isPending} className="w-full">
-            {mutation.isPending ? 'שומר…' : 'הוסף שיעור'}
+          <Button onClick={() => mutation.mutate()} disabled={!timeStart || !amount || mutation.isPending} className="w-full">
+            {mutation.isPending ? 'שומר…' : 'שמור שינויים'}
           </Button>
         </DialogFooter>
       </DialogContent>
