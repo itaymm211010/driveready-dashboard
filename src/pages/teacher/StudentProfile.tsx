@@ -7,8 +7,6 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { RadarChart, PolarGrid, PolarAngleAxis, Radar, ResponsiveContainer, LineChart, Line, XAxis, YAxis, Tooltip, CartesianGrid } from 'recharts';
 import { supabase } from '@/integrations/supabase/client';
 import { useStudentProfile } from '@/hooks/use-student-profile';
-import { useReadiness } from '@/hooks/use-readiness';
-import { useCategoryAverages } from '@/hooks/use-category-averages';
 import {
   calculateReadiness as calcReadiness,
   calculateCategoryAverage,
