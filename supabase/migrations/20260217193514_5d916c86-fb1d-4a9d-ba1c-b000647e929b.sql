@@ -1,0 +1,1 @@
+ALTER TABLE public.skill_categories ADD COLUMN IF NOT EXISTS color TEXT;
