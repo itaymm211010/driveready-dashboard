@@ -1,136 +1,83 @@
 
+# Plan: Sync Database and Code with New Skill Structure
 
-## Lesson Time Logging + Student Profile Enhancement
+## Current State
+- Database has **3 old categories** (שליטה ברכב, מודעות בכביש, תמרונים) with **9 skills** -- these use old names and have no `color` values
+- The `seed_default_skills` function exists but hasn't been called yet
+- The `color` column was added to `skill_categories` but is NULL for existing rows
+- Code references category 4 ("מצבים מתקדמים") which doesn't exist in the DB yet
 
-### Overview
-Two improvements from the uploaded spec:
-1. **Lesson Time Logging** -- Track actual start/end times, calculate duration variance, show smart timer with color-coded remaining time
-2. **Student Profile Enhancement** -- Redesigned profile with radar chart, progress over time graph, next lesson card, teacher notes, and improved lesson history with time data
+## Step 1: Database Migration -- Clean and Re-seed
 
----
+Run a SQL migration that:
+1. Deletes the old 3 categories and their 9 skills (and any dependent `student_skills` / `skill_history` for them)
+2. Calls `seed_default_skills('a1b2c3d4-e5f6-7890-abcd-ef1234567890')` to insert the new 4 categories with 31 skills and proper colors
 
-### Part 1: Lesson Time Logging
+```sql
+-- Remove old skill data for this teacher
+DELETE FROM skill_history WHERE student_skill_id IN (
+  SELECT ss.id FROM student_skills ss
+  JOIN skills s ON s.id = ss.skill_id
+  WHERE s.teacher_id = 'a1b2c3d4-e5f6-7890-abcd-ef1234567890'
+);
 
-#### 1.1 Database Changes
+DELETE FROM student_skills WHERE skill_id IN (
+  SELECT id FROM skills WHERE teacher_id = 'a1b2c3d4-e5f6-7890-abcd-ef1234567890'
+);
 
-Add columns to `lessons` table:
-- `actual_start_time` (timestamptz, nullable) -- when teacher clicked "Start"
-- `actual_end_time` (timestamptz, nullable) -- when teacher clicked "End"
-- `actual_duration_minutes` (int, nullable) -- calculated actual duration
-- `scheduled_duration_minutes` (int, nullable) -- planned duration from time_start/time_end
-- `duration_variance_minutes` (int, nullable) -- actual minus scheduled
+DELETE FROM lesson_planned_skills WHERE skill_id IN (
+  SELECT id FROM skills WHERE teacher_id = 'a1b2c3d4-e5f6-7890-abcd-ef1234567890'
+);
 
-New table `lesson_time_log`:
-- `id` UUID primary key
-- `lesson_id` UUID references lessons(id) ON DELETE CASCADE
-- `event_type` text NOT NULL ('started', 'ended')
-- `timestamp` timestamptz default now()
-- `notes` text nullable
-- Indexes on `lesson_id` and `timestamp`
+DELETE FROM skills WHERE teacher_id = 'a1b2c3d4-e5f6-7890-abcd-ef1234567890';
+DELETE FROM skill_categories WHERE teacher_id = 'a1b2c3d4-e5f6-7890-abcd-ef1234567890';
 
-#### 1.2 Start Lesson Flow
+-- Seed the new 4 categories + 31 skills
+SELECT seed_default_skills('a1b2c3d4-e5f6-7890-abcd-ef1234567890');
+```
 
-**Modify `LessonCard.tsx`** (or wherever "Start Lesson" is triggered):
-- When clicking "Start", write `actual_start_time = NOW()` and `status = 'in_progress'` to the lesson
-- Insert a `lesson_time_log` entry with event_type = 'started'
-- Calculate `scheduled_duration_minutes` from `time_start`/`time_end` and save it
+**Note:** This will delete any existing skill practice history for the demo teacher. Since this is test data, that should be fine.
 
-**Modify `ActiveLesson.tsx`**:
-- On mount, read `actual_start_time` from the lesson data
-- Use `actual_start_time` as the timer base instead of starting from 0
-- Show enhanced timer header with:
-  - Running timer (color-coded: green = on time, amber = approaching end, red = overtime)
-  - "Started at: HH:MM"
-  - "Scheduled end: HH:MM"  
-  - "X minutes remaining" or "Over by X minutes"
+## Step 2: Update `DbSkillCategory` Type
 
-#### 1.3 End Lesson Flow
+In `src/hooks/use-teacher-data.ts`, add `color` to the `DbSkillCategory` type:
 
-**Modify `use-save-lesson.ts`**:
-- Write `actual_end_time = NOW()` when ending
-- Calculate `actual_duration_minutes` from start to end
-- Calculate `duration_variance_minutes` = actual - scheduled
-- Insert a `lesson_time_log` entry with event_type = 'ended'
+```typescript
+export type DbSkillCategory = {
+  id: string;
+  name: string;
+  icon: string;
+  color: string | null;  // <-- new
+  sort_order: number;
+  skills: DbSkill[];
+};
+```
 
-**Modify `EndLessonModal.tsx`**:
-- Show time summary section: started at, ended at, actual duration, scheduled duration, variance (+/- X min)
-- Pass actual duration data from ActiveLesson
+## Step 3: Update `useStudentSkillTree` to Include `color`
 
-#### 1.4 New Hook: `use-start-lesson.ts`
+In `src/hooks/use-teacher-data.ts`, the `useStudentSkillTree` result assembly already uses `...cat` spread from the Supabase query, but the explicit `DbSkillCategory` construction at line 183 doesn't include `color`. Add it:
 
-A mutation hook that:
-- Updates the lesson with `actual_start_time`, `scheduled_duration_minutes`, `status = 'in_progress'`
-- Inserts a `lesson_time_log` entry
-- Invalidates relevant queries
-- Returns the updated lesson
+```typescript
+const result: DbSkillCategory[] = (categories ?? []).map((cat) => ({
+  id: cat.id,
+  name: cat.name,
+  icon: cat.icon,
+  color: cat.color ?? null,  // <-- new
+  sort_order: cat.sort_order,
+  skills: ...
+}));
+```
 
----
+## Step 4: Remove Hardcoded `CATEGORY_COLORS` Fallback
 
-### Part 2: Student Profile Enhancement
+In `src/pages/teacher/StudentProfile.tsx`, the `CATEGORY_COLORS` map (lines 45-50) can remain as a fallback but will no longer be the primary source since colors now come from the DB. The existing line `cat.color ?? CATEGORY_COLORS[cat.name] ?? '#94A3B8'` at line 119 already handles this gracefully -- no change needed here.
 
-#### 2.1 Enhanced Lesson History
+## Summary of Changes
 
-**Modify `StudentProfile.tsx`** lesson history section:
-- Show actual time range (e.g., "08:05 - 09:42 (97 min)")
-- Show variance badge: "+7 min" in red or "-5 min" in green
-- Show skills practiced count
-- Show payment status badge
+| What | Where | Change |
+|------|-------|--------|
+| Delete old categories/skills, seed new ones | SQL migration | Delete + call `seed_default_skills()` |
+| Add `color` to type | `use-teacher-data.ts` | Add `color: string \| null` to `DbSkillCategory` |
+| Include `color` in query result | `use-teacher-data.ts` | Add `color: cat.color` to result assembly |
 
-#### 2.2 Radar Chart for Skill Categories
-
-**Add to `StudentProfile.tsx`**:
-- Use `recharts` RadarChart to show mastery % per skill category
-- Each axis = one skill category
-- Value = percentage of mastered skills in that category
-
-#### 2.3 Progress Over Time Line Chart
-
-**Add to `StudentProfile.tsx`**:
-- Use `recharts` LineChart showing readiness % over time
-- X-axis = lesson dates (aggregated monthly)
-- Y-axis = cumulative mastered skills percentage
-- Data derived from `skill_history` entries
-
-#### 2.4 Next Lesson Card
-
-**Add to `StudentProfile.tsx`**:
-- Query upcoming scheduled lessons for this student
-- Show date, time, and "in X days" countdown
-- Quick action buttons: navigate to lesson, prepare plan
-
-#### 2.5 Teacher Notes Section
-
-**Database**: Add `teacher_notes` (text, nullable) column to `students` table
-
-**Add to `StudentProfile.tsx`**:
-- Editable notes textarea
-- Auto-save on blur with debounce
-- Shows "Private teacher notes" label
-
-#### 2.6 Quick Action Cards
-
-**Modify `StudentProfile.tsx`**:
-- Add a horizontal scrollable row of quick action buttons:
-  - Call, WhatsApp, Schedule Lesson, View Report, Send Payment Reminder
-
----
-
-### Technical Details
-
-**New files:**
-- `src/hooks/use-start-lesson.ts` -- mutation for starting a lesson with time tracking
-
-**Modified files:**
-- `src/pages/teacher/ActiveLesson.tsx` -- smart timer based on actual_start_time, color-coded, remaining time
-- `src/components/teacher/EndLessonModal.tsx` -- time summary section with variance
-- `src/hooks/use-save-lesson.ts` -- write actual_end_time, duration fields, time log entry
-- `src/pages/teacher/StudentProfile.tsx` -- radar chart, progress chart, next lesson card, teacher notes, enhanced history
-- `src/components/teacher/LessonCard.tsx` -- call start-lesson hook on "Start" click
-
-**Database migration:**
-- Add 5 columns to `lessons` table
-- Create `lesson_time_log` table with indexes
-- Add `teacher_notes` column to `students` table
-
-**Dependencies:** No new packages. Uses existing `recharts`, `date-fns`, `framer-motion`.
-
+After these changes, the DB will have 4 categories with 31 skills and proper colors, matching what the code expects for readiness calculations.
