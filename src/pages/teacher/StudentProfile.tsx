@@ -190,6 +190,10 @@ export default function StudentProfile() {
     }, 500);
   }, [id, teacherNotes, updateNotes]);
 
+  const skillTree = data?.skillTree;
+  const readiness = useMemo(() => skillTree ? computeReadiness(skillTree) : { ready: false, overallAvg: 0, hasLowSkills: false, lowSkillCount: 0, advancedCatAvg: 0, ratedCount: 0 }, [skillTree]);
+  const categoryAverages = useMemo(() => skillTree ? computeCategoryAverages(skillTree) : [], [skillTree]);
+
   if (isLoading) {
     return (
       <div dir="rtl" className="min-h-screen bg-background pb-24 p-4 space-y-4">
@@ -209,15 +213,15 @@ export default function StudentProfile() {
     );
   }
 
-  const { student, lessons, skillTree } = data;
+  const { student, lessons, skillTree: _st } = data;
   const hasDebt = student.balance < 0;
-  const totalSkills = skillTree.reduce((sum, cat) => sum + cat.skills.length, 0);
-  const masteredSkills = skillTree.reduce(
+  const totalSkills = data.skillTree.reduce((sum, cat) => sum + cat.skills.length, 0);
+  const masteredSkills = data.skillTree.reduce(
     (sum, cat) => sum + cat.skills.filter((s: any) => s.studentSkill?.current_status === 'mastered').length, 0
   );
 
   // Radar chart data
-  const radarData = skillTree.map((cat) => {
+  const radarData = data.skillTree.map((cat) => {
     const total = cat.skills.length;
     const mastered = cat.skills.filter((s: any) => s.studentSkill?.current_status === 'mastered').length;
     const inProgress = cat.skills.filter((s: any) => s.studentSkill?.current_status === 'in_progress').length;
@@ -225,10 +229,6 @@ export default function StudentProfile() {
     const score = mastered + inProgress * 0.5;
     return { category: cat.name, value: total > 0 ? Math.round((score / total) * 100) : 0, mastered, inProgress, notLearned, total };
   }).filter(d => d.category);
-
-  // Readiness & category averages (uses canonical functions from calculations.ts)
-  const readiness = useMemo(() => computeReadiness(skillTree), [skillTree]);
-  const categoryAverages = useMemo(() => computeCategoryAverages(skillTree), [skillTree]);
 
   // Progress over time data from completed lessons
   const progressData = [...lessons]
