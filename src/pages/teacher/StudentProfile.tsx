@@ -1,12 +1,19 @@
-import { useState, useCallback, useRef, useEffect } from 'react';
-import { Plus, ArrowLeft, Phone, MessageCircle, TrendingUp, Wallet, BookOpen, CheckCircle, Clock, AlertTriangle, ExternalLink, Pencil, Trash2, Calendar, FileText, CreditCard, StickyNote } from 'lucide-react';
+import { useState, useCallback, useRef, useEffect, useMemo } from 'react';
+import { Plus, ArrowLeft, Phone, MessageCircle, TrendingUp, Wallet, BookOpen, CheckCircle, Clock, AlertTriangle, ExternalLink, Pencil, Trash2, Calendar, FileText, CreditCard, StickyNote, Shield, XCircle } from 'lucide-react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { format, formatDistanceToNow } from 'date-fns';
 import { he } from 'date-fns/locale';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { RadarChart, PolarGrid, PolarAngleAxis, Radar, ResponsiveContainer, LineChart, Line, XAxis, YAxis, Tooltip, CartesianGrid } from 'recharts';
 import { supabase } from '@/integrations/supabase/client';
 import { useStudentProfile } from '@/hooks/use-student-profile';
+import { useReadiness } from '@/hooks/use-readiness';
+import { useCategoryAverages } from '@/hooks/use-category-averages';
+import {
+  calculateReadiness as calcReadiness,
+  calculateCategoryAverage,
+  type StudentSkillWithCategory,
+} from '@/lib/calculations';
 import { BottomNav } from '@/components/teacher/BottomNav';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -35,6 +42,90 @@ const fadeUp = {
     transition: { delay: i * 0.08, duration: 0.4, ease: [0.25, 0.46, 0.45, 0.94] as const },
   }),
 };
+
+// Default category colors (matches migration spec)
+const CATEGORY_COLORS: Record<string, string> = {
+  'שליטה והפעלת הרכב': '#38BDF8',
+  'התנהלות בדרך': '#34D399',
+  'התנהלות בתנועה': '#F472B6',
+  'מצבים מתקדמים': '#FBBF24',
+};
+
+/** Flatten the skillTree (from useStudentProfile) into the shape calculations.ts expects. */
+function flattenSkillTree(skillTree: any[]): { skills: StudentSkillWithCategory[]; advancedCategoryId: string | undefined } {
+  let advancedCategoryId: string | undefined;
+  const skills: StudentSkillWithCategory[] = [];
+
+  for (const cat of skillTree) {
+    if (cat.sort_order === 4 || cat.name === 'מצבים מתקדמים') {
+      advancedCategoryId = cat.id;
+    }
+    for (const skill of cat.skills) {
+      if (!skill.studentSkill) continue;
+      skills.push({
+        ...skill.studentSkill,
+        skill: { id: skill.id, category_id: cat.id, name: skill.name },
+      });
+    }
+  }
+
+  return { skills, advancedCategoryId };
+}
+
+interface ReadinessDisplay {
+  ready: boolean;
+  overallAvg: number;
+  hasLowSkills: boolean;
+  lowSkillCount: number;
+  advancedCatAvg: number;
+  ratedCount: number;
+}
+
+/** Compute readiness using the canonical calcReadiness, mapped to the UI-friendly shape. */
+function computeReadiness(skillTree: any[]): ReadinessDisplay {
+  const { skills, advancedCategoryId } = flattenSkillTree(skillTree);
+  const r = calcReadiness(skills, advancedCategoryId);
+  const rated = skills.filter((s) => s.last_proficiency != null && s.last_proficiency > 0);
+  const lowCount = rated.filter((s) => (s.last_proficiency as number) < 60).length;
+  return {
+    ready: r.ready,
+    overallAvg: r.avg,
+    hasLowSkills: r.hasLow,
+    lowSkillCount: lowCount,
+    advancedCatAvg: r.cat4Avg,
+    ratedCount: rated.length,
+  };
+}
+
+interface CategoryAverageDisplay {
+  id: string;
+  name: string;
+  icon: string;
+  color: string;
+  average: number;
+  ratedCount: number;
+  totalCount: number;
+  mastered: number;
+}
+
+/** Compute per-category averages using the canonical calculateCategoryAverage. */
+function computeCategoryAverages(skillTree: any[]): CategoryAverageDisplay[] {
+  const { skills } = flattenSkillTree(skillTree);
+  return skillTree.map((cat) => {
+    const rated = cat.skills.filter((s: any) => (s.studentSkill?.last_proficiency ?? 0) > 0);
+    const mastered = cat.skills.filter((s: any) => s.studentSkill?.current_status === 'mastered').length;
+    return {
+      id: cat.id,
+      name: cat.name,
+      icon: cat.icon ?? '',
+      color: cat.color ?? CATEGORY_COLORS[cat.name] ?? '#94A3B8',
+      average: calculateCategoryAverage(skills, cat.id),
+      ratedCount: rated.length,
+      totalCount: cat.skills.length,
+      mastered,
+    };
+  });
+}
 
 function useNextLesson(studentId: string | undefined) {
   return useQuery({
@@ -137,6 +228,10 @@ export default function StudentProfile() {
     return { category: cat.name, value: total > 0 ? Math.round((score / total) * 100) : 0, mastered, inProgress, notLearned, total };
   }).filter(d => d.category);
 
+  // Readiness & category averages (uses canonical functions from calculations.ts)
+  const readiness = useMemo(() => computeReadiness(skillTree), [skillTree]);
+  const categoryAverages = useMemo(() => computeCategoryAverages(skillTree), [skillTree]);
+
   // Progress over time data from completed lessons
   const progressData = [...lessons]
     .filter((l: any) => l.status === 'completed')
@@ -203,7 +298,10 @@ export default function StudentProfile() {
               <div className="h-10 w-10 rounded-full bg-primary/15 flex items-center justify-center mx-auto mb-1.5">
                 <TrendingUp className="h-5 w-5 text-primary" />
               </div>
-              <p className="text-2xl font-heading font-bold text-foreground">{student.readiness_percentage}%</p>
+              <p className={cn(
+                'text-2xl font-heading font-bold',
+                readiness.ready ? 'text-emerald-500' : 'text-foreground'
+              )}>{Math.round(readiness.overallAvg)}%</p>
               <p className="text-[10px] uppercase tracking-wider text-muted-foreground">מוכנות</p>
             </CardContent>
           </Card>
@@ -229,9 +327,136 @@ export default function StudentProfile() {
           </Card>
         </motion.div>
 
+        {/* Readiness Status */}
+        {readiness.ratedCount > 0 && (
+          <motion.div variants={fadeUp} initial="hidden" animate="visible" custom={2}>
+            <Card className={cn(
+              'overflow-hidden border-2',
+              readiness.ready
+                ? 'border-emerald-500/40 bg-emerald-500/5'
+                : 'border-amber-500/40 bg-amber-500/5'
+            )}>
+              <CardContent className="p-4">
+                <div className="flex items-center gap-3 mb-4">
+                  <div className={cn(
+                    'h-12 w-12 rounded-full flex items-center justify-center shrink-0',
+                    readiness.ready ? 'bg-emerald-500/20' : 'bg-amber-500/20'
+                  )}>
+                    <Shield className={cn('h-6 w-6', readiness.ready ? 'text-emerald-500' : 'text-amber-500')} />
+                  </div>
+                  <div>
+                    <h3 className="text-base font-heading font-bold text-foreground">
+                      {readiness.ready ? 'מוכן למבחן' : 'עדיין לא מוכן'}
+                    </h3>
+                    <p className="text-xs text-muted-foreground font-body">
+                      {readiness.ratedCount} מיומנויות דורגו
+                    </p>
+                  </div>
+                </div>
+
+                <div className="space-y-2.5" role="list" aria-label="קריטריונים למוכנות">
+                  {/* Criterion 1: Overall average >= 80 */}
+                  <div className="flex items-center gap-2.5" role="listitem">
+                    {readiness.overallAvg >= 80 ? (
+                      <CheckCircle className="h-5 w-5 text-emerald-500 shrink-0" />
+                    ) : (
+                      <XCircle className="h-5 w-5 text-red-400 shrink-0" />
+                    )}
+                    <span className="text-sm font-body text-foreground flex-1">
+                      ממוצע כללי 80+
+                    </span>
+                    <span className={cn(
+                      'text-sm font-heading font-bold tabular-nums',
+                      readiness.overallAvg >= 80 ? 'text-emerald-500' : 'text-red-400'
+                    )}>
+                      {readiness.overallAvg.toFixed(0)}
+                    </span>
+                  </div>
+
+                  {/* Criterion 2: No skill below 60 */}
+                  <div className="flex items-center gap-2.5" role="listitem">
+                    {!readiness.hasLowSkills ? (
+                      <CheckCircle className="h-5 w-5 text-emerald-500 shrink-0" />
+                    ) : (
+                      <XCircle className="h-5 w-5 text-red-400 shrink-0" />
+                    )}
+                    <span className="text-sm font-body text-foreground flex-1">
+                      אין מיומנות מתחת ל-60
+                    </span>
+                    {readiness.hasLowSkills && (
+                      <span className="text-xs font-body text-red-400">
+                        {readiness.lowSkillCount} דורשות שיפור
+                      </span>
+                    )}
+                  </div>
+
+                  {/* Criterion 3: Advanced category >= 80 */}
+                  <div className="flex items-center gap-2.5" role="listitem">
+                    {readiness.advancedCatAvg >= 80 ? (
+                      <CheckCircle className="h-5 w-5 text-emerald-500 shrink-0" />
+                    ) : (
+                      <XCircle className="h-5 w-5 text-red-400 shrink-0" />
+                    )}
+                    <span className="text-sm font-body text-foreground flex-1">
+                      מצבים מתקדמים 80+
+                    </span>
+                    <span className={cn(
+                      'text-sm font-heading font-bold tabular-nums',
+                      readiness.advancedCatAvg >= 80 ? 'text-emerald-500' : 'text-red-400'
+                    )}>
+                      {readiness.advancedCatAvg > 0 ? readiness.advancedCatAvg.toFixed(0) : '—'}
+                    </span>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </motion.div>
+        )}
+
+        {/* Category Averages */}
+        {categoryAverages.length > 0 && (
+          <motion.div variants={fadeUp} initial="hidden" animate="visible" custom={3}>
+            <Card className="card-premium overflow-hidden">
+              <CardHeader className="pb-2">
+                <CardTitle className="text-base font-heading">ממוצע לפי קטגוריה</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                {categoryAverages.map((cat) => (
+                  <div key={cat.id}>
+                    <div className="flex items-center justify-between mb-1.5">
+                      <span className="text-sm font-body text-foreground flex items-center gap-1.5">
+                        <span>{cat.icon}</span>
+                        <span>{cat.name}</span>
+                      </span>
+                      <span
+                        className="text-sm font-heading font-bold tabular-nums"
+                        style={{ color: cat.average >= 60 ? cat.color : undefined }}
+                      >
+                        {cat.ratedCount > 0 ? cat.average.toFixed(0) : '—'}
+                      </span>
+                    </div>
+                    <div className="relative h-2.5 rounded-full bg-muted overflow-hidden">
+                      <motion.div
+                        className="absolute inset-y-0 right-0 rounded-full"
+                        style={{ backgroundColor: cat.color }}
+                        initial={{ width: 0 }}
+                        animate={{ width: `${cat.ratedCount > 0 ? cat.average : 0}%` }}
+                        transition={{ duration: 0.7, ease: [0.25, 0.46, 0.45, 0.94] }}
+                      />
+                    </div>
+                    <p className="text-[10px] text-muted-foreground mt-0.5 font-body">
+                      {cat.mastered}/{cat.totalCount} נשלטו
+                    </p>
+                  </div>
+                ))}
+              </CardContent>
+            </Card>
+          </motion.div>
+        )}
+
         {/* Next Lesson Card */}
         {nextLesson && (
-          <motion.div variants={fadeUp} initial="hidden" animate="visible" custom={2}>
+          <motion.div variants={fadeUp} initial="hidden" animate="visible" custom={4}>
             <Card className="border-primary/30 bg-primary/5">
               <CardContent className="p-3">
                 <div className="flex items-center justify-between">
@@ -254,7 +479,7 @@ export default function StudentProfile() {
         )}
 
         {/* Lesson Price & ID */}
-        <motion.div variants={fadeUp} initial="hidden" animate="visible" custom={3}>
+        <motion.div variants={fadeUp} initial="hidden" animate="visible" custom={5}>
           <Card className="glass">
             <CardContent className="p-3 space-y-2">
               <div className="flex items-center justify-between">
@@ -272,7 +497,7 @@ export default function StudentProfile() {
 
         {/* Radar Chart */}
         {radarData.length >= 3 && (
-          <motion.div variants={fadeUp} initial="hidden" animate="visible" custom={4}>
+          <motion.div variants={fadeUp} initial="hidden" animate="visible" custom={6}>
             <Card>
               <CardHeader className="pb-2">
                 <CardTitle className="text-base font-heading">מפת מיומנויות</CardTitle>
@@ -307,7 +532,7 @@ export default function StudentProfile() {
 
         {/* Progress Over Time */}
         {progressData.length >= 2 && (
-          <motion.div variants={fadeUp} initial="hidden" animate="visible" custom={5}>
+          <motion.div variants={fadeUp} initial="hidden" animate="visible" custom={7}>
             <Card>
               <CardHeader className="pb-2">
                 <CardTitle className="text-base font-heading">התקדמות לאורך זמן</CardTitle>
@@ -328,7 +553,7 @@ export default function StudentProfile() {
         )}
 
         {/* Skill Breakdown */}
-        <motion.div variants={fadeUp} initial="hidden" animate="visible" custom={6}>
+        <motion.div variants={fadeUp} initial="hidden" animate="visible" custom={8}>
           <Card className="card-premium overflow-hidden">
             <CardHeader className="pb-2">
               <CardTitle className="text-base font-heading flex items-center justify-between">
@@ -377,7 +602,7 @@ export default function StudentProfile() {
         </motion.div>
 
         {/* Teacher Notes */}
-        <motion.div variants={fadeUp} initial="hidden" animate="visible" custom={7}>
+        <motion.div variants={fadeUp} initial="hidden" animate="visible" custom={9}>
           <Card>
             <CardHeader className="pb-2">
               <CardTitle className="text-base font-heading flex items-center gap-2">
@@ -401,7 +626,7 @@ export default function StudentProfile() {
         </motion.div>
 
         {/* Lesson History */}
-        <motion.div variants={fadeUp} initial="hidden" animate="visible" custom={8}>
+        <motion.div variants={fadeUp} initial="hidden" animate="visible" custom={10}>
           <Card>
             <CardHeader className="pb-2">
               <CardTitle className="text-base font-heading flex items-center justify-between">
