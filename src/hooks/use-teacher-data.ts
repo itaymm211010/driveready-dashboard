@@ -32,6 +32,7 @@ export type DbSkillCategory = {
   id: string;
   name: string;
   icon: string;
+  color: string | null;
   sort_order: number;
   skills: DbSkill[];
 };
@@ -184,6 +185,7 @@ export function useStudentSkillTree(studentId: string | undefined) {
         id: cat.id,
         name: cat.name,
         icon: cat.icon,
+        color: (cat as any).color ?? null,
         sort_order: cat.sort_order,
         skills: (skills ?? [])
           .filter((s) => s.category_id === cat.id)

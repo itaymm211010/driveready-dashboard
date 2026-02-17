@@ -167,6 +167,7 @@ export type Database = {
       }
       skill_categories: {
         Row: {
+          color: string | null
           created_at: string
           icon: string
           id: string
@@ -175,6 +176,7 @@ export type Database = {
           teacher_id: string
         }
         Insert: {
+          color?: string | null
           created_at?: string
           icon?: string
           id?: string
@@ -183,6 +185,7 @@ export type Database = {
           teacher_id: string
         }
         Update: {
+          color?: string | null
           created_at?: string
           icon?: string
           id?: string
@@ -388,7 +391,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      seed_default_skills: {
+        Args: { p_teacher_id: string }
+        Returns: undefined
+      }
     }
     Enums: {
       [_ in never]: never
