@@ -14,7 +14,7 @@ import { useLessonPlannedSkills, useAddPlannedSkills, useRemovePlannedSkill } fr
 import { useSaveLesson } from '@/hooks/use-save-lesson';
 import { cn } from '@/lib/utils';
 import type { DbSkill } from '@/hooks/use-teacher-data';
-import type { SkillStatus } from '@/data/mock';
+import type { SkillScore } from '@/lib/scoring';
 
 function formatTimer(seconds: number) {
   const h = Math.floor(seconds / 3600);
@@ -55,7 +55,7 @@ export default function ActiveLesson() {
   const saveLessonMutation = useSaveLesson();
 
   const [timer, setTimer] = useState(0);
-  const [localOverrides, setLocalOverrides] = useState<Record<string, SkillStatus>>({});
+  const [localOverrides, setLocalOverrides] = useState<Record<string, SkillScore>>({});
   const [notes, setNotes] = useState<Record<string, string>>({});
   const [showEndModal, setShowEndModal] = useState(false);
   const [showSkillSelection, setShowSkillSelection] = useState(false);

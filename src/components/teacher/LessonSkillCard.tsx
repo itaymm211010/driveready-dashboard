@@ -1,14 +1,15 @@
 import { Info, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { SkillStatusToggle } from '@/components/shared/SkillStatusToggle';
+import { SkillScoreSelector } from '@/components/shared/SkillScoreSelector';
 import type { DbSkill } from '@/hooks/use-teacher-data';
-import type { SkillStatus } from '@/data/mock';
+import type { SkillScore } from '@/lib/scoring';
+import { scoreToPercentage, formatScore } from '@/lib/scoring';
 
 interface LessonSkillCardProps {
   skill: DbSkill;
-  currentStatus: SkillStatus;
+  currentScore: SkillScore;
   noteValue: string;
-  onStatusChange: (skillId: string, status: SkillStatus) => void;
+  onScoreChange: (skillId: string, score: SkillScore) => void;
   onNoteChange: (skillId: string, note: string) => void;
   onShowHistory: (skill: DbSkill) => void;
   onRemove?: (skillId: string) => void;
@@ -16,14 +17,16 @@ interface LessonSkillCardProps {
 
 export function LessonSkillCard({
   skill,
-  currentStatus,
+  currentScore,
   noteValue,
-  onStatusChange,
+  onScoreChange,
   onNoteChange,
   onShowHistory,
   onRemove,
 }: LessonSkillCardProps) {
   const isFirstTime = !skill.student_skill || skill.student_skill.times_practiced === 0;
+  const lastScore = skill.student_skill?.current_score as SkillScore | null | undefined;
+  const lastPercentage = lastScore ? scoreToPercentage(lastScore) : null;
 
   return (
     <div className="rounded-xl border bg-card/80 backdrop-blur-sm p-4 space-y-3 card-premium overflow-hidden transition-smooth hover:shadow-md">
@@ -33,13 +36,13 @@ export function LessonSkillCard({
           <h3 className="text-sm font-heading font-bold text-foreground">{skill.name}</h3>
           {isFirstTime ? (
             <p className="text-xs text-primary mt-0.5 font-body">🆕 תרגול ראשון</p>
-          ) : skill.student_skill?.last_note ? (
+          ) : skill.student_skill?.last_note && lastScore ? (
             <p className="text-xs text-muted-foreground mt-0.5 font-body">
-              אחרון: {skill.student_skill.last_proficiency ?? 0}% - "{skill.student_skill.last_note}"
+              אחרון: {formatScore(lastScore)} ({lastPercentage}%) - "{skill.student_skill.last_note}"
             </p>
-          ) : skill.student_skill?.last_proficiency !== undefined && skill.student_skill?.last_proficiency !== null ? (
+          ) : lastScore !== undefined && lastScore !== null && lastScore > 0 ? (
             <p className="text-xs text-muted-foreground mt-0.5 font-body">
-              אחרון: {skill.student_skill.last_proficiency}%
+              אחרון: {formatScore(lastScore)} ({lastPercentage}%)
             </p>
           ) : null}
         </div>
@@ -65,10 +68,10 @@ export function LessonSkillCard({
         </div>
       </div>
 
-      {/* Status Toggle */}
-      <SkillStatusToggle
-        value={currentStatus}
-        onChange={(status) => onStatusChange(skill.id, status)}
+      {/* Score Selector */}
+      <SkillScoreSelector
+        value={currentScore}
+        onChange={(score) => onScoreChange(skill.id, score)}
         size="sm"
       />
 

@@ -2,13 +2,15 @@ import { useState } from 'react';
 import { ChevronDown, ChevronUp, AlertTriangle, Clock } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
-import { SkillStatusToggle } from '@/components/shared/SkillStatusToggle';
+import { SkillScoreSelector } from '@/components/shared/SkillScoreSelector';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
-import type { Skill, SkillStatus } from '@/data/mock';
+import type { Skill } from '@/data/mock';
+import type { SkillScore } from '@/lib/scoring';
+import { scoreToPercentage, getScoreLevel } from '@/lib/scoring';
 
 interface SkillRowProps {
   skill: Skill;
-  onStatusChange: (skillId: string, status: SkillStatus) => void;
+  onScoreChange: (skillId: string, score: SkillScore) => void;
   onNoteChange: (skillId: string, note: string) => void;
   noteValue: string;
 }
@@ -18,9 +20,10 @@ function formatDate(dateStr: string) {
   return d.toLocaleDateString('he-IL', { month: 'short', day: 'numeric' });
 }
 
-function getStatusIcon(status: SkillStatus) {
-  if (status === 'mastered') return '🟢';
-  if (status === 'in_progress') return '🟡';
+function getScoreIcon(score: SkillScore) {
+  if (score >= 4) return '🟢';
+  if (score >= 2) return '🟡';
+  if (score === 1) return '🔴';
   return '⚪';
 }
 
@@ -30,11 +33,13 @@ function daysSince(dateStr?: string) {
   return diff;
 }
 
-export function SkillRow({ skill, onStatusChange, onNoteChange, noteValue }: SkillRowProps) {
+export function SkillRow({ skill, onScoreChange, onNoteChange, noteValue }: SkillRowProps) {
   const [expanded, setExpanded] = useState(false);
-  const showWarning = skill.last_proficiency !== undefined && skill.last_proficiency < 80;
+  const currentScore = skill.current_score;
+  const currentPercentage = scoreToPercentage(currentScore);
+  const showWarning = currentScore > 0 && currentScore < 4; // Below "Good & stable"
   const days = daysSince(skill.last_practiced_date);
-  const stale = days !== null && days > 7 && skill.current_status === 'in_progress';
+  const stale = days !== null && days > 7 && currentScore > 0 && currentScore < 5;
 
   return (
     <div className="rounded-lg border bg-card p-3 space-y-2">
@@ -46,7 +51,7 @@ export function SkillRow({ skill, onStatusChange, onNoteChange, noteValue }: Ski
             {showWarning && (
               <span className="inline-flex items-center gap-0.5 text-xs text-warning font-medium">
                 <AlertTriangle className="h-3 w-3" />
-                {skill.last_proficiency}%
+                {getScoreLevel(currentScore).label} ({currentPercentage}%)
               </span>
             )}
             {skill.times_practiced > 0 && (
@@ -67,10 +72,10 @@ export function SkillRow({ skill, onStatusChange, onNoteChange, noteValue }: Ski
         </div>
       </div>
 
-      {/* Status Toggle */}
-      <SkillStatusToggle
-        value={skill.current_status}
-        onChange={(status) => onStatusChange(skill.id, status)}
+      {/* Score Selector */}
+      <SkillScoreSelector
+        value={skill.current_score}
+        onChange={(score) => onScoreChange(skill.id, score)}
         size="sm"
       />
 
@@ -99,12 +104,14 @@ export function SkillRow({ skill, onStatusChange, onNoteChange, noteValue }: Ski
                         <span className="font-medium text-foreground">
                           📅 שיעור #{entry.lesson_number} – {formatDate(entry.lesson_date)}
                         </span>
-                        {entry.proficiency_estimate !== undefined && (
-                          <span className="text-muted-foreground">({entry.proficiency_estimate}%)</span>
+                        {entry.score > 0 && (
+                          <span className="text-muted-foreground">
+                            {getScoreLevel(entry.score).label} ({scoreToPercentage(entry.score)}%)
+                          </span>
                         )}
                       </div>
                       <p className="text-muted-foreground">
-                        סטטוס: {getStatusIcon(entry.status)} {entry.status === 'mastered' ? 'נשלט' : entry.status === 'in_progress' ? 'בתהליך' : 'לא נלמד'}
+                        ציון: {getScoreIcon(entry.score)} {getScoreLevel(entry.score).label}
                       </p>
                       {entry.practice_duration_minutes && (
                         <p className="text-muted-foreground">משך: {entry.practice_duration_minutes} דקות</p>
@@ -117,13 +124,14 @@ export function SkillRow({ skill, onStatusChange, onNoteChange, noteValue }: Ski
 
                   {/* Progress trend */}
                   {skill.history.length >= 2 && (() => {
-                    const first = skill.history[skill.history.length - 1].proficiency_estimate ?? 0;
-                    const last = skill.history[0].proficiency_estimate ?? 0;
+                    const first = skill.history[skill.history.length - 1].score ?? 0;
+                    const last = skill.history[0].score ?? 0;
                     const diff = last - first;
                     if (diff === 0) return null;
+                    const diffPercent = scoreToPercentage(Math.abs(diff) as SkillScore);
                     return (
                       <p className={cn('text-xs font-medium', diff > 0 ? 'text-success' : 'text-destructive')}>
-                        💡 {diff > 0 ? `+${diff}%` : `${diff}%`} מהניסיון הראשון {diff > 0 ? '📈' : '📉'}
+                        💡 {diff > 0 ? '+' : ''}{diff} נקודות ({diff > 0 ? '+' : ''}{diffPercent}%) מהניסיון הראשון {diff > 0 ? '📈' : '📉'}
                       </p>
                     );
                   })()}

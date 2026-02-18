@@ -1,3 +1,5 @@
+import type { SkillScore } from '@/lib/scoring';
+
 export interface Student {
   id: string;
   name: string;
@@ -21,14 +23,11 @@ export interface Lesson {
   payment_status?: 'paid' | 'debt' | 'pending';
 }
 
-export type SkillStatus = 'not_learned' | 'in_progress' | 'mastered';
-
 export interface SkillHistory {
   lesson_id: string;
   lesson_number: number;
   lesson_date: string;
-  status: SkillStatus;
-  proficiency_estimate?: number;
+  score: SkillScore;
   teacher_note?: string;
   practice_duration_minutes?: number;
 }
@@ -37,10 +36,9 @@ export interface Skill {
   id: string;
   name: string;
   category: string;
-  current_status: SkillStatus;
+  current_score: SkillScore;
   times_practiced: number;
   last_practiced_date?: string;
-  last_proficiency?: number;
   last_note?: string;
   history: SkillHistory[];
 }
@@ -80,7 +78,7 @@ const makeHistory = (entries: Partial<SkillHistory>[]): SkillHistory[] =>
     lesson_id: `lh${i}`,
     lesson_number: 15 - i * 3,
     lesson_date: new Date(2026, 1, 12 - i * 7).toISOString().slice(0, 10),
-    status: 'not_learned' as SkillStatus,
+    score: 0 as SkillScore,
     ...e,
   }));
 
@@ -88,46 +86,46 @@ export const mockSkillCategories: SkillCategory[] = [
   {
     id: 'cat1', name: 'Vehicle Operation', icon: '🚗', average_score: 85,
     skills: [
-      { id: 's1', name: 'Pre-Drive Setup', category: 'Vehicle Operation', current_status: 'mastered', times_practiced: 6, last_practiced_date: '2026-02-12', last_proficiency: 95, last_note: 'Perfect routine', history: makeHistory([{ status: 'mastered', proficiency_estimate: 95, teacher_note: 'Perfect routine' }, { status: 'in_progress', proficiency_estimate: 70, teacher_note: 'Forgot mirrors once' }]) },
-      { id: 's2', name: 'Steering Control', category: 'Vehicle Operation', current_status: 'mastered', times_practiced: 8, last_practiced_date: '2026-02-12', last_proficiency: 90, last_note: 'Smooth handling', history: makeHistory([{ status: 'mastered', proficiency_estimate: 90, teacher_note: 'Smooth handling' }]) },
-      { id: 's3', name: 'Gear Shifting', category: 'Vehicle Operation', current_status: 'in_progress', times_practiced: 5, last_practiced_date: '2026-02-10', last_proficiency: 60, last_note: 'Still rough on 3rd gear', history: makeHistory([{ status: 'in_progress', proficiency_estimate: 60, teacher_note: 'Still rough on 3rd gear' }, { status: 'in_progress', proficiency_estimate: 40, teacher_note: 'Needs more clutch control' }]) },
-      { id: 's4', name: 'Braking Technique', category: 'Vehicle Operation', current_status: 'mastered', times_practiced: 7, last_practiced_date: '2026-02-12', last_proficiency: 88, last_note: 'Good progressive braking', history: makeHistory([{ status: 'mastered', proficiency_estimate: 88, teacher_note: 'Good progressive braking' }]) },
+      { id: 's1', name: 'Pre-Drive Setup', category: 'Vehicle Operation', current_score: 5, times_practiced: 6, last_practiced_date: '2026-02-12', last_note: 'Perfect routine', history: makeHistory([{ score: 5, teacher_note: 'Perfect routine' }, { score: 4, teacher_note: 'Forgot mirrors once' }]) },
+      { id: 's2', name: 'Steering Control', category: 'Vehicle Operation', current_score: 5, times_practiced: 8, last_practiced_date: '2026-02-12', last_note: 'Smooth handling', history: makeHistory([{ score: 5, teacher_note: 'Smooth handling' }]) },
+      { id: 's3', name: 'Gear Shifting', category: 'Vehicle Operation', current_score: 3, times_practiced: 5, last_practiced_date: '2026-02-10', last_note: 'Still rough on 3rd gear', history: makeHistory([{ score: 3, teacher_note: 'Still rough on 3rd gear' }, { score: 2, teacher_note: 'Needs more clutch control' }]) },
+      { id: 's4', name: 'Braking Technique', category: 'Vehicle Operation', current_score: 4, times_practiced: 7, last_practiced_date: '2026-02-12', last_note: 'Good progressive braking', history: makeHistory([{ score: 4, teacher_note: 'Good progressive braking' }]) },
     ],
   },
   {
     id: 'cat2', name: 'Road Behavior', icon: '🛣️', average_score: 70,
     skills: [
-      { id: 's5', name: 'Lane Discipline', category: 'Road Behavior', current_status: 'in_progress', times_practiced: 4, last_practiced_date: '2026-02-10', last_proficiency: 65, last_note: 'Drifts right occasionally', history: makeHistory([{ status: 'in_progress', proficiency_estimate: 65, teacher_note: 'Drifts right occasionally' }]) },
-      { id: 's6', name: 'Speed Management', category: 'Road Behavior', current_status: 'in_progress', times_practiced: 5, last_practiced_date: '2026-02-12', last_proficiency: 70, last_note: 'Better awareness of limits', history: makeHistory([{ status: 'in_progress', proficiency_estimate: 70, teacher_note: 'Better awareness of limits' }]) },
-      { id: 's7', name: 'Following Distance', category: 'Road Behavior', current_status: 'mastered', times_practiced: 6, last_practiced_date: '2026-02-12', last_proficiency: 85, last_note: 'Consistently good', history: makeHistory([{ status: 'mastered', proficiency_estimate: 85, teacher_note: 'Consistently good' }]) },
-      { id: 's8', name: 'Mirror Checks', category: 'Road Behavior', current_status: 'in_progress', times_practiced: 3, last_practiced_date: '2026-02-05', last_proficiency: 55, last_note: 'Forgets before lane changes', history: makeHistory([{ status: 'in_progress', proficiency_estimate: 55, teacher_note: 'Forgets before lane changes' }, { status: 'not_learned', teacher_note: 'Rarely checks' }]) },
+      { id: 's5', name: 'Lane Discipline', category: 'Road Behavior', current_score: 3, times_practiced: 4, last_practiced_date: '2026-02-10', last_note: 'Drifts right occasionally', history: makeHistory([{ score: 3, teacher_note: 'Drifts right occasionally' }]) },
+      { id: 's6', name: 'Speed Management', category: 'Road Behavior', current_score: 4, times_practiced: 5, last_practiced_date: '2026-02-12', last_note: 'Better awareness of limits', history: makeHistory([{ score: 4, teacher_note: 'Better awareness of limits' }]) },
+      { id: 's7', name: 'Following Distance', category: 'Road Behavior', current_score: 4, times_practiced: 6, last_practiced_date: '2026-02-12', last_note: 'Consistently good', history: makeHistory([{ score: 4, teacher_note: 'Consistently good' }]) },
+      { id: 's8', name: 'Mirror Checks', category: 'Road Behavior', current_score: 3, times_practiced: 3, last_practiced_date: '2026-02-05', last_note: 'Forgets before lane changes', history: makeHistory([{ score: 3, teacher_note: 'Forgets before lane changes' }, { score: 1, teacher_note: 'Rarely checks' }]) },
     ],
   },
   {
     id: 'cat3', name: 'Intersections', icon: '🔀', average_score: 60,
     skills: [
-      { id: 's9', name: 'Right of Way', category: 'Intersections', current_status: 'in_progress', times_practiced: 4, last_practiced_date: '2026-02-10', last_proficiency: 60, last_note: 'Hesitates at unmarked crossings', history: makeHistory([{ status: 'in_progress', proficiency_estimate: 60, teacher_note: 'Hesitates at unmarked crossings' }]) },
-      { id: 's10', name: 'Traffic Lights', category: 'Intersections', current_status: 'mastered', times_practiced: 6, last_practiced_date: '2026-02-12', last_proficiency: 90, last_note: 'Confident and correct', history: makeHistory([{ status: 'mastered', proficiency_estimate: 90, teacher_note: 'Confident and correct' }]) },
-      { id: 's11', name: 'Roundabouts', category: 'Intersections', current_status: 'not_learned', times_practiced: 1, last_practiced_date: '2026-01-20', last_proficiency: 20, last_note: 'Very hesitant, needs practice', history: makeHistory([{ status: 'not_learned', proficiency_estimate: 20, teacher_note: 'Very hesitant, needs practice' }]) },
-      { id: 's12', name: 'Left Turns', category: 'Intersections', current_status: 'in_progress', times_practiced: 3, last_practiced_date: '2026-02-05', last_proficiency: 50, last_note: 'Timing still off', history: makeHistory([{ status: 'in_progress', proficiency_estimate: 50, teacher_note: 'Timing still off' }]) },
+      { id: 's9', name: 'Right of Way', category: 'Intersections', current_score: 3, times_practiced: 4, last_practiced_date: '2026-02-10', last_note: 'Hesitates at unmarked crossings', history: makeHistory([{ score: 3, teacher_note: 'Hesitates at unmarked crossings' }]) },
+      { id: 's10', name: 'Traffic Lights', category: 'Intersections', current_score: 5, times_practiced: 6, last_practiced_date: '2026-02-12', last_note: 'Confident and correct', history: makeHistory([{ score: 5, teacher_note: 'Confident and correct' }]) },
+      { id: 's11', name: 'Roundabouts', category: 'Intersections', current_score: 1, times_practiced: 1, last_practiced_date: '2026-01-20', last_note: 'Very hesitant, needs practice', history: makeHistory([{ score: 1, teacher_note: 'Very hesitant, needs practice' }]) },
+      { id: 's12', name: 'Left Turns', category: 'Intersections', current_score: 3, times_practiced: 3, last_practiced_date: '2026-02-05', last_note: 'Timing still off', history: makeHistory([{ score: 3, teacher_note: 'Timing still off' }]) },
     ],
   },
   {
     id: 'cat4', name: 'Other Road Users', icon: '🚶', average_score: 75,
     skills: [
-      { id: 's13', name: 'Pedestrian Awareness', category: 'Other Road Users', current_status: 'mastered', times_practiced: 5, last_practiced_date: '2026-02-12', last_proficiency: 85, last_note: 'Always yields correctly', history: makeHistory([{ status: 'mastered', proficiency_estimate: 85, teacher_note: 'Always yields correctly' }]) },
-      { id: 's14', name: 'Cyclist Safety', category: 'Other Road Users', current_status: 'in_progress', times_practiced: 2, last_practiced_date: '2026-02-05', last_proficiency: 55, last_note: 'Passes too close sometimes', history: makeHistory([{ status: 'in_progress', proficiency_estimate: 55, teacher_note: 'Passes too close sometimes' }]) },
-      { id: 's15', name: 'Bus & Truck Awareness', category: 'Other Road Users', current_status: 'mastered', times_practiced: 4, last_practiced_date: '2026-02-10', last_proficiency: 80, last_note: 'Good blind spot awareness', history: makeHistory([{ status: 'mastered', proficiency_estimate: 80, teacher_note: 'Good blind spot awareness' }]) },
+      { id: 's13', name: 'Pedestrian Awareness', category: 'Other Road Users', current_score: 4, times_practiced: 5, last_practiced_date: '2026-02-12', last_note: 'Always yields correctly', history: makeHistory([{ score: 4, teacher_note: 'Always yields correctly' }]) },
+      { id: 's14', name: 'Cyclist Safety', category: 'Other Road Users', current_score: 3, times_practiced: 2, last_practiced_date: '2026-02-05', last_note: 'Passes too close sometimes', history: makeHistory([{ score: 3, teacher_note: 'Passes too close sometimes' }]) },
+      { id: 's15', name: 'Bus & Truck Awareness', category: 'Other Road Users', current_score: 4, times_practiced: 4, last_practiced_date: '2026-02-10', last_note: 'Good blind spot awareness', history: makeHistory([{ score: 4, teacher_note: 'Good blind spot awareness' }]) },
     ],
   },
   {
     id: 'cat5', name: 'Special Maneuvers', icon: '🅿️', average_score: 50,
     skills: [
-      { id: 's16', name: 'Parallel Parking', category: 'Special Maneuvers', current_status: 'in_progress', times_practiced: 3, last_practiced_date: '2026-02-12', last_proficiency: 30, last_note: 'Needs more work on distance judgment', history: makeHistory([{ status: 'in_progress', proficiency_estimate: 30, teacher_note: 'Needs more work on distance judgment' }, { status: 'in_progress', proficiency_estimate: 20, teacher_note: 'First time trying. Struggled with steering angle.' }, { status: 'not_learned', teacher_note: 'Observed only' }]) },
-      { id: 's17', name: 'Reverse Parking', category: 'Special Maneuvers', current_status: 'not_learned', times_practiced: 1, last_practiced_date: '2026-01-15', last_proficiency: 15, last_note: 'Brief intro only', history: makeHistory([{ status: 'not_learned', proficiency_estimate: 15, teacher_note: 'Brief intro only' }]) },
-      { id: 's18', name: 'Hill Start', category: 'Special Maneuvers', current_status: 'in_progress', times_practiced: 2, last_practiced_date: '2026-02-05', last_proficiency: 45, last_note: 'Rolled back twice', history: makeHistory([{ status: 'in_progress', proficiency_estimate: 45, teacher_note: 'Rolled back twice' }, { status: 'not_learned', proficiency_estimate: 10, teacher_note: 'Stalled multiple times' }]) },
-      { id: 's19', name: 'Emergency Stop', category: 'Special Maneuvers', current_status: 'mastered', times_practiced: 4, last_practiced_date: '2026-02-10', last_proficiency: 85, last_note: 'Quick reaction, good control', history: makeHistory([{ status: 'mastered', proficiency_estimate: 85, teacher_note: 'Quick reaction, good control' }]) },
-      { id: 's20', name: 'U-Turn', category: 'Special Maneuvers', current_status: 'not_learned', times_practiced: 0, history: [] },
+      { id: 's16', name: 'Parallel Parking', category: 'Special Maneuvers', current_score: 2, times_practiced: 3, last_practiced_date: '2026-02-12', last_note: 'Needs more work on distance judgment', history: makeHistory([{ score: 2, teacher_note: 'Needs more work on distance judgment' }, { score: 1, teacher_note: 'First time trying. Struggled with steering angle.' }, { score: 0, teacher_note: 'Observed only' }]) },
+      { id: 's17', name: 'Reverse Parking', category: 'Special Maneuvers', current_score: 1, times_practiced: 1, last_practiced_date: '2026-01-15', last_note: 'Brief intro only', history: makeHistory([{ score: 1, teacher_note: 'Brief intro only' }]) },
+      { id: 's18', name: 'Hill Start', category: 'Special Maneuvers', current_score: 2, times_practiced: 2, last_practiced_date: '2026-02-05', last_note: 'Rolled back twice', history: makeHistory([{ score: 2, teacher_note: 'Rolled back twice' }, { score: 1, teacher_note: 'Stalled multiple times' }]) },
+      { id: 's19', name: 'Emergency Stop', category: 'Special Maneuvers', current_score: 4, times_practiced: 4, last_practiced_date: '2026-02-10', last_note: 'Quick reaction, good control', history: makeHistory([{ score: 4, teacher_note: 'Quick reaction, good control' }]) },
+      { id: 's20', name: 'U-Turn', category: 'Special Maneuvers', current_score: 0, times_practiced: 0, history: [] },
     ],
   },
 ];
