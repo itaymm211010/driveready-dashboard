@@ -20,6 +20,8 @@ dist-ssr
 # Security reports (keep private)
 SECURITY_AUDIT_REPORT.md
 SECURITY_*.md
+ROOT_FILES_SECURITY_REVIEW.md
+*_SECURITY_*.md
 
 # Editor directories and files
 .vscode/*
