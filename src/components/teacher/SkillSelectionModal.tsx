@@ -13,6 +13,7 @@ import { Badge } from '@/components/ui/badge';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { cn } from '@/lib/utils';
 import type { DbSkillCategory, DbSkill } from '@/hooks/use-teacher-data';
+import { scoreToPercentage, type SkillScore } from '@/lib/scoring';
 
 interface SkillSelectionModalProps {
   open: boolean;
@@ -26,26 +27,27 @@ interface SkillSelectionModalProps {
 }
 
 function getStatusIndicator(skill: DbSkill) {
-  const score = skill.student_skill?.current_score ?? 0;
-  if (score >= 4) return { icon: '✓', color: 'text-success' };
-  if (score > 0) return { icon: `${Math.round((score / 5) * 100)}%`, color: 'text-warning' };
-  return { icon: '⚪', color: 'text-muted-foreground' };
+  const score = skill.student_skill?.current_score as SkillScore | null | undefined;
+  if (!score || score === 0) return { icon: '⚪', color: 'text-muted-foreground' };
+  if (score >= 5) return { icon: '✓', color: 'text-success' };
+  const percentage = scoreToPercentage(score);
+  return { icon: `${percentage}%`, color: score >= 4 ? 'text-success' : 'text-warning' };
 }
 
 function getSuggestions(categories: DbSkillCategory[]) {
   const allSkills = categories.flatMap(c => c.skills);
-  
+
   const needsAttention = allSkills.filter(s => {
-    const score = s.student_skill?.current_score ?? 0;
-    return score > 0 && score < 3;
+    const score = s.student_skill?.current_score as SkillScore | null | undefined;
+    return score !== undefined && score > 0 && score < 3; // Below "Most of the time"
   });
 
   const neverPracticed = allSkills.filter(s => !s.student_skill || s.student_skill.times_practiced === 0);
 
   const notRecently = allSkills.filter(s => {
     if (!s.student_skill?.last_practiced_date) return false;
-    const score = s.student_skill.current_score ?? 0;
-    if (score >= 4) return false;
+    const score = s.student_skill.current_score as SkillScore | null | undefined;
+    if (score === 5) return false; // Mastered
     const days = Math.floor((Date.now() - new Date(s.student_skill.last_practiced_date).getTime()) / 86400000);
     return days >= 7;
   });
@@ -190,7 +192,7 @@ export function SkillSelectionModal({
                   <div className="flex-1 min-w-0 text-left">
                     <span className="text-sm font-medium text-foreground">{skill.name}</span>
                     <p className="text-xs text-muted-foreground">
-                      {Math.round(((skill.student_skill?.current_score ?? 0) / 5) * 100)}% - דרוש תרגול
+                      {scoreToPercentage((skill.student_skill?.current_score as SkillScore) || 0)}% - דרוש תרגול
                     </p>
                   </div>
                   {selected.has(skill.id) ? (

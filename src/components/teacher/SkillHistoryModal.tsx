@@ -8,7 +8,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import type { DbSkill } from '@/hooks/use-teacher-data';
-import { getScoreLevel, scoreToPercentage, type SkillScore } from '@/lib/scoring';
+import { scoreToPercentage, getScoreLevel, type SkillScore } from '@/lib/scoring';
 
 interface SkillHistoryModalProps {
   open: boolean;
@@ -16,15 +16,11 @@ interface SkillHistoryModalProps {
   skill: DbSkill | null;
 }
 
-function scoreToStatusLabel(score: number): string {
-  if (score >= 4) return 'נשלט';
-  if (score > 0) return 'בתהליך';
-  return 'לא נלמד';
-}
-
-function getScoreIcon(score: number) {
+function getScoreIcon(score: SkillScore) {
+  if (score >= 5) return '🟢';
   if (score >= 4) return '🟢';
-  if (score > 0) return '🟡';
+  if (score >= 2) return '🟡';
+  if (score === 1) return '🔴';
   return '⚪';
 }
 
@@ -38,7 +34,8 @@ export function SkillHistoryModal({ open, onOpenChange, skill }: SkillHistoryMod
 
   const history = skill.history;
   const timesPracticed = skill.student_skill?.times_practiced ?? 0;
-  const currentScore = skill.student_skill?.current_score ?? 0;
+  const currentScore = (skill.student_skill?.current_score as SkillScore) || 0;
+  const currentPercentage = scoreToPercentage(currentScore);
 
   // Trend calculation
   let trend: 'up' | 'down' | 'flat' = 'flat';
@@ -62,12 +59,10 @@ export function SkillHistoryModal({ open, onOpenChange, skill }: SkillHistoryMod
             <p className="text-sm font-semibold text-foreground">📊 סקירה:</p>
             <p className="text-xs text-muted-foreground">• תורגל: {timesPracticed} פעמים</p>
             {currentScore > 0 && (
-              <p className="text-xs text-muted-foreground">
-                • רמה נוכחית: {getScoreLevel(currentScore as SkillScore).label} ({scoreToPercentage(currentScore as SkillScore)}%)
-              </p>
+              <p className="text-xs text-muted-foreground">• רמה נוכחית: {getScoreLevel(currentScore).label} ({currentPercentage}%)</p>
             )}
             <p className="text-xs text-muted-foreground">
-              • סטטוס: {getScoreIcon(currentScore)} {scoreToStatusLabel(currentScore)}
+              • ציון: {getScoreIcon(currentScore)} {getScoreLevel(currentScore).label}
             </p>
             {trend !== 'flat' && (
               <p className={cn('text-xs font-medium flex items-center gap-1', trend === 'up' ? 'text-success' : 'text-destructive')}>
@@ -95,7 +90,7 @@ export function SkillHistoryModal({ open, onOpenChange, skill }: SkillHistoryMod
                     )}
                   </div>
                   <p className="text-xs text-muted-foreground">
-                    ציון: {getScoreIcon(entry.score)} {scoreToStatusLabel(entry.score)}
+                    ציון: {getScoreIcon(entry.score as SkillScore)} {getScoreLevel(entry.score as SkillScore).label}
                   </p>
                   {entry.practice_duration_minutes && (
                     <p className="text-xs text-muted-foreground">משך: {entry.practice_duration_minutes} דקות</p>
