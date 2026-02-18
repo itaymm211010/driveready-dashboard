@@ -23,6 +23,10 @@ SECURITY_*.md
 ROOT_FILES_SECURITY_REVIEW.md
 *_SECURITY_*.md
 
+# Internal audit reports
+UI_UX_AUDIT_REPORT.md
+*_AUDIT_*.md
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
