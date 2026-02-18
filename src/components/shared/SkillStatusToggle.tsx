@@ -8,9 +8,9 @@ interface SkillStatusToggleProps {
 }
 
 const options: { value: SkillStatus; label: string; icon: string }[] = [
-  { value: 'not_learned', label: 'Not Learned', icon: '⚪' },
-  { value: 'in_progress', label: 'In Progress', icon: '🟡' },
-  { value: 'mastered', label: 'Mastered', icon: '✓' },
+  { value: 'not_learned', label: 'לא נלמד', icon: '⚪' },
+  { value: 'in_progress', label: 'בתרגול', icon: '🟡' },
+  { value: 'mastered', label: 'שלט', icon: '✓' },
 ];
 
 export function SkillStatusToggle({ value, onChange, size = 'default' }: SkillStatusToggleProps) {
