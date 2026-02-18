@@ -203,8 +203,7 @@ export type Database = {
           lesson_id: string | null
           lesson_number: number | null
           practice_duration_minutes: number | null
-          proficiency_estimate: number | null
-          status: string
+          score: number
           student_skill_id: string
           teacher_note: string | null
         }
@@ -215,8 +214,7 @@ export type Database = {
           lesson_id?: string | null
           lesson_number?: number | null
           practice_duration_minutes?: number | null
-          proficiency_estimate?: number | null
-          status: string
+          score: number
           student_skill_id: string
           teacher_note?: string | null
         }
@@ -227,8 +225,7 @@ export type Database = {
           lesson_id?: string | null
           lesson_number?: number | null
           practice_duration_minutes?: number | null
-          proficiency_estimate?: number | null
-          status?: string
+          score?: number
           student_skill_id?: string
           teacher_note?: string | null
         }
@@ -286,33 +283,30 @@ export type Database = {
       }
       student_skills: {
         Row: {
-          current_status: string
+          current_score: number
           id: string
           last_note: string | null
           last_practiced_date: string | null
-          last_proficiency: number | null
           skill_id: string
           student_id: string
           times_practiced: number
           updated_at: string
         }
         Insert: {
-          current_status?: string
+          current_score: number
           id?: string
           last_note?: string | null
           last_practiced_date?: string | null
-          last_proficiency?: number | null
           skill_id: string
           student_id: string
           times_practiced?: number
           updated_at?: string
         }
         Update: {
-          current_status?: string
+          current_score?: number
           id?: string
           last_note?: string | null
           last_practiced_date?: string | null
-          last_proficiency?: number | null
           skill_id?: string
           student_id?: string
           times_practiced?: number

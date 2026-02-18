@@ -8,6 +8,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import type { DbSkill } from '@/hooks/use-teacher-data';
+import { getScoreLevel, scoreToPercentage, type SkillScore } from '@/lib/scoring';
 
 interface SkillHistoryModalProps {
   open: boolean;
@@ -15,9 +16,15 @@ interface SkillHistoryModalProps {
   skill: DbSkill | null;
 }
 
-function getStatusIcon(status: string) {
-  if (status === 'mastered') return '🟢';
-  if (status === 'in_progress') return '🟡';
+function scoreToStatusLabel(score: number): string {
+  if (score >= 4) return 'נשלט';
+  if (score > 0) return 'בתהליך';
+  return 'לא נלמד';
+}
+
+function getScoreIcon(score: number) {
+  if (score >= 4) return '🟢';
+  if (score > 0) return '🟡';
   return '⚪';
 }
 
@@ -31,14 +38,13 @@ export function SkillHistoryModal({ open, onOpenChange, skill }: SkillHistoryMod
 
   const history = skill.history;
   const timesPracticed = skill.student_skill?.times_practiced ?? 0;
-  const currentProf = skill.student_skill?.last_proficiency;
-  const currentStatus = skill.student_skill?.current_status ?? 'not_learned';
+  const currentScore = skill.student_skill?.current_score ?? 0;
 
   // Trend calculation
   let trend: 'up' | 'down' | 'flat' = 'flat';
   if (history.length >= 2) {
-    const first = history[history.length - 1].proficiency_estimate ?? 0;
-    const last = history[0].proficiency_estimate ?? 0;
+    const first = history[history.length - 1].score ?? 0;
+    const last = history[0].score ?? 0;
     if (last > first) trend = 'up';
     else if (last < first) trend = 'down';
   }
@@ -55,11 +61,13 @@ export function SkillHistoryModal({ open, onOpenChange, skill }: SkillHistoryMod
           <div className="bg-muted rounded-lg p-3 space-y-1">
             <p className="text-sm font-semibold text-foreground">📊 סקירה:</p>
             <p className="text-xs text-muted-foreground">• תורגל: {timesPracticed} פעמים</p>
-            {currentProf !== undefined && currentProf !== null && (
-              <p className="text-xs text-muted-foreground">• רמה נוכחית: {currentProf}%</p>
+            {currentScore > 0 && (
+              <p className="text-xs text-muted-foreground">
+                • רמה נוכחית: {getScoreLevel(currentScore as SkillScore).label} ({scoreToPercentage(currentScore as SkillScore)}%)
+              </p>
             )}
             <p className="text-xs text-muted-foreground">
-              • סטטוס: {getStatusIcon(currentStatus)} {currentStatus === 'mastered' ? 'נשלט' : currentStatus === 'in_progress' ? 'בתהליך' : 'לא נלמד'}
+              • סטטוס: {getScoreIcon(currentScore)} {scoreToStatusLabel(currentScore)}
             </p>
             {trend !== 'flat' && (
               <p className={cn('text-xs font-medium flex items-center gap-1', trend === 'up' ? 'text-success' : 'text-destructive')}>
@@ -80,12 +88,14 @@ export function SkillHistoryModal({ open, onOpenChange, skill }: SkillHistoryMod
                     <span className="text-sm font-medium text-foreground">
                       📅 {entry.lesson_number ? `שיעור #${entry.lesson_number} - ` : ''}{formatDate(entry.lesson_date)}
                     </span>
-                    {entry.proficiency_estimate !== undefined && entry.proficiency_estimate !== null && (
-                      <span className="text-xs text-muted-foreground">({entry.proficiency_estimate}%)</span>
+                    {entry.score > 0 && (
+                      <span className="text-xs text-muted-foreground">
+                        {getScoreLevel(entry.score as SkillScore).label} ({scoreToPercentage(entry.score as SkillScore)}%)
+                      </span>
                     )}
                   </div>
                   <p className="text-xs text-muted-foreground">
-                    סטטוס: {getStatusIcon(entry.status)} {entry.status.replace('_', ' ')}
+                    ציון: {getScoreIcon(entry.score)} {scoreToStatusLabel(entry.score)}
                   </p>
                   {entry.practice_duration_minutes && (
                     <p className="text-xs text-muted-foreground">משך: {entry.practice_duration_minutes} דקות</p>

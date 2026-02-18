@@ -83,8 +83,8 @@ interface ReadinessDisplay {
 function computeReadiness(skillTree: any[]): ReadinessDisplay {
   const { skills, advancedCategoryId } = flattenSkillTree(skillTree);
   const r = calcReadiness(skills, advancedCategoryId);
-  const rated = skills.filter((s) => s.last_proficiency != null && s.last_proficiency > 0);
-  const lowCount = rated.filter((s) => (s.last_proficiency as number) < 60).length;
+  const rated = skills.filter((s) => (s.current_score ?? 0) > 0);
+  const lowCount = rated.filter((s) => (s.current_score ?? 0) < 3).length;
   return {
     ready: r.ready,
     overallAvg: r.avg,
@@ -110,8 +110,8 @@ interface CategoryAverageDisplay {
 function computeCategoryAverages(skillTree: any[]): CategoryAverageDisplay[] {
   const { skills } = flattenSkillTree(skillTree);
   return skillTree.map((cat) => {
-    const rated = cat.skills.filter((s: any) => (s.studentSkill?.last_proficiency ?? 0) > 0);
-    const mastered = cat.skills.filter((s: any) => s.studentSkill?.current_status === 'mastered').length;
+    const rated = cat.skills.filter((s: any) => (s.studentSkill?.current_score ?? 0) > 0);
+    const mastered = cat.skills.filter((s: any) => (s.studentSkill?.current_score ?? 0) >= 4).length;
     return {
       id: cat.id,
       name: cat.name,
@@ -217,14 +217,14 @@ export default function StudentProfile() {
   const hasDebt = student.balance < 0;
   const totalSkills = data.skillTree.reduce((sum, cat) => sum + cat.skills.length, 0);
   const masteredSkills = data.skillTree.reduce(
-    (sum, cat) => sum + cat.skills.filter((s: any) => s.studentSkill?.current_status === 'mastered').length, 0
+    (sum, cat) => sum + cat.skills.filter((s: any) => (s.studentSkill?.current_score ?? 0) >= 4).length, 0
   );
 
   // Radar chart data
   const radarData = data.skillTree.map((cat) => {
     const total = cat.skills.length;
-    const mastered = cat.skills.filter((s: any) => s.studentSkill?.current_status === 'mastered').length;
-    const inProgress = cat.skills.filter((s: any) => s.studentSkill?.current_status === 'in_progress').length;
+    const mastered = cat.skills.filter((s: any) => (s.studentSkill?.current_score ?? 0) >= 4).length;
+    const inProgress = cat.skills.filter((s: any) => { const sc = s.studentSkill?.current_score ?? 0; return sc > 0 && sc < 4; }).length;
     const notLearned = total - mastered - inProgress;
     const score = mastered + inProgress * 0.5;
     return { category: cat.name, value: total > 0 ? Math.round((score / total) * 100) : 0, mastered, inProgress, notLearned, total };
@@ -565,7 +565,7 @@ export default function StudentProfile() {
               <Progress value={totalSkills > 0 ? (masteredSkills / totalSkills) * 100 : 0} className="h-2.5" />
 
               {skillTree.map((category) => {
-                const catMastered = category.skills.filter((s: any) => s.studentSkill?.current_status === 'mastered').length;
+                const catMastered = category.skills.filter((s: any) => (s.studentSkill?.current_score ?? 0) >= 4).length;
                 return (
                   <div key={category.id}>
                     <div className="flex items-center justify-between mb-2">
@@ -576,7 +576,8 @@ export default function StudentProfile() {
                     </div>
                     <div className="flex flex-wrap gap-1.5">
                       {category.skills.map((skill: any) => {
-                        const status = skill.studentSkill?.current_status ?? 'not_learned';
+                        const sc = skill.studentSkill?.current_score ?? 0;
+                        const status = sc >= 4 ? 'mastered' : sc > 0 ? 'in_progress' : 'not_learned';
                         const cfg = STATUS_CONFIG[status] ?? STATUS_CONFIG.not_learned;
                         return (
                           <Badge

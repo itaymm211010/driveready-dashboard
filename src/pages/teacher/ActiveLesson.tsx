@@ -181,8 +181,8 @@ export default function ActiveLesson() {
   const totalSkills = allSkillsFlat.length;
   const mastered = allSkillsFlat.filter(s => {
     const override = localOverrides[s.id];
-    const status = override ?? s.student_skill?.current_status ?? 'not_learned';
-    return status === 'mastered';
+    const score = override ?? s.student_skill?.current_score ?? 0;
+    return score >= 4;
   }).length;
   const progressPct = totalSkills > 0 ? Math.round((mastered / totalSkills) * 100) : 0;
   const alreadySelectedIds = plannedSkills?.map(ps => ps.skill_id) ?? [];
@@ -264,7 +264,7 @@ export default function ActiveLesson() {
                 >
                   <LessonSkillCard
                     skill={skill}
-                    currentScore={(localOverrides[skill.id] ?? (skill.student_skill?.last_proficiency as SkillScore) ?? 0) as SkillScore}
+                    currentScore={(localOverrides[skill.id] ?? (skill.student_skill?.current_score as SkillScore) ?? 0) as SkillScore}
                     noteValue={notes[skill.id] || ''}
                     onScoreChange={handleScoreChange}
                     onNoteChange={handleNoteChange}

@@ -48,10 +48,9 @@ export type DbSkill = {
 
 export type DbStudentSkill = {
   id: string;
-  current_status: string;
+  current_score: number;
   times_practiced: number;
   last_practiced_date: string | null;
-  last_proficiency: number | null;
   last_note: string | null;
 };
 
@@ -59,8 +58,7 @@ export type DbSkillHistory = {
   id: string;
   lesson_number: number | null;
   lesson_date: string;
-  status: string;
-  proficiency_estimate: number | null;
+  score: number;
   teacher_note: string | null;
   practice_duration_minutes: number | null;
 };
@@ -131,7 +129,6 @@ export function useStudentSkillTree(studentId: string | undefined) {
     queryKey: ['skill-tree', studentId],
     enabled: !!studentId,
     queryFn: async () => {
-      // Fetch categories
       const { data: categories, error: catError } = await supabase
         .from('skill_categories')
         .select('*')
@@ -140,7 +137,6 @@ export function useStudentSkillTree(studentId: string | undefined) {
 
       if (catError) throw catError;
 
-      // Fetch skills
       const { data: skills, error: skillError } = await supabase
         .from('skills')
         .select('*')
@@ -149,7 +145,6 @@ export function useStudentSkillTree(studentId: string | undefined) {
 
       if (skillError) throw skillError;
 
-      // Fetch student_skills for this student
       const { data: studentSkills, error: ssError } = await supabase
         .from('student_skills')
         .select('*')
@@ -157,7 +152,6 @@ export function useStudentSkillTree(studentId: string | undefined) {
 
       if (ssError) throw ssError;
 
-      // Fetch skill_history for these student_skills
       const ssIds = (studentSkills ?? []).map((ss) => ss.id);
       let historyRows: any[] = [];
       if (ssIds.length > 0) {
@@ -171,7 +165,6 @@ export function useStudentSkillTree(studentId: string | undefined) {
         historyRows = data ?? [];
       }
 
-      // Build maps
       const ssMap = new Map((studentSkills ?? []).map((ss) => [ss.skill_id, ss]));
       const historyBySSId = new Map<string, typeof historyRows>();
       for (const h of historyRows) {
@@ -180,7 +173,6 @@ export function useStudentSkillTree(studentId: string | undefined) {
         historyBySSId.set(h.student_skill_id, arr);
       }
 
-      // Assemble tree
       const result: DbSkillCategory[] = (categories ?? []).map((cat) => ({
         id: cat.id,
         name: cat.name,
@@ -199,10 +191,9 @@ export function useStudentSkillTree(studentId: string | undefined) {
               student_skill: ss
                 ? {
                     id: ss.id,
-                    current_status: ss.current_status,
+                    current_score: ss.current_score,
                     times_practiced: ss.times_practiced,
                     last_practiced_date: ss.last_practiced_date,
-                    last_proficiency: ss.last_proficiency,
                     last_note: ss.last_note,
                   }
                 : undefined,
