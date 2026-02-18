@@ -116,8 +116,8 @@ export default function ActiveLesson() {
     });
   }, [id, studentId, localOverrides, notes, timer, saveLessonMutation, lessonData]);
 
-  const handleStatusChange = useCallback((skillId: string, newStatus: SkillStatus) => {
-    setLocalOverrides((prev) => ({ ...prev, [skillId]: newStatus }));
+  const handleScoreChange = useCallback((skillId: string, newScore: SkillScore) => {
+    setLocalOverrides((prev) => ({ ...prev, [skillId]: newScore }));
   }, []);
 
   const handleNoteChange = useCallback((skillId: string, note: string) => {
@@ -264,9 +264,9 @@ export default function ActiveLesson() {
                 >
                   <LessonSkillCard
                     skill={skill}
-                    currentStatus={(localOverrides[skill.id] ?? skill.student_skill?.current_status ?? 'not_learned') as SkillStatus}
+                    currentScore={(localOverrides[skill.id] ?? (skill.student_skill?.last_proficiency as SkillScore) ?? 0) as SkillScore}
                     noteValue={notes[skill.id] || ''}
-                    onStatusChange={handleStatusChange}
+                    onScoreChange={handleScoreChange}
                     onNoteChange={handleNoteChange}
                     onShowHistory={setHistorySkill}
                     onRemove={handleRemoveSkill}

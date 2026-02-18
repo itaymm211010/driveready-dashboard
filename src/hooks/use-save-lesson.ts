@@ -1,6 +1,8 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-import type { SkillStatus } from '@/data/mock';
+import type { SkillScore } from '@/lib/scoring';
+
+type SkillStatus = 'not_learned' | 'in_progress' | 'mastered';
 
 const TEACHER_ID = 'a1b2c3d4-e5f6-7890-abcd-ef1234567890';
 
@@ -9,7 +11,7 @@ interface SaveLessonParams {
   studentId: string;
   paymentMethod: 'cash' | 'receipt' | 'debt';
   amount: number;
-  skillOverrides: Record<string, SkillStatus>;
+  skillOverrides: Record<string, SkillScore>;
   notes: Record<string, string>;
   durationSeconds: number;
 }
@@ -89,8 +91,12 @@ export function useSaveLesson() {
 
       // 5. Upsert student_skills and insert skill_history
       for (const skillId of practicedSkillIds) {
-        const newStatus = skillOverrides[skillId];
+        const newScore = skillOverrides[skillId];
         const note = notes[skillId] || null;
+        // Derive status from score
+        const derivedStatus = newScore != null
+          ? (newScore >= 4 ? 'mastered' : newScore > 0 ? 'in_progress' : 'not_learned')
+          : undefined;
 
         const { data: existing, error: checkErr } = await supabase
           .from('student_skills')
@@ -108,7 +114,8 @@ export function useSaveLesson() {
             times_practiced: existing.times_practiced + 1,
             last_practiced_date: today,
           };
-          if (newStatus) updates.current_status = newStatus;
+          if (derivedStatus) updates.current_status = derivedStatus;
+          if (newScore != null) updates.last_proficiency = newScore;
           if (note) updates.last_note = note;
 
           const { error: upErr } = await supabase
@@ -120,28 +127,30 @@ export function useSaveLesson() {
         } else {
           const { data: inserted, error: insErr } = await supabase
             .from('student_skills')
-            .insert({
+            .insert([{
               student_id: studentId,
               skill_id: skillId,
-              current_status: newStatus ?? 'not_learned',
+              current_status: derivedStatus ?? 'not_learned',
+              last_proficiency: newScore ?? null,
               times_practiced: 1,
               last_practiced_date: today,
               last_note: note,
-            })
+            }])
             .select('id')
             .single();
           if (insErr) throw insErr;
           studentSkillId = inserted.id;
         }
 
-        const { error: histErr } = await supabase.from('skill_history').insert({
+        const { error: histErr } = await supabase.from('skill_history').insert([{
           student_skill_id: studentSkillId,
           lesson_id: lessonId,
           lesson_date: today,
-          status: newStatus ?? existing?.current_status ?? 'not_learned',
+          status: derivedStatus ?? existing?.current_status ?? 'not_learned',
+          proficiency_estimate: newScore ?? null,
           teacher_note: note,
           practice_duration_minutes: durationMinutes,
-        });
+        }]);
         if (histErr) throw histErr;
       }
 

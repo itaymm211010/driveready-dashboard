@@ -23,6 +23,8 @@ export interface StudentSkillWithCategory extends StudentSkillRow {
     category_id: string;
     name: string;
   };
+  /** Alias for last_proficiency used in score calculations */
+  current_score?: number | null;
 }
 
 export interface ReadinessResult {
@@ -71,7 +73,7 @@ export function calculateReadiness(
   advancedCategoryId?: string,
 ): ReadinessResult {
   const rated = skills.filter(
-    (s) => s.current_score != null && s.current_score > 0,
+    (s) => (s.current_score ?? s.last_proficiency) != null && (s.current_score ?? s.last_proficiency)! > 0,
   );
 
   if (rated.length === 0) {
@@ -85,12 +87,14 @@ export function calculateReadiness(
     };
   }
 
+  const getScore = (s: StudentSkillWithCategory) => (s.current_score ?? s.last_proficiency ?? 0) as number;
+
   const avg =
-    rated.reduce((sum, s) => sum + (s.current_score as number), 0) /
+    rated.reduce((sum, s) => sum + getScore(s), 0) /
     rated.length;
 
   const hasLow = rated.some(
-    (s) => (s.current_score as number) < LOW_SKILL_THRESHOLD,
+    (s) => getScore(s) < LOW_SKILL_THRESHOLD,
   );
 
   const cat4Avg = advancedCategoryId
@@ -124,18 +128,19 @@ export function calculateCategoryAverage(
   skills: StudentSkillWithCategory[],
   categoryId: string,
 ): number {
+  const getScore = (s: StudentSkillWithCategory) => (s.current_score ?? s.last_proficiency ?? 0) as number;
+
   const categorySkills = skills.filter(
     (s) =>
       s.skill.category_id === categoryId &&
-      s.current_score != null &&
-      s.current_score > 0,
+      getScore(s) > 0,
   );
 
   if (categorySkills.length === 0) return 0;
 
   return (
     categorySkills.reduce(
-      (sum, s) => sum + (s.current_score as number),
+      (sum, s) => sum + getScore(s),
       0,
     ) / categorySkills.length
   );
@@ -153,14 +158,16 @@ export function calculateCategoryAverage(
 export function calculateOverallAverage(
   skills: StudentSkillWithCategory[],
 ): number {
+  const getScore = (s: StudentSkillWithCategory) => (s.current_score ?? s.last_proficiency ?? 0) as number;
+
   const rated = skills.filter(
-    (s) => s.current_score != null && s.current_score > 0,
+    (s) => getScore(s) > 0,
   );
 
   if (rated.length === 0) return 0;
 
   return (
-    rated.reduce((sum, s) => sum + (s.current_score as number), 0) /
+    rated.reduce((sum, s) => sum + getScore(s), 0) /
     rated.length
   );
 }
