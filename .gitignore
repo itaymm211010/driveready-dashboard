@@ -17,6 +17,10 @@ dist-ssr
 .env.local
 .env.production
 
+# Security reports (keep private)
+SECURITY_AUDIT_REPORT.md
+SECURITY_*.md
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
