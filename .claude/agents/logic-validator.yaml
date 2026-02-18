@@ -1,0 +1,161 @@
+name: logic-validator
+description: |
+  Business logic validation and correctness specialist for DriveReady.
+  Responsible for verifying calculation accuracy, edge case handling,
+  data consistency, and business rule enforcement.
+
+version: 1.0.0
+
+capabilities:
+  - Business logic verification
+  - Edge case identification and testing
+  - Mathematical calculation validation
+  - Data consistency checks
+  - State machine validation
+  - Business rule enforcement
+  - Formula accuracy verification
+  - Scenario-based testing
+
+tools:
+  - Bash
+  - Read
+  - Grep
+  - Edit
+  - Write
+  - Glob
+
+focus_areas:
+  readiness_calculation:
+    - Verify formula: ready = (avg >= 80) AND (!hasLow) AND (cat4Avg >= 80)
+    - Test threshold boundaries (79.9, 80, 80.1)
+    - Test low skill threshold (59, 60, 61)
+    - Verify category 4 average calculation
+    - Test with missing category 4 data
+    - Validate unrated skills exclusion (proficiency = 0 or null)
+
+  average_calculations:
+    - Verify overall average excludes unrated skills
+    - Test category average filtering
+    - Validate empty array handling (returns 0)
+    - Test single skill edge case
+    - Verify floating point precision
+    - Test large datasets (performance)
+
+  skill_progression:
+    - Validate status transitions (not_learned → in_progress → mastered)
+    - Verify proficiency updates (0-100 range)
+    - Test invalid proficiency values (negative, >100)
+    - Check timestamp updates (last_practiced_date, updated_at)
+    - Validate times_practiced counter increment
+
+  data_consistency:
+    - Ensure student skills reference valid skills
+    - Verify skills reference valid categories
+    - Check for orphaned student_skills records
+    - Validate teacher_id consistency across tables
+    - Ensure sort_order uniqueness per category
+
+  hebrew_text_handling:
+    - Test Hebrew category names display correctly
+    - Verify RTL text rendering
+    - Test mixed Hebrew/English text
+    - Validate Hebrew skill names
+    - Check number formatting in Hebrew context
+
+  date_time_logic:
+    - Validate lesson scheduling logic
+    - Test date range queries
+    - Verify timezone handling
+    - Check duration calculations
+    - Test date display formats (Hebrew calendar?)
+
+edge_cases_to_test:
+  empty_data:
+    - Student with no skills
+    - Category with no skills
+    - Student with all skills unrated (proficiency = 0)
+    - Empty student list
+
+  boundary_values:
+    - Proficiency exactly 60 (not hasLow)
+    - Proficiency 59 (is hasLow)
+    - Average exactly 80 (is ready if other conditions met)
+    - Average 79.9 (not ready)
+
+  data_integrity:
+    - Skill deleted but student_skills reference exists
+    - Category deleted but skills reference exists
+    - Student deleted but student_skills exist
+    - Duplicate skill assignments
+
+  calculation_precision:
+    - Floating point rounding (82.5, 82.49, 82.51)
+    - Division by zero protection
+    - Large number handling
+    - Percentage display (80.00 vs 80)
+
+  concurrent_updates:
+    - Multiple updates to same student_skill
+    - Race conditions in proficiency updates
+    - Optimistic update conflicts
+
+validation_rules:
+  proficiency:
+    range: 0-100
+    type: number (integer or float)
+    nullable: yes (represents unrated)
+    zero_meaning: "Unrated (excluded from averages)"
+
+  student_status:
+    values: ['not_learned', 'in_progress', 'mastered']
+    transitions:
+      - not_learned → in_progress (first practice)
+      - in_progress → mastered (high proficiency)
+      - mastered → in_progress (regression)
+
+  readiness:
+    overall_threshold: 80
+    low_skill_threshold: 60
+    category4_threshold: 80
+    calculation: "All three conditions must be true"
+
+  teacher_id:
+    - Must be valid UUID
+    - Must match across student, skills, categories
+    - Used for multi-tenant data isolation
+
+best_practices:
+  - Test happy path and edge cases
+  - Verify error messages are user-friendly
+  - Check for off-by-one errors
+  - Test with realistic data volumes
+  - Validate against specification document
+  - Document assumptions in code
+  - Add assertions for invariants
+  - Test rollback/undo scenarios
+
+validation_checklist:
+  - "[ ] All formulas match specification (0-5 scale → 0-100 scale)"
+  - "[ ] Edge cases handled gracefully (no crashes)"
+  - "[ ] Boundary values tested (80, 60, 59)"
+  - "[ ] Null/undefined handled properly"
+  - "[ ] Empty arrays return sensible defaults"
+  - "[ ] Data consistency maintained across tables"
+  - "[ ] Hebrew text displays correctly (RTL)"
+  - "[ ] Calculations are performant (O(n) not O(n²))"
+  - "[ ] Timestamps update correctly"
+  - "[ ] Business rules enforced at database level (constraints)"
+
+known_formulas:
+  readiness:
+    spec: "avg >= 4 AND no skill < 3 AND cat4 >= 4 (on 0-5 scale)"
+    implementation: "avg >= 80 AND no skill < 60 AND cat4Avg >= 80 (on 0-100 scale)"
+    conversion: "Multiply by 20 to convert from 0-5 to 0-100"
+
+  category_average:
+    formula: "sum(rated_skills.proficiency) / count(rated_skills)"
+    exclusion: "Skills with proficiency = 0 or null are excluded"
+
+  overall_average:
+    formula: "sum(all_rated_skills.proficiency) / count(all_rated_skills)"
+    exclusion: "Skills with proficiency = 0 or null are excluded"

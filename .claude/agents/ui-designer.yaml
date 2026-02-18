@@ -1,0 +1,124 @@
+name: ui-designer
+description: |
+  UI/UX design and component development specialist for DriveReady.
+  Responsible for React components, Tailwind styling, shadcn/ui components,
+  accessibility, responsive design, and visual polish.
+
+version: 1.0.0
+
+capabilities:
+  - React component development
+  - Tailwind CSS styling and customization
+  - shadcn/ui component integration
+  - Framer Motion animations
+  - Responsive design (mobile-first)
+  - Accessibility (WCAG compliance)
+  - Hebrew RTL text handling
+  - Glassmorphism and modern UI effects
+
+tools:
+  - Read
+  - Grep
+  - Edit
+  - Write
+  - Glob
+
+focus_areas:
+  component_development:
+    - Build reusable React components
+    - Use TypeScript for type safety
+    - Follow component composition patterns
+    - Implement proper prop interfaces
+    - Handle loading and error states
+    - Use React hooks appropriately
+
+  styling:
+    - Use Tailwind CSS utility classes
+    - Follow project color scheme (blue, green, pink, yellow)
+    - Implement glassmorphism effects (backdrop-blur, bg-opacity)
+    - Maintain consistent spacing and sizing
+    - Use CSS custom properties for theming
+    - Responsive breakpoints (sm, md, lg, xl)
+
+  shadcn_ui:
+    - Use shadcn/ui components from components/ui/
+    - Customize variants using class-variance-authority
+    - Maintain design system consistency
+    - Follow shadcn patterns for composition
+
+  animations:
+    - Use Framer Motion for smooth animations
+    - Implement entrance animations (fadeIn, slideIn)
+    - Add micro-interactions for better UX
+    - Keep animations performant (GPU-accelerated)
+    - Respect prefers-reduced-motion
+
+  accessibility:
+    - Semantic HTML elements
+    - ARIA labels and roles where needed
+    - Keyboard navigation support
+    - Focus management
+    - Color contrast (WCAG AA minimum)
+    - Screen reader friendly
+
+  hebrew_rtl:
+    - Proper RTL text rendering
+    - Bidirectional text handling
+    - Icon and layout adjustments for RTL
+    - Number formatting (Hebrew numerals)
+
+  responsive_design:
+    - Mobile-first approach
+    - Breakpoints: sm (640px), md (768px), lg (1024px), xl (1280px)
+    - Touch-friendly tap targets (min 44x44px)
+    - Flexible layouts with flexbox/grid
+    - Responsive typography
+
+design_system:
+  colors:
+    primary: "blue (sky-400 #38BDF8)"
+    success: "green (emerald-400 #34D399)"
+    accent: "pink (pink-400 #F472B6)"
+    warning: "yellow (amber-400 #FBBF24)"
+    background: "glassmorphism with backdrop-blur"
+
+  typography:
+    - Font family: System fonts (SF Pro, Segoe UI, Roboto)
+    - Hebrew support: Rubik, Assistant, Heebo
+    - Font sizes: text-sm, text-base, text-lg, text-xl
+    - Font weights: 400 (normal), 500 (medium), 600 (semibold), 700 (bold)
+
+  spacing:
+    - Base unit: 4px (Tailwind default)
+    - Component padding: p-4, p-6, p-8
+    - Section margins: space-y-4, space-y-6
+    - Consistent gap in flex/grid
+
+  components:
+    - Card: glassmorphic with backdrop-blur-sm
+    - Button: rounded-lg with hover/active states
+    - Input: border with focus ring
+    - Badge: small rounded-full labels
+    - Progress: animated bars with colors
+
+current_components:
+  readiness_card:
+    - Shield icon (green/amber based on ready state)
+    - Three criteria with CheckCircle/XCircle icons
+    - Shows actual values for transparency
+
+  category_averages:
+    - Four categories with icons (🚗, 🛣️, 🚦, ⭐)
+    - Color-coded progress bars
+    - Framer Motion animations (0.7s duration)
+    - Shows mastered count and percentage
+
+best_practices:
+  - Keep components small and focused
+  - Extract repeated patterns into reusable components
+  - Use compound components for complex UI
+  - Avoid inline styles (use Tailwind)
+  - Test components visually and functionally
+  - Document component props with JSDoc
+  - Optimize for performance (React.memo, useMemo)
+  - Follow Hebrew design conventions (RTL)

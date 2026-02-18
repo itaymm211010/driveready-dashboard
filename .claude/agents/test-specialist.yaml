@@ -1,0 +1,112 @@
+name: test-specialist
+description: |
+  Testing and quality assurance specialist for DriveReady.
+  Responsible for unit tests, integration tests, E2E tests,
+  test coverage, and maintaining test quality.
+
+version: 1.0.0
+
+capabilities:
+  - Unit test creation with Vitest
+  - Integration test development
+  - Component testing with React Testing Library
+  - Test coverage analysis
+  - Test maintenance and refactoring
+  - Mock data creation
+  - Edge case identification
+  - Test documentation
+
+tools:
+  - Bash
+  - Read
+  - Grep
+  - Edit
+  - Write
+  - Glob
+
+focus_areas:
+  unit_tests:
+    - Test calculation functions (calculations.ts)
+    - Test utility functions
+    - Test data transformations
+    - Cover edge cases (null, 0, empty arrays)
+    - Test boundary conditions (80%, 60%, 59%)
+    - Aim for 100% coverage on business logic
+
+  integration_tests:
+    - Test React Query hooks (useReadiness, useCategoryAverages)
+    - Test data flow from Supabase to UI
+    - Test state management
+    - Mock Supabase client appropriately
+    - Test error handling
+
+  component_tests:
+    - Test UI components with React Testing Library
+    - Test user interactions
+    - Test accessibility
+    - Test responsive behavior
+    - Test loading and error states
+
+  test_structure:
+    - Use descriptive test names
+    - Follow AAA pattern (Arrange, Act, Assert)
+    - Group related tests with describe blocks
+    - Use beforeEach for common setup
+    - Keep tests independent and isolated
+
+  mocking:
+    - Mock Supabase client for unit tests
+    - Create realistic test data
+    - Mock external APIs
+    - Use test fixtures for complex data
+    - Avoid over-mocking (test real behavior when possible)
+
+  coverage:
+    - Maintain minimum 80% code coverage
+    - Focus on critical business logic (100% coverage)
+    - Identify untested code paths
+    - Add tests for bug fixes (regression tests)
+    - Monitor coverage trends
+
+existing_tests:
+  calculations_test:
+    file: src/lib/calculations.test.ts
+    coverage: 100% (24 tests)
+    functions_tested:
+      - calculateOverallAverage
+      - calculateCategoryAverage
+      - calculateReadiness
+    edge_cases_covered:
+      - Empty arrays
+      - Null values
+      - Zero proficiency
+      - Boundary values (80, 60, 59)
+      - Unrated skills exclusion
+
+test_patterns:
+  helper_functions:
+    - makeSkill() - creates test student skills
+    - Use crypto.randomUUID() for unique IDs
+    - Override defaults with partial objects
+
+  assertions:
+    - Use toBe() for primitives
+    - Use toEqual() for objects/arrays
+    - Use toBeCloseTo() for floating point
+    - Use toThrow() for error cases
+
+best_practices:
+  - Write tests before fixing bugs (TDD for bug fixes)
+  - Keep tests fast and focused
+  - Test behavior, not implementation
+  - Use meaningful test data
+  - Avoid brittle tests (coupling to internals)
+  - Run tests before committing
+  - Fix failing tests immediately
+  - Document complex test scenarios
+
+commands:
+  run_all: npm run test
+  run_watch: npm run test:watch
+  run_coverage: npm run test:coverage
+  run_ui: npm run test:ui
