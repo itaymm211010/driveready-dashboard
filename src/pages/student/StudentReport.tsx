@@ -71,7 +71,7 @@ export default function StudentReport() {
   const initials = student.name.split(' ').map((n) => n[0]).join('').slice(0, 2).toUpperCase();
   const totalSkills = skillTree.reduce((sum, cat) => sum + cat.skills.length, 0);
   const masteredSkills = skillTree.reduce(
-    (sum, cat) => sum + cat.skills.filter((s) => s.studentSkill?.current_status === 'mastered').length,
+    (sum, cat) => sum + cat.skills.filter((s) => (s.studentSkill?.current_score ?? 0) >= 4).length,
     0
   );
 
@@ -218,7 +218,7 @@ export default function StudentReport() {
           >
             <h2 className="text-sm font-heading font-semibold text-foreground">פירוט מיומנויות</h2>
             {skillTree.map((cat) => {
-              const catMastered = cat.skills.filter((s) => s.studentSkill?.current_status === 'mastered').length;
+              const catMastered = cat.skills.filter((s) => (s.studentSkill?.current_score ?? 0) >= 4).length;
               return (
                 <div key={cat.id} className="glass card-premium rounded-xl p-3 overflow-hidden">
                   <div className="flex items-center justify-between mb-2">
@@ -227,7 +227,8 @@ export default function StudentReport() {
                   </div>
                   <div className="flex flex-wrap gap-1.5">
                     {cat.skills.map((skill) => {
-                      const status = skill.studentSkill?.current_status ?? 'not_learned';
+                      const score = skill.studentSkill?.current_score ?? 0;
+                      const status = score >= 4 ? 'mastered' : score > 0 ? 'in_progress' : 'not_learned';
                       const cfg = STATUS_CONFIG[status] ?? STATUS_CONFIG.not_learned;
                       return (
                         <Badge key={skill.id} variant="outline" className={cn('gap-1 text-xs transition-smooth hover:scale-105', cfg.className)}>

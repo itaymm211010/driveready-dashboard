@@ -4,12 +4,18 @@ import { format } from 'date-fns';
 
 const TEACHER_ID = 'a1b2c3d4-e5f6-7890-abcd-ef1234567890';
 
+/** Derive a display status from a 0-5 score */
+function scoreToStatus(score: number): string {
+  if (score >= 4) return 'mastered';
+  if (score > 0) return 'in_progress';
+  return 'not_learned';
+}
+
 export function useStudentReport(studentId: string | undefined) {
   return useQuery({
     queryKey: ['student-report', studentId],
     enabled: !!studentId,
     queryFn: async () => {
-      // Fetch student
       const { data: student, error: sErr } = await supabase
         .from('students')
         .select('*')
@@ -18,21 +24,18 @@ export function useStudentReport(studentId: string | undefined) {
       if (sErr) throw sErr;
       if (!student) return null;
 
-      // Fetch skill categories
       const { data: categories } = await supabase
         .from('skill_categories')
         .select('*')
         .eq('teacher_id', TEACHER_ID)
         .order('sort_order');
 
-      // Fetch skills
       const { data: skills } = await supabase
         .from('skills')
         .select('*')
         .eq('teacher_id', TEACHER_ID)
         .order('sort_order');
 
-      // Fetch student_skills
       const { data: studentSkills } = await supabase
         .from('student_skills')
         .select('*')
@@ -40,11 +43,11 @@ export function useStudentReport(studentId: string | undefined) {
 
       // Fetch skill_history for progress timeline
       const studentSkillIds = (studentSkills ?? []).map((ss) => ss.id);
-      let historyData: Array<{ lesson_date: string; status: string; student_skill_id: string }> = [];
+      let historyData: Array<{ lesson_date: string; score: number; student_skill_id: string }> = [];
       if (studentSkillIds.length > 0) {
         const { data } = await supabase
           .from('skill_history')
-          .select('lesson_date, status, student_skill_id')
+          .select('lesson_date, score, student_skill_id')
           .in('student_skill_id', studentSkillIds)
           .order('lesson_date', { ascending: true });
         historyData = data ?? [];
@@ -52,7 +55,6 @@ export function useStudentReport(studentId: string | undefined) {
 
       const ssMap = new Map((studentSkills ?? []).map((ss) => [ss.skill_id, ss]));
 
-      // Build skill tree with student status
       const skillTree = (categories ?? []).map((cat) => {
         const catSkills = (skills ?? [])
           .filter((s) => s.category_id === cat.id)
@@ -67,10 +69,10 @@ export function useStudentReport(studentId: string | undefined) {
       const radarData = skillTree.map((cat) => {
         const total = cat.skills.length;
         const mastered = cat.skills.filter(
-          (s) => s.studentSkill?.current_status === 'mastered'
+          (s) => scoreToStatus(s.studentSkill?.current_score ?? 0) === 'mastered'
         ).length;
         const inProgress = cat.skills.filter(
-          (s) => s.studentSkill?.current_status === 'in_progress'
+          (s) => scoreToStatus(s.studentSkill?.current_score ?? 0) === 'in_progress'
         ).length;
         const notLearned = total - mastered - inProgress;
         const score = mastered + inProgress * 0.5;
@@ -86,10 +88,9 @@ export function useStudentReport(studentId: string | undefined) {
       });
 
       // Progress timeline: cumulative mastered count per lesson_date
-      // Group history by date, track cumulative mastered status
       const dateStatusMap = new Map<string, Set<string>>();
       for (const entry of historyData) {
-        if (entry.status === 'mastered') {
+        if (entry.score >= 4) {
           const dateKey = entry.lesson_date;
           if (!dateStatusMap.has(dateKey)) {
             dateStatusMap.set(dateKey, new Set());
@@ -98,7 +99,6 @@ export function useStudentReport(studentId: string | undefined) {
         }
       }
 
-      // Build cumulative timeline
       const allMastered = new Set<string>();
       const sortedDates = Array.from(dateStatusMap.keys()).sort();
       const progressData = sortedDates.map((dateStr) => {

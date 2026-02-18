@@ -25,8 +25,8 @@ export function LessonSkillCard({
   onRemove,
 }: LessonSkillCardProps) {
   const isFirstTime = !skill.student_skill || skill.student_skill.times_practiced === 0;
-  const lastScore = skill.student_skill?.last_proficiency as SkillScore | null | undefined;
-  const lastPercentage = lastScore ? scoreToPercentage(lastScore) : null;
+  const lastScore = (skill.student_skill?.current_score ?? 0) as SkillScore;
+  const lastPercentage = lastScore > 0 ? scoreToPercentage(lastScore) : null;
 
   return (
     <div className="rounded-xl border bg-card/80 backdrop-blur-sm p-4 space-y-3 card-premium overflow-hidden transition-smooth hover:shadow-md">
@@ -36,11 +36,11 @@ export function LessonSkillCard({
           <h3 className="text-sm font-heading font-bold text-foreground">{skill.name}</h3>
           {isFirstTime ? (
             <p className="text-xs text-primary mt-0.5 font-body">🆕 תרגול ראשון</p>
-          ) : skill.student_skill?.last_note && lastScore ? (
+          ) : skill.student_skill?.last_note && lastScore > 0 ? (
             <p className="text-xs text-muted-foreground mt-0.5 font-body">
               אחרון: {formatScore(lastScore)} ({lastPercentage}%) - "{skill.student_skill.last_note}"
             </p>
-          ) : lastScore !== undefined && lastScore !== null && lastScore > 0 ? (
+          ) : lastScore > 0 ? (
             <p className="text-xs text-muted-foreground mt-0.5 font-body">
               אחרון: {formatScore(lastScore)} ({lastPercentage}%)
             </p>

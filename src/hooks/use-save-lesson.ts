@@ -2,8 +2,6 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import type { SkillScore } from '@/lib/scoring';
 
-type SkillStatus = 'not_learned' | 'in_progress' | 'mastered';
-
 const TEACHER_ID = 'a1b2c3d4-e5f6-7890-abcd-ef1234567890';
 
 interface SaveLessonParams {
@@ -91,16 +89,12 @@ export function useSaveLesson() {
 
       // 5. Upsert student_skills and insert skill_history
       for (const skillId of practicedSkillIds) {
-        const newScore = skillOverrides[skillId];
+        const newScore = skillOverrides[skillId] ?? 0;
         const note = notes[skillId] || null;
-        // Derive status from score
-        const derivedStatus = newScore != null
-          ? (newScore >= 4 ? 'mastered' : newScore > 0 ? 'in_progress' : 'not_learned')
-          : undefined;
 
         const { data: existing, error: checkErr } = await supabase
           .from('student_skills')
-          .select('id, times_practiced, current_status')
+          .select('id, times_practiced, current_score')
           .eq('student_id', studentId)
           .eq('skill_id', skillId)
           .maybeSingle();
@@ -114,8 +108,7 @@ export function useSaveLesson() {
             times_practiced: existing.times_practiced + 1,
             last_practiced_date: today,
           };
-          if (derivedStatus) updates.current_status = derivedStatus;
-          if (newScore != null) updates.last_proficiency = newScore;
+          if (newScore > 0) updates.current_score = newScore;
           if (note) updates.last_note = note;
 
           const { error: upErr } = await supabase
@@ -130,8 +123,7 @@ export function useSaveLesson() {
             .insert([{
               student_id: studentId,
               skill_id: skillId,
-              current_status: derivedStatus ?? 'not_learned',
-              last_proficiency: newScore ?? null,
+              current_score: newScore,
               times_practiced: 1,
               last_practiced_date: today,
               last_note: note,
@@ -146,8 +138,7 @@ export function useSaveLesson() {
           student_skill_id: studentSkillId,
           lesson_id: lessonId,
           lesson_date: today,
-          status: derivedStatus ?? existing?.current_status ?? 'not_learned',
-          proficiency_estimate: newScore ?? null,
+          score: newScore,
           teacher_note: note,
           practice_duration_minutes: durationMinutes,
         }]);
@@ -168,27 +159,7 @@ export function useSaveLesson() {
         .eq('id', studentId);
       if (tlErr) throw tlErr;
 
-      // 7. Recalculate readiness_percentage
-      const { count: totalSkills } = await supabase
-        .from('skills')
-        .select('id', { count: 'exact', head: true })
-        .eq('teacher_id', TEACHER_ID);
-
-      const { count: masteredSkills } = await supabase
-        .from('student_skills')
-        .select('id', { count: 'exact', head: true })
-        .eq('student_id', studentId)
-        .eq('current_status', 'mastered');
-
-      const readiness = totalSkills && totalSkills > 0
-        ? Math.round(((masteredSkills ?? 0) / totalSkills) * 100)
-        : 0;
-
-      const { error: rErr } = await supabase
-        .from('students')
-        .update({ readiness_percentage: readiness })
-        .eq('id', studentId);
-      if (rErr) throw rErr;
+      // 7. Readiness is now calculated by a database trigger automatically
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['today-lessons'] });

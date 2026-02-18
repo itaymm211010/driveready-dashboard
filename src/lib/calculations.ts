@@ -23,8 +23,6 @@ export interface StudentSkillWithCategory extends StudentSkillRow {
     category_id: string;
     name: string;
   };
-  /** Alias for last_proficiency used in score calculations */
-  current_score?: number | null;
 }
 
 export interface ReadinessResult {
@@ -53,56 +51,30 @@ const LOW_SKILL_THRESHOLD = 3;
 /** Minimum category-4 average score to be considered ready (4/5). */
 const CAT4_AVG_THRESHOLD = 4;
 
+// ── Helpers ─────────────────────────────────────────────────────────────────
+
+const getScore = (s: StudentSkillWithCategory) => (s.current_score ?? 0) as number;
+
 // ── Functions ───────────────────────────────────────────────────────────────
 
-/**
- * Calculate test-readiness for a student based on their skill scores.
- *
- * A student is "ready" when all three conditions are met:
- * 1. Overall average score >= 4 (80%)
- * 2. No individual rated skill has score < 3 (60%)
- * 3. Category-4 ("מצבים מתקדמים") average >= 4 (80%)
- *
- * @param skills - The student's skills with joined category info.
- * @param advancedCategoryId - UUID of the advanced situations category.
- *   When omitted the function still computes avg / hasLow but cat4Avg will be 0.
- * @returns A {@link ReadinessResult} object.
- */
 export function calculateReadiness(
   skills: StudentSkillWithCategory[],
   advancedCategoryId?: string,
 ): ReadinessResult {
-  const rated = skills.filter(
-    (s) => (s.current_score ?? s.last_proficiency) != null && (s.current_score ?? s.last_proficiency)! > 0,
-  );
+  const rated = skills.filter((s) => getScore(s) > 0);
 
   if (rated.length === 0) {
-    return {
-      ready: false,
-      avg: 0,
-      percentage: 0,
-      hasLow: false,
-      cat4Avg: 0,
-      cat4Percentage: 0,
-    };
+    return { ready: false, avg: 0, percentage: 0, hasLow: false, cat4Avg: 0, cat4Percentage: 0 };
   }
 
-  const getScore = (s: StudentSkillWithCategory) => (s.current_score ?? s.last_proficiency ?? 0) as number;
-
-  const avg =
-    rated.reduce((sum, s) => sum + getScore(s), 0) /
-    rated.length;
-
-  const hasLow = rated.some(
-    (s) => getScore(s) < LOW_SKILL_THRESHOLD,
-  );
+  const avg = rated.reduce((sum, s) => sum + getScore(s), 0) / rated.length;
+  const hasLow = rated.some((s) => getScore(s) < LOW_SKILL_THRESHOLD);
 
   const cat4Avg = advancedCategoryId
     ? calculateCategoryAverage(skills, advancedCategoryId)
     : 0;
 
-  const ready =
-    avg >= READY_AVG_THRESHOLD && !hasLow && cat4Avg >= CAT4_AVG_THRESHOLD;
+  const ready = avg >= READY_AVG_THRESHOLD && !hasLow && cat4Avg >= CAT4_AVG_THRESHOLD;
 
   return {
     ready,
@@ -114,60 +86,21 @@ export function calculateReadiness(
   };
 }
 
-/**
- * Calculate the average score for skills in a specific category.
- *
- * Only skills with `current_score > 0` (i.e. rated at least once) are
- * included. Returns 0 when there are no rated skills in the category.
- *
- * @param skills - The student's skills with joined category info.
- * @param categoryId - The UUID of the category to filter by.
- * @returns Average score (0-5 scale) or 0.
- */
 export function calculateCategoryAverage(
   skills: StudentSkillWithCategory[],
   categoryId: string,
 ): number {
-  const getScore = (s: StudentSkillWithCategory) => (s.current_score ?? s.last_proficiency ?? 0) as number;
-
   const categorySkills = skills.filter(
-    (s) =>
-      s.skill.category_id === categoryId &&
-      getScore(s) > 0,
+    (s) => s.skill.category_id === categoryId && getScore(s) > 0,
   );
-
   if (categorySkills.length === 0) return 0;
-
-  return (
-    categorySkills.reduce(
-      (sum, s) => sum + getScore(s),
-      0,
-    ) / categorySkills.length
-  );
+  return categorySkills.reduce((sum, s) => sum + getScore(s), 0) / categorySkills.length;
 }
 
-/**
- * Calculate the overall average score across all rated skills.
- *
- * Only skills with `current_score > 0` are included.
- * Returns 0 when there are no rated skills.
- *
- * @param skills - The student's skills with joined category info.
- * @returns Average score (0-5 scale) or 0.
- */
 export function calculateOverallAverage(
   skills: StudentSkillWithCategory[],
 ): number {
-  const getScore = (s: StudentSkillWithCategory) => (s.current_score ?? s.last_proficiency ?? 0) as number;
-
-  const rated = skills.filter(
-    (s) => getScore(s) > 0,
-  );
-
+  const rated = skills.filter((s) => getScore(s) > 0);
   if (rated.length === 0) return 0;
-
-  return (
-    rated.reduce((sum, s) => sum + getScore(s), 0) /
-    rated.length
-  );
+  return rated.reduce((sum, s) => sum + getScore(s), 0) / rated.length;
 }

@@ -26,9 +26,9 @@ interface SkillSelectionModalProps {
 }
 
 function getStatusIndicator(skill: DbSkill) {
-  const status = skill.student_skill?.current_status;
-  if (status === 'mastered') return { icon: '✓', color: 'text-success' };
-  if (status === 'in_progress') return { icon: `${skill.student_skill?.last_proficiency ?? 0}%`, color: 'text-warning' };
+  const score = skill.student_skill?.current_score ?? 0;
+  if (score >= 4) return { icon: '✓', color: 'text-success' };
+  if (score > 0) return { icon: `${Math.round((score / 5) * 100)}%`, color: 'text-warning' };
   return { icon: '⚪', color: 'text-muted-foreground' };
 }
 
@@ -36,15 +36,16 @@ function getSuggestions(categories: DbSkillCategory[]) {
   const allSkills = categories.flatMap(c => c.skills);
   
   const needsAttention = allSkills.filter(s => {
-    const prof = s.student_skill?.last_proficiency;
-    return s.student_skill?.current_status === 'in_progress' && prof !== undefined && prof < 60;
+    const score = s.student_skill?.current_score ?? 0;
+    return score > 0 && score < 3;
   });
 
   const neverPracticed = allSkills.filter(s => !s.student_skill || s.student_skill.times_practiced === 0);
 
   const notRecently = allSkills.filter(s => {
     if (!s.student_skill?.last_practiced_date) return false;
-    if (s.student_skill.current_status === 'mastered') return false;
+    const score = s.student_skill.current_score ?? 0;
+    if (score >= 4) return false;
     const days = Math.floor((Date.now() - new Date(s.student_skill.last_practiced_date).getTime()) / 86400000);
     return days >= 7;
   });
@@ -189,7 +190,7 @@ export function SkillSelectionModal({
                   <div className="flex-1 min-w-0 text-left">
                     <span className="text-sm font-medium text-foreground">{skill.name}</span>
                     <p className="text-xs text-muted-foreground">
-                      {skill.student_skill?.last_proficiency}% - דרוש תרגול
+                      {Math.round(((skill.student_skill?.current_score ?? 0) / 5) * 100)}% - דרוש תרגול
                     </p>
                   </div>
                   {selected.has(skill.id) ? (
