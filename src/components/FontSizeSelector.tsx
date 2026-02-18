@@ -26,9 +26,11 @@ export function FontSizeSelector() {
           variant="ghost"
           size="icon"
           className="h-9 w-9 rounded-full transition-smooth"
+          aria-label="בחירת גודל גופן"
+          title="בחירת גודל גופן"
         >
-          <AArrowUp className="h-4 w-4 text-muted-foreground" />
-          <span className="sr-only">גודל גופן</span>
+          <AArrowUp className="h-4 w-4 text-muted-foreground" aria-hidden="true" />
+          <span className="sr-only">בחירת גודל גופן</span>
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="min-w-[120px]">

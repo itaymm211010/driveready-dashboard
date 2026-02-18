@@ -5,6 +5,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { ThemeProvider } from "@/components/ThemeProvider";
 import { FontSizeProvider } from "@/components/FontSizeProvider";
+import { ErrorBoundary } from "@/components/shared/ErrorBoundary";
 import TeacherToday from "./pages/teacher/TeacherToday";
 import ActiveLesson from "./pages/teacher/ActiveLesson";
 import StudentProfile from "./pages/teacher/StudentProfile";
@@ -17,30 +18,32 @@ import NotFound from "./pages/NotFound";
 const queryClient = new QueryClient();
 
 const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <ThemeProvider defaultTheme="light" storageKey="drivekal-theme">
-      <FontSizeProvider>
-      <TooltipProvider>
-        <Toaster />
-        <Sonner />
-        <BrowserRouter>
-          <Routes>
-            <Route path="/" element={<Navigate to="/teacher/today" replace />} />
-            <Route path="/teacher/today" element={<TeacherToday />} />
-            <Route path="/teacher/lesson/:id" element={<ActiveLesson />} />
-            <Route path="/teacher/calendar" element={<CalendarPage />} />
-            <Route path="/teacher/students" element={<StudentsList />} />
-            <Route path="/teacher/student/:id" element={<StudentProfile />} />
-            <Route path="/teacher/reports" element={<ReportsPage />} />
-            <Route path="/student/:id/report" element={<StudentReport />} />
-            {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-        </BrowserRouter>
-      </TooltipProvider>
-      </FontSizeProvider>
-    </ThemeProvider>
-  </QueryClientProvider>
+  <ErrorBoundary>
+    <QueryClientProvider client={queryClient}>
+      <ThemeProvider defaultTheme="light" storageKey="drivekal-theme">
+        <FontSizeProvider>
+        <TooltipProvider>
+          <Toaster />
+          <Sonner />
+          <BrowserRouter>
+            <Routes>
+              <Route path="/" element={<Navigate to="/teacher/today" replace />} />
+              <Route path="/teacher/today" element={<TeacherToday />} />
+              <Route path="/teacher/lesson/:id" element={<ActiveLesson />} />
+              <Route path="/teacher/calendar" element={<CalendarPage />} />
+              <Route path="/teacher/students" element={<StudentsList />} />
+              <Route path="/teacher/student/:id" element={<StudentProfile />} />
+              <Route path="/teacher/reports" element={<ReportsPage />} />
+              <Route path="/student/:id/report" element={<StudentReport />} />
+              {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+          </BrowserRouter>
+        </TooltipProvider>
+        </FontSizeProvider>
+      </ThemeProvider>
+    </QueryClientProvider>
+  </ErrorBoundary>
 );
 
 export default App;

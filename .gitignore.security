@@ -1,0 +1,8 @@
+# Security-sensitive files
+SECURITY_AUDIT_REPORT.md
+SECURITY_*.md
+.claude/
+
+# Private documentation
+INTERNAL_*.md
+PRIVATE_*.md
