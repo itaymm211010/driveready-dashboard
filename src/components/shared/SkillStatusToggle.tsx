@@ -1,5 +1,6 @@
 import { cn } from '@/lib/utils';
-import type { SkillStatus } from '@/data/mock';
+
+export type SkillStatus = 'not_learned' | 'in_progress' | 'mastered';
 
 interface SkillStatusToggleProps {
   value: SkillStatus;

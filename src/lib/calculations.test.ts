@@ -31,6 +31,8 @@ function makeSkill(
     student_id: "student-1",
     skill_id: skillId,
     current_score: score,
+    current_status: score != null && score >= 4 ? 'mastered' : 'in_progress',
+    last_proficiency: score,
     last_note: null,
     last_practiced_date: null,
     times_practiced: 1,

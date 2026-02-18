@@ -25,7 +25,7 @@ export function LessonSkillCard({
   onRemove,
 }: LessonSkillCardProps) {
   const isFirstTime = !skill.student_skill || skill.student_skill.times_practiced === 0;
-  const lastScore = skill.student_skill?.current_score as SkillScore | null | undefined;
+  const lastScore = skill.student_skill?.last_proficiency as SkillScore | null | undefined;
   const lastPercentage = lastScore ? scoreToPercentage(lastScore) : null;
 
   return (
