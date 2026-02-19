@@ -12,6 +12,7 @@ import {
   calculateCategoryAverage,
   type StudentSkillWithCategory,
 } from '@/lib/calculations';
+import { scoreToPercentage, type SkillScore } from '@/lib/scoring';
 import { BottomNav } from '@/components/teacher/BottomNav';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -87,10 +88,10 @@ function computeReadiness(skillTree: any[]): ReadinessDisplay {
   const lowCount = rated.filter((s) => (s.current_score ?? 0) < 3).length;
   return {
     ready: r.ready,
-    overallAvg: r.avg,
+    overallAvg: r.percentage,
     hasLowSkills: r.hasLow,
     lowSkillCount: lowCount,
-    advancedCatAvg: r.cat4Avg,
+    advancedCatAvg: r.cat4Percentage,
     ratedCount: rated.length,
   };
 }
@@ -117,7 +118,7 @@ function computeCategoryAverages(skillTree: any[]): CategoryAverageDisplay[] {
       name: cat.name,
       icon: cat.icon ?? '',
       color: cat.color ?? CATEGORY_COLORS[cat.name] ?? '#94A3B8',
-      average: calculateCategoryAverage(skills, cat.id),
+      average: scoreToPercentage(calculateCategoryAverage(skills, cat.id) as SkillScore),
       ratedCount: rated.length,
       totalCount: cat.skills.length,
       mastered,
