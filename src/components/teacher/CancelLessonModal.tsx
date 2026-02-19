@@ -35,13 +35,18 @@ export function CancelLessonModal({ lesson, open, onOpenChange }: CancelLessonMo
         .from('lessons')
         .update({
           status: 'cancelled',
-          // Preserve test type prefix, append cancel reason
+          // Preserve test type prefix + user notes, append cancel reason
           notes: (() => {
-            const existing = lesson!.notes ?? '';
-            const prefix = existing.startsWith('[טסט פנימי]') ? '[טסט פנימי]'
-              : existing.startsWith('[טסט חיצוני]') ? '[טסט חיצוני]'
-              : null;
-            return prefix ? `${prefix} ${reason}` : reason;
+            let userNotes = lesson!.notes ?? '';
+            let prefix: string | null = null;
+            if (userNotes.startsWith('[טסט פנימי]')) {
+              prefix = '[טסט פנימי]';
+              userNotes = userNotes.slice(prefix.length).trim();
+            } else if (userNotes.startsWith('[טסט חיצוני]')) {
+              prefix = '[טסט חיצוני]';
+              userNotes = userNotes.slice(prefix.length).trim();
+            }
+            return [prefix, userNotes, `[ביטול: ${reason}]`].filter(Boolean).join(' ');
           })(),
         })
         .eq('id', lesson.id);

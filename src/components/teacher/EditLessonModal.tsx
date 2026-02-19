@@ -33,20 +33,24 @@ export function EditLessonModal({ lesson, open, onOpenChange }: EditLessonModalP
   const [amount, setAmount] = useState('');
   const [notes, setNotes] = useState('');
 
-  // Extract test type prefix from notes
-  const testPrefix = lesson?.notes?.startsWith('[טסט פנימי]') ? '[טסט פנימי]'
-    : lesson?.notes?.startsWith('[טסט חיצוני]') ? '[טסט חיצוני]'
-    : null;
+  const [testPrefix, setTestPrefix] = useState<string | null>(null);
 
   useEffect(() => {
     if (lesson && open) {
       setDate(parseISO(lesson.date));
       setTimeStart(lesson.time_start);
       setAmount(String(lesson.amount));
-      // Strip test type prefix from notes for editing
+      // Detect and strip test type prefix from notes for editing
       let userNotes = lesson.notes ?? '';
-      if (userNotes.startsWith('[טסט פנימי]')) userNotes = userNotes.slice('[טסט פנימי]'.length).trim();
-      else if (userNotes.startsWith('[טסט חיצוני]')) userNotes = userNotes.slice('[טסט חיצוני]'.length).trim();
+      if (userNotes.startsWith('[טסט פנימי]')) {
+        setTestPrefix('[טסט פנימי]');
+        userNotes = userNotes.slice('[טסט פנימי]'.length).trim();
+      } else if (userNotes.startsWith('[טסט חיצוני]')) {
+        setTestPrefix('[טסט חיצוני]');
+        userNotes = userNotes.slice('[טסט חיצוני]'.length).trim();
+      } else {
+        setTestPrefix(null);
+      }
       setNotes(userNotes);
       // Calculate duration from time_start and time_end
       const start = parse(lesson.time_start, 'HH:mm', new Date());
