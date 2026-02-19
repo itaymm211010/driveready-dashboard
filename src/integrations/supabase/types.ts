@@ -175,41 +175,6 @@ export type Database = {
           },
         ]
       }
-      teachers: {
-        Row: {
-          created_at: string
-          email: string
-          id: string
-          name: string
-          parent_teacher_id: string | null
-          phone: string | null
-        }
-        Insert: {
-          created_at?: string
-          email: string
-          id: string
-          name: string
-          parent_teacher_id?: string | null
-          phone?: string | null
-        }
-        Update: {
-          created_at?: string
-          email?: string
-          id?: string
-          name?: string
-          parent_teacher_id?: string | null
-          phone?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "teachers_parent_teacher_id_fkey"
-            columns: ["parent_teacher_id"]
-            isOneToOne: false
-            referencedRelation: "teachers"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       skill_categories: {
         Row: {
           color: string | null
@@ -430,6 +395,41 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      teachers: {
+        Row: {
+          created_at: string
+          email: string
+          id: string
+          name: string
+          parent_teacher_id: string | null
+          phone: string | null
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          id: string
+          name: string
+          parent_teacher_id?: string | null
+          phone?: string | null
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          id?: string
+          name?: string
+          parent_teacher_id?: string | null
+          phone?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "teachers_parent_teacher_id_fkey"
+            columns: ["parent_teacher_id"]
+            isOneToOne: false
+            referencedRelation: "teachers"
+            referencedColumns: ["id"]
+          },
+        ]
       }
     }
     Views: {
