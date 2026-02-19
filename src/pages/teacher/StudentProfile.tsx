@@ -353,9 +353,33 @@ export default function StudentProfile() {
           </Card>
         </motion.div>
 
+        {/* Next Lesson Card */}
+        {nextLesson && (
+          <motion.div variants={fadeUp} initial="hidden" animate="visible" custom={2}>
+            <Card className="border-primary/30 bg-primary/5">
+              <CardContent className="p-3">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-xs text-muted-foreground font-body">השיעור הבא</p>
+                    <p className="text-sm font-heading font-bold text-foreground">
+                      {format(new Date(nextLesson.date), 'EEEE, d בMMMM', { locale: he })}
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                      {nextLesson.time_start} - {nextLesson.time_end} • {formatDistanceToNow(new Date(nextLesson.date), { locale: he, addSuffix: true })}
+                    </p>
+                  </div>
+                  <Button size="sm" variant="outline" className="shrink-0" onClick={() => navigate(`/teacher/lesson/${nextLesson.id}`)}>
+                    לשיעור →
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          </motion.div>
+        )}
+
         {/* Readiness Status */}
         {readiness.ratedCount > 0 && (
-          <motion.div variants={fadeUp} initial="hidden" animate="visible" custom={2}>
+          <motion.div variants={fadeUp} initial="hidden" animate="visible" custom={3}>
             <Card className={cn(
               'overflow-hidden border-2',
               readiness.ready
@@ -381,7 +405,7 @@ export default function StudentProfile() {
                 </div>
 
                 <div className="space-y-2.5" role="list" aria-label="קריטריונים למוכנות">
-                  {/* Criterion 1: Overall average >= 80 */}
+                  {/* Criterion 1: Overall average >= 80% */}
                   <div className="flex items-center gap-2.5" role="listitem">
                     {readiness.overallAvg >= 80 ? (
                       <CheckCircle className="h-5 w-5 text-emerald-500 shrink-0" />
@@ -389,17 +413,17 @@ export default function StudentProfile() {
                       <XCircle className="h-5 w-5 text-red-400 shrink-0" />
                     )}
                     <span className="text-sm font-body text-foreground flex-1">
-                      ממוצע כללי 80+
+                      ממוצע כללי 80%+
                     </span>
                     <span className={cn(
                       'text-sm font-heading font-bold tabular-nums',
                       readiness.overallAvg >= 80 ? 'text-emerald-500' : 'text-red-400'
                     )}>
-                      {readiness.overallAvg.toFixed(0)}
+                      {readiness.overallAvg.toFixed(0)}%
                     </span>
                   </div>
 
-                  {/* Criterion 2: No skill below 60 */}
+                  {/* Criterion 2: No skill below score 3 (60%) */}
                   <div className="flex items-center gap-2.5" role="listitem">
                     {!readiness.hasLowSkills ? (
                       <CheckCircle className="h-5 w-5 text-emerald-500 shrink-0" />
@@ -407,7 +431,7 @@ export default function StudentProfile() {
                       <XCircle className="h-5 w-5 text-red-400 shrink-0" />
                     )}
                     <span className="text-sm font-body text-foreground flex-1">
-                      אין מיומנות מתחת ל-60
+                      אין מיומנות מתחת לציון 3
                     </span>
                     {readiness.hasLowSkills && (
                       <span className="text-xs font-body text-red-400">
@@ -416,7 +440,7 @@ export default function StudentProfile() {
                     )}
                   </div>
 
-                  {/* Criterion 3: Advanced category >= 80 */}
+                  {/* Criterion 3: Advanced category >= 80% */}
                   <div className="flex items-center gap-2.5" role="listitem">
                     {readiness.advancedCatAvg >= 80 ? (
                       <CheckCircle className="h-5 w-5 text-emerald-500 shrink-0" />
@@ -424,13 +448,13 @@ export default function StudentProfile() {
                       <XCircle className="h-5 w-5 text-red-400 shrink-0" />
                     )}
                     <span className="text-sm font-body text-foreground flex-1">
-                      מצבים מתקדמים 80+
+                      מצבים מתקדמים 80%+
                     </span>
                     <span className={cn(
                       'text-sm font-heading font-bold tabular-nums',
                       readiness.advancedCatAvg >= 80 ? 'text-emerald-500' : 'text-red-400'
                     )}>
-                      {readiness.advancedCatAvg > 0 ? readiness.advancedCatAvg.toFixed(0) : '—'}
+                      {readiness.advancedCatAvg > 0 ? `${readiness.advancedCatAvg.toFixed(0)}%` : '—'}
                     </span>
                   </div>
                 </div>
@@ -441,7 +465,7 @@ export default function StudentProfile() {
 
         {/* Category Averages */}
         {categoryAverages.length > 0 && (
-          <motion.div variants={fadeUp} initial="hidden" animate="visible" custom={3}>
+          <motion.div variants={fadeUp} initial="hidden" animate="visible" custom={4}>
             <Card className="card-premium overflow-hidden">
               <CardHeader className="pb-2">
                 <CardTitle className="text-base font-heading">ממוצע לפי קטגוריה</CardTitle>
@@ -458,7 +482,7 @@ export default function StudentProfile() {
                         className="text-sm font-heading font-bold tabular-nums"
                         style={{ color: cat.average >= 60 ? cat.color : undefined }}
                       >
-                        {cat.ratedCount > 0 ? cat.average.toFixed(0) : '—'}
+                        {cat.ratedCount > 0 ? `${cat.average.toFixed(0)}%` : '—'}
                       </span>
                     </div>
                     <div className="relative h-2.5 rounded-full bg-muted overflow-hidden">
@@ -480,50 +504,9 @@ export default function StudentProfile() {
           </motion.div>
         )}
 
-        {/* Next Lesson Card */}
-        {nextLesson && (
-          <motion.div variants={fadeUp} initial="hidden" animate="visible" custom={4}>
-            <Card className="border-primary/30 bg-primary/5">
-              <CardContent className="p-3">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-xs text-muted-foreground font-body">השיעור הבא</p>
-                    <p className="text-sm font-heading font-bold text-foreground">
-                      {format(new Date(nextLesson.date), 'EEEE, d בMMMM', { locale: he })}
-                    </p>
-                    <p className="text-xs text-muted-foreground">
-                      {nextLesson.time_start} - {nextLesson.time_end} • {formatDistanceToNow(new Date(nextLesson.date), { locale: he, addSuffix: true })}
-                    </p>
-                  </div>
-                  <Button size="sm" variant="outline" className="shrink-0" onClick={() => navigate(`/teacher/lesson/${nextLesson.id}`)}>
-                    לשיעור →
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-          </motion.div>
-        )}
-
-        {/* Lesson Price & ID */}
-        <motion.div variants={fadeUp} initial="hidden" animate="visible" custom={5}>
-          <Card className="glass">
-            <CardContent className="p-3 space-y-2">
-              <div className="flex items-center justify-between">
-                <p className="text-sm text-muted-foreground font-body">ת.ז</p>
-                <p className="text-sm font-medium font-mono text-foreground">{student.id_number || '—'}</p>
-              </div>
-              <Separator />
-              <div className="flex items-center justify-between">
-                <p className="text-sm text-muted-foreground font-body">מחיר שיעור</p>
-                <p className="text-lg font-heading font-bold text-foreground">₪{student.lesson_price ?? 0}</p>
-              </div>
-            </CardContent>
-          </Card>
-        </motion.div>
-
         {/* Radar Chart */}
         {radarData.length >= 3 && (
-          <motion.div variants={fadeUp} initial="hidden" animate="visible" custom={6}>
+          <motion.div variants={fadeUp} initial="hidden" animate="visible" custom={5}>
             <Card>
               <CardHeader className="pb-2">
                 <CardTitle className="text-base font-heading">מפת מיומנויות</CardTitle>
@@ -556,30 +539,8 @@ export default function StudentProfile() {
           </motion.div>
         )}
 
-        {/* Progress Over Time */}
-        {progressData.length >= 2 && (
-          <motion.div variants={fadeUp} initial="hidden" animate="visible" custom={7}>
-            <Card>
-              <CardHeader className="pb-2">
-                <CardTitle className="text-base font-heading">התקדמות לאורך זמן</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <ResponsiveContainer width="100%" height={180}>
-                  <LineChart data={progressData}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-                    <XAxis dataKey="date" tick={{ fontSize: 10, fill: 'hsl(var(--muted-foreground))' }} />
-                    <YAxis tick={{ fontSize: 10, fill: 'hsl(var(--muted-foreground))' }} domain={[0, 100]} unit="%" />
-                    <Tooltip formatter={(value: number) => [`${value}%`, 'אחוז שליטה']} />
-                    <Line type="monotone" dataKey="pct" stroke="hsl(var(--primary))" strokeWidth={2} dot={{ r: 3 }} name="אחוז שליטה" />
-                  </LineChart>
-                </ResponsiveContainer>
-              </CardContent>
-            </Card>
-          </motion.div>
-        )}
-
         {/* Skill Breakdown */}
-        <motion.div variants={fadeUp} initial="hidden" animate="visible" custom={8}>
+        <motion.div variants={fadeUp} initial="hidden" animate="visible" custom={6}>
           <Card className="card-premium overflow-hidden">
             <CardHeader className="pb-2">
               <CardTitle className="text-base font-heading flex items-center justify-between">
@@ -628,7 +589,7 @@ export default function StudentProfile() {
         </motion.div>
 
         {/* Teacher Notes */}
-        <motion.div variants={fadeUp} initial="hidden" animate="visible" custom={9}>
+        <motion.div variants={fadeUp} initial="hidden" animate="visible" custom={7}>
           <Card>
             <CardHeader className="pb-2">
               <CardTitle className="text-base font-heading flex items-center gap-2">
@@ -651,8 +612,30 @@ export default function StudentProfile() {
           </Card>
         </motion.div>
 
+        {/* Progress Over Time */}
+        {progressData.length >= 2 && (
+          <motion.div variants={fadeUp} initial="hidden" animate="visible" custom={8}>
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-base font-heading">התקדמות לאורך זמן</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <ResponsiveContainer width="100%" height={180}>
+                  <LineChart data={progressData}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+                    <XAxis dataKey="date" tick={{ fontSize: 10, fill: 'hsl(var(--muted-foreground))' }} />
+                    <YAxis tick={{ fontSize: 10, fill: 'hsl(var(--muted-foreground))' }} domain={[0, 100]} unit="%" />
+                    <Tooltip formatter={(value: number) => [`${value}%`, 'אחוז שליטה']} />
+                    <Line type="monotone" dataKey="pct" stroke="hsl(var(--primary))" strokeWidth={2} dot={{ r: 3 }} name="אחוז שליטה" />
+                  </LineChart>
+                </ResponsiveContainer>
+              </CardContent>
+            </Card>
+          </motion.div>
+        )}
+
         {/* Lesson History */}
-        <motion.div variants={fadeUp} initial="hidden" animate="visible" custom={10}>
+        <motion.div variants={fadeUp} initial="hidden" animate="visible" custom={9}>
           <Card>
             <CardHeader className="pb-2">
               <CardTitle className="text-base font-heading flex items-center justify-between">
@@ -729,6 +712,23 @@ export default function StudentProfile() {
                   })}
                 </div>
               )}
+            </CardContent>
+          </Card>
+        </motion.div>
+
+        {/* Lesson Price & ID */}
+        <motion.div variants={fadeUp} initial="hidden" animate="visible" custom={10}>
+          <Card className="glass">
+            <CardContent className="p-3 space-y-2">
+              <div className="flex items-center justify-between">
+                <p className="text-sm text-muted-foreground font-body">ת.ז</p>
+                <p className="text-sm font-medium font-mono text-foreground">{student.id_number || '—'}</p>
+              </div>
+              <Separator />
+              <div className="flex items-center justify-between">
+                <p className="text-sm text-muted-foreground font-body">מחיר שיעור</p>
+                <p className="text-lg font-heading font-bold text-foreground">₪{student.lesson_price ?? 0}</p>
+              </div>
             </CardContent>
           </Card>
         </motion.div>
