@@ -4,13 +4,6 @@ import { format } from 'date-fns';
 
 const TEACHER_ID = 'a1b2c3d4-e5f6-7890-abcd-ef1234567890';
 
-/** Derive a display status from a 0-5 score */
-function scoreToStatus(score: number): string {
-  if (score >= 4) return 'mastered';
-  if (score > 0) return 'in_progress';
-  return 'not_learned';
-}
-
 export function useStudentReport(studentId: string | undefined) {
   return useQuery({
     queryKey: ['student-report', studentId],
@@ -69,10 +62,10 @@ export function useStudentReport(studentId: string | undefined) {
       const radarData = skillTree.map((cat) => {
         const total = cat.skills.length;
         const mastered = cat.skills.filter(
-          (s) => scoreToStatus(s.studentSkill?.current_score ?? 0) === 'mastered'
+          (s) => (s.studentSkill?.current_score ?? 0) >= 4
         ).length;
         const inProgress = cat.skills.filter(
-          (s) => scoreToStatus(s.studentSkill?.current_score ?? 0) === 'in_progress'
+          (s) => { const sc = s.studentSkill?.current_score ?? 0; return sc > 0 && sc < 4; }
         ).length;
         const notLearned = total - mastered - inProgress;
         const score = mastered + inProgress * 0.5;
@@ -87,26 +80,26 @@ export function useStudentReport(studentId: string | undefined) {
         };
       });
 
-      // Progress timeline: cumulative mastered count per lesson_date
-      const dateStatusMap = new Map<string, Set<string>>();
+      // Progress timeline: track mastered skill count over time from history
+      const totalSkillCount = (skills ?? []).length;
+      const dateGroups = new Map<string, { student_skill_id: string; score: number }[]>();
       for (const entry of historyData) {
-        if (entry.score >= 4) {
-          const dateKey = entry.lesson_date;
-          if (!dateStatusMap.has(dateKey)) {
-            dateStatusMap.set(dateKey, new Set());
-          }
-          dateStatusMap.get(dateKey)!.add(entry.student_skill_id);
-        }
+        const group = dateGroups.get(entry.lesson_date) ?? [];
+        group.push(entry);
+        dateGroups.set(entry.lesson_date, group);
       }
 
-      const allMastered = new Set<string>();
-      const sortedDates = Array.from(dateStatusMap.keys()).sort();
+      const skillStates = new Map<string, number>();
+      const sortedDates = Array.from(dateGroups.keys()).sort();
       const progressData = sortedDates.map((dateStr) => {
-        const newlyMastered = dateStatusMap.get(dateStr)!;
-        newlyMastered.forEach((id) => allMastered.add(id));
+        for (const e of dateGroups.get(dateStr)!) {
+          skillStates.set(e.student_skill_id, e.score);
+        }
+        const masteredCount = [...skillStates.values()].filter(s => s >= 4).length;
         return {
           date: format(new Date(dateStr), 'MMM d'),
-          mastered: allMastered.size,
+          mastered: masteredCount,
+          pct: totalSkillCount > 0 ? Math.round((masteredCount / totalSkillCount) * 100) : 0,
         };
       });
 
