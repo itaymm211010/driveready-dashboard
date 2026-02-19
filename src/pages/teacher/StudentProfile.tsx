@@ -26,6 +26,8 @@ import { DeleteStudentDialog } from '@/components/teacher/DeleteStudentDialog';
 import { AddLessonModal } from '@/components/teacher/AddLessonModal';
 import { SkillHistoryModal } from '@/components/teacher/SkillHistoryModal';
 import { cn } from '@/lib/utils';
+import { ThemeToggle } from '@/components/ThemeToggle';
+import { FontSizeSelector } from '@/components/FontSizeSelector';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 
 function getScoreBadgeConfig(score: number): { label: string; color: string; icon: React.ReactNode } {
@@ -279,7 +281,9 @@ export default function StudentProfile() {
             <h1 className="text-lg font-heading font-bold text-foreground truncate">{student.name}</h1>
             <p className="text-xs text-muted-foreground font-body">{student.phone ?? 'אין טלפון'}</p>
           </div>
-          <div className="flex gap-1">
+          <div className="flex items-center gap-1">
+            <FontSizeSelector />
+            <ThemeToggle />
             <Button variant="outline" size="icon" className="rounded-full h-9 w-9" onClick={() => setShowEdit(true)}>
               <Pencil className="h-4 w-4" />
             </Button>

@@ -1,6 +1,6 @@
 import { useParams } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Share2, MessageCircle, Trophy, BookOpen, CheckCircle, Clock, AlertTriangle, Moon, Sun } from 'lucide-react';
+import { Share2, MessageCircle, Trophy, BookOpen, CheckCircle, Clock, AlertTriangle } from 'lucide-react';
 import {
   RadarChart, PolarGrid, PolarAngleAxis, Radar, ResponsiveContainer,
   LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip,
@@ -12,7 +12,8 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { cn } from '@/lib/utils';
-import { useTheme } from '@/components/ThemeProvider';
+import { ThemeToggle } from '@/components/ThemeToggle';
+import { FontSizeSelector } from '@/components/FontSizeSelector';
 
 function getScoreBadgeConfig(score: number): { label: string; className: string; icon: React.ReactNode } {
   if (score >= 5) return { label: '5 מוכן לטסט', className: 'bg-blue-500/20 text-blue-600 border-blue-500/30', icon: <CheckCircle className="h-3 w-3" /> };
@@ -34,8 +35,7 @@ const fadeUp = {
 export default function StudentReport() {
   const { id } = useParams<{ id: string }>();
   const { data, isLoading } = useStudentReport(id);
-  const { theme, setTheme } = useTheme();
-  const isDark = theme === 'dark';
+  
 
   const handleShare = async () => {
     const url = window.location.href;
@@ -80,16 +80,10 @@ export default function StudentReport() {
 
   return (
     <div dir="rtl" className="min-h-screen bg-background pb-8">
-      {/* Theme Toggle */}
-      <div className="fixed top-4 left-4 z-50">
-        <Button
-          variant="ghost"
-          size="icon"
-          onClick={() => setTheme(isDark ? 'light' : 'dark')}
-          className="h-9 w-9 rounded-full glass border border-border/50"
-        >
-          {isDark ? <Sun className="h-4 w-4 text-warning" /> : <Moon className="h-4 w-4 text-muted-foreground" />}
-        </Button>
+      {/* Theme & Font Size Controls */}
+      <div className="fixed top-4 left-4 z-50 flex items-center gap-1">
+        <FontSizeSelector />
+        <ThemeToggle />
       </div>
         <motion.div
           className="glass glow-neon rounded-b-3xl p-6 pb-8 relative overflow-hidden"

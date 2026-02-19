@@ -13,6 +13,8 @@ import { useLessonWithStudent, useStudentSkillTree } from '@/hooks/use-teacher-d
 import { useLessonPlannedSkills, useAddPlannedSkills, useRemovePlannedSkill } from '@/hooks/use-lesson-planned-skills';
 import { useSaveLesson } from '@/hooks/use-save-lesson';
 import { cn } from '@/lib/utils';
+import { ThemeToggle } from '@/components/ThemeToggle';
+import { FontSizeSelector } from '@/components/FontSizeSelector';
 import type { DbSkill } from '@/hooks/use-teacher-data';
 import type { SkillScore } from '@/lib/scoring';
 
@@ -229,9 +231,13 @@ export default function ActiveLesson() {
               </p>
             )}
           </div>
-          <span className="text-xs text-muted-foreground whitespace-nowrap">
-            מיומנויות: {selectedSkills.length}
-          </span>
+          <div className="flex items-center gap-1">
+            <FontSizeSelector />
+            <ThemeToggle />
+            <span className="text-xs text-muted-foreground whitespace-nowrap mr-1">
+              מיומנויות: {selectedSkills.length}
+            </span>
+          </div>
         </div>
         <div className="flex items-center gap-2">
           <Progress value={progressPct} className="h-2.5 flex-1" />
