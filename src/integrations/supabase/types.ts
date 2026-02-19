@@ -335,10 +335,10 @@ export type Database = {
           balance: number
           created_at: string
           email: string | null
-          external_test_price: number
+          external_test_price: number | null
           id: string
           id_number: string | null
-          internal_test_price: number
+          internal_test_price: number | null
           lesson_price: number
           name: string
           phone: string | null
@@ -353,10 +353,10 @@ export type Database = {
           balance?: number
           created_at?: string
           email?: string | null
-          external_test_price?: number
+          external_test_price?: number | null
           id?: string
           id_number?: string | null
-          internal_test_price?: number
+          internal_test_price?: number | null
           lesson_price?: number
           name: string
           phone?: string | null
@@ -371,10 +371,10 @@ export type Database = {
           balance?: number
           created_at?: string
           email?: string | null
-          external_test_price?: number
+          external_test_price?: number | null
           id?: string
           id_number?: string | null
-          internal_test_price?: number
+          internal_test_price?: number | null
           lesson_price?: number
           name?: string
           phone?: string | null
