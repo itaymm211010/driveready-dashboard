@@ -49,7 +49,12 @@ export function LessonDetailsModal({ lesson, open, onOpenChange, onEdit, onCance
             <p><span className="text-muted-foreground">סכום:</span> ₪{Number(lesson.amount).toLocaleString()}</p>
             <p><span className="text-muted-foreground">סטטוס:</span> {lesson.status === 'cancelled' ? 'בוטל' : lesson.status === 'completed' ? 'הושלם' : lesson.status === 'in_progress' ? 'בתהליך' : 'מתוזמן'}</p>
             {testTypeLabel && <p><span className="text-muted-foreground">סוג:</span> {testTypeLabel}</p>}
-            {lesson.notes && <p><span className="text-muted-foreground">הערות:</span> {lesson.notes}</p>}
+            {(() => {
+              let userNotes = lesson.notes ?? '';
+              if (userNotes.startsWith('[טסט פנימי]')) userNotes = userNotes.slice('[טסט פנימי]'.length).trim();
+              else if (userNotes.startsWith('[טסט חיצוני]')) userNotes = userNotes.slice('[טסט חיצוני]'.length).trim();
+              return userNotes ? <p><span className="text-muted-foreground">הערות:</span> {userNotes}</p> : null;
+            })()}
           </div>
 
           {/* Quick actions */}

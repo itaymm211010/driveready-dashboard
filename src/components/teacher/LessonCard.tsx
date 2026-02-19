@@ -13,6 +13,7 @@ interface LessonCardProps {
     time_end: string;
     status: string;
     amount: number;
+    notes?: string | null;
   };
   student: {
     id: string;
@@ -28,6 +29,8 @@ export function LessonCard({ lesson, student }: LessonCardProps) {
   const hasDebt = student.balance < 0;
   const isCompleted = lesson.status === 'completed';
   const isInProgress = lesson.status === 'in_progress';
+  const isInternalTest = lesson.notes?.startsWith('[טסט פנימי]');
+  const isExternalTest = lesson.notes?.startsWith('[טסט חיצוני]');
 
   const handleStartLesson = () => {
     if (isInProgress) {
@@ -63,6 +66,8 @@ export function LessonCard({ lesson, student }: LessonCardProps) {
             </h3>
             <p className="text-sm text-muted-foreground font-body">
               ⏰ {lesson.time_start} - {lesson.time_end}
+              {isInternalTest && <span className="text-blue-600 font-medium"> · טסט פנימי</span>}
+              {isExternalTest && <span className="text-purple-600 font-medium"> · טסט חיצוני</span>}
             </p>
           </button>
           {isCompleted ? (

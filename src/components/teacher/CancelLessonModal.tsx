@@ -35,7 +35,14 @@ export function CancelLessonModal({ lesson, open, onOpenChange }: CancelLessonMo
         .from('lessons')
         .update({
           status: 'cancelled',
-          notes: reason, // Store reason in notes since cancellation columns may not be in types yet
+          // Preserve test type prefix, append cancel reason
+          notes: (() => {
+            const existing = lesson!.notes ?? '';
+            const prefix = existing.startsWith('[טסט פנימי]') ? '[טסט פנימי]'
+              : existing.startsWith('[טסט חיצוני]') ? '[טסט חיצוני]'
+              : null;
+            return prefix ? `${prefix} ${reason}` : reason;
+          })(),
         })
         .eq('id', lesson.id);
       if (error) throw error;

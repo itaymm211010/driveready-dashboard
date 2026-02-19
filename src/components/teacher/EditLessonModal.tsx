@@ -16,7 +16,7 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { useLessonConflicts } from '@/hooks/use-lesson-conflicts';
 import type { CalendarLesson } from '@/hooks/use-calendar-lessons';
 
-const DURATION_PRESETS = [30, 45, 60, 90, 120];
+const DURATION_PRESETS = [40, 80, 120, 160];
 
 interface EditLessonModalProps {
   lesson: CalendarLesson | null;
@@ -33,12 +33,21 @@ export function EditLessonModal({ lesson, open, onOpenChange }: EditLessonModalP
   const [amount, setAmount] = useState('');
   const [notes, setNotes] = useState('');
 
+  // Extract test type prefix from notes
+  const testPrefix = lesson?.notes?.startsWith('[טסט פנימי]') ? '[טסט פנימי]'
+    : lesson?.notes?.startsWith('[טסט חיצוני]') ? '[טסט חיצוני]'
+    : null;
+
   useEffect(() => {
     if (lesson && open) {
       setDate(parseISO(lesson.date));
       setTimeStart(lesson.time_start);
       setAmount(String(lesson.amount));
-      setNotes(lesson.notes ?? '');
+      // Strip test type prefix from notes for editing
+      let userNotes = lesson.notes ?? '';
+      if (userNotes.startsWith('[טסט פנימי]')) userNotes = userNotes.slice('[טסט פנימי]'.length).trim();
+      else if (userNotes.startsWith('[טסט חיצוני]')) userNotes = userNotes.slice('[טסט חיצוני]'.length).trim();
+      setNotes(userNotes);
       // Calculate duration from time_start and time_end
       const start = parse(lesson.time_start, 'HH:mm', new Date());
       const end = parse(lesson.time_end, 'HH:mm', new Date());
@@ -68,7 +77,9 @@ export function EditLessonModal({ lesson, open, onOpenChange }: EditLessonModalP
           time_start: timeStart,
           time_end: timeEnd,
           amount: Number(amount),
-          notes: notes || null,
+          notes: testPrefix
+            ? [testPrefix, notes].filter(Boolean).join(' ')
+            : notes || null,
         })
         .eq('id', lesson.id);
       if (error) throw error;

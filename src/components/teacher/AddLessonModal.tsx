@@ -110,7 +110,7 @@ export function AddLessonModal({ open, onOpenChange, preselectedStudentId, prefi
     },
   });
 
-  const canSubmit = studentId && timeStart && timeEnd && Number(amount) > 0;
+  const canSubmit = studentId && timeStart && timeEnd && (Number(amount) > 0 || lessonType !== 'regular');
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
