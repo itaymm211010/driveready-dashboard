@@ -439,6 +439,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      is_admin: { Args: { _user_id: string }; Returns: boolean }
       seed_default_skills: {
         Args: { p_teacher_id: string }
         Returns: undefined
