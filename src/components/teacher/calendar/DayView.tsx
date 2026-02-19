@@ -65,7 +65,11 @@ export function DayView({ date, lessons, onLessonClick, onEmptySlotClick }: DayV
                   >
                     <div className="flex justify-between items-start">
                       <div className="flex-1 min-w-0">
-                        <p className="font-heading font-bold text-sm truncate">{lesson.student.name}</p>
+                        <p className="font-heading font-bold text-sm truncate">
+                          {lesson.student.name}
+                          {lesson.notes?.startsWith('[טסט פנימי]') && <span className="text-blue-600 font-normal text-xs"> · טסט פנימי</span>}
+                          {lesson.notes?.startsWith('[טסט חיצוני]') && <span className="text-purple-600 font-normal text-xs"> · טסט חיצוני</span>}
+                        </p>
                         <p className="text-xs text-muted-foreground" dir="ltr">{lesson.time_start} - {lesson.time_end}</p>
                         <p className="text-xs font-medium mt-0.5">₪{Number(lesson.amount).toLocaleString()}</p>
                         {lesson.student.balance < 0 && (
