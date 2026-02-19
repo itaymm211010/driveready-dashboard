@@ -19,6 +19,9 @@ export function LessonDetailsModal({ lesson, open, onOpenChange, onEdit, onCance
   if (!lesson) return null;
 
   const isCancelled = lesson.status === 'cancelled';
+  const isCompleted = lesson.status === 'completed';
+  const isTestLesson = lesson.notes?.startsWith('[טסט פנימי]') || lesson.notes?.startsWith('[טסט חיצוני]');
+  const testTypeLabel = lesson.notes?.startsWith('[טסט פנימי]') ? 'טסט פנימי' : lesson.notes?.startsWith('[טסט חיצוני]') ? 'טסט חיצוני' : null;
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -45,6 +48,7 @@ export function LessonDetailsModal({ lesson, open, onOpenChange, onEdit, onCance
             <p><span className="text-muted-foreground">שעה:</span> <span dir="ltr">{lesson.time_start} - {lesson.time_end}</span></p>
             <p><span className="text-muted-foreground">סכום:</span> ₪{Number(lesson.amount).toLocaleString()}</p>
             <p><span className="text-muted-foreground">סטטוס:</span> {lesson.status === 'cancelled' ? 'בוטל' : lesson.status === 'completed' ? 'הושלם' : lesson.status === 'in_progress' ? 'בתהליך' : 'מתוזמן'}</p>
+            {testTypeLabel && <p><span className="text-muted-foreground">סוג:</span> {testTypeLabel}</p>}
             {lesson.notes && <p><span className="text-muted-foreground">הערות:</span> {lesson.notes}</p>}
           </div>
 
@@ -66,7 +70,7 @@ export function LessonDetailsModal({ lesson, open, onOpenChange, onEdit, onCance
           </div>
 
           {/* Bottom actions */}
-          {!isCancelled && (
+          {!isCancelled && !isCompleted && (
             <div className="flex gap-2 pt-2 border-t border-border/50">
               <Button variant="destructive" size="sm" className="flex-1" onClick={() => { onOpenChange(false); onCancel(lesson); }}>
                 <XCircle className="h-4 w-4 ms-1" /> בטל שיעור
