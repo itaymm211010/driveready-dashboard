@@ -94,14 +94,22 @@ export default function ActiveLesson() {
     return () => clearInterval(interval);
   }, [actualStartTime]);
 
-  // Show initial selection if no planned skills yet
+  // Detect test lesson type from notes
+  const lessonNotes = lessonData?.lesson?.notes ?? '';
+  const isTestLessonEarly = lessonNotes.startsWith('[טסט פנימי]') || lessonNotes.startsWith('[טסט חיצוני]');
+
+  // Show initial selection if no planned skills yet (skip for test lessons)
   useEffect(() => {
+    if (isTestLessonEarly) {
+      setHasStarted(true);
+      return;
+    }
     if (!plannedLoading && plannedSkills && plannedSkills.length === 0 && !hasStarted) {
       setShowSkillSelectionInitial(true);
     } else if (plannedSkills && plannedSkills.length > 0) {
       setHasStarted(true);
     }
-  }, [plannedSkills, plannedLoading, hasStarted]);
+  }, [plannedSkills, plannedLoading, hasStarted, isTestLessonEarly]);
 
   const handleEndLesson = useCallback((method: 'cash' | 'receipt' | 'debt') => {
     if (!id || !studentId) return;
@@ -176,6 +184,7 @@ export default function ActiveLesson() {
   }
 
   const { lesson, student } = lessonData;
+  const isTestLesson = lesson.notes?.startsWith('[טסט פנימי]') || lesson.notes?.startsWith('[טסט חיצוני]');
   const categories = dbCategories ?? [];
   const allSkillsFlat = categories.flatMap(c => c.skills);
   const totalSkills = allSkillsFlat.length;
@@ -234,7 +243,17 @@ export default function ActiveLesson() {
 
       {/* Main Content */}
       <main className="p-4 space-y-4">
-        {selectedSkills.length === 0 && hasStarted ? (
+        {isTestLesson ? (
+          <div className="flex flex-col items-center justify-center py-16 text-center space-y-4">
+            <div className="h-16 w-16 rounded-full bg-primary/10 flex items-center justify-center">
+              <BookOpen className="h-8 w-8 text-primary/60" />
+            </div>
+            <p className="text-lg font-heading font-bold text-foreground">
+              {lesson.notes?.startsWith('[טסט פנימי]') ? 'טסט פנימי' : 'טסט חיצוני'}
+            </p>
+            <p className="text-muted-foreground font-body">בחירת מיומנויות לא זמינה בשיעור טסט</p>
+          </div>
+        ) : selectedSkills.length === 0 && hasStarted ? (
           <div className="flex flex-col items-center justify-center py-16 text-center space-y-4">
             <div className="h-16 w-16 rounded-full bg-muted/50 flex items-center justify-center">
               <BookOpen className="h-8 w-8 text-muted-foreground/40" />
@@ -275,13 +294,15 @@ export default function ActiveLesson() {
               ))}
             </AnimatePresence>
 
-            <Button
-              variant="outline"
-              className="w-full gap-2 border-dashed border-primary/30 hover:border-primary/60 transition-smooth"
-              onClick={() => setShowSkillSelection(true)}
-            >
-              <Plus className="h-4 w-4" /> הוסף מיומנות נוספת
-            </Button>
+            {!isTestLesson && (
+              <Button
+                variant="outline"
+                className="w-full gap-2 border-dashed border-primary/30 hover:border-primary/60 transition-smooth"
+                onClick={() => setShowSkillSelection(true)}
+              >
+                <Plus className="h-4 w-4" /> הוסף מיומנות נוספת
+              </Button>
+            )}
           </>
         )}
       </main>
