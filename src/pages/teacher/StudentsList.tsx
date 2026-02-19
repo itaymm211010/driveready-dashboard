@@ -130,6 +130,7 @@ export default function StudentsList() {
                     value={student.readiness_percentage}
                     size={44}
                     strokeWidth={4}
+                    label={`${Math.round(student.readiness_percentage)}%`}
                   />
                 </Card>
               </motion.div>
