@@ -28,7 +28,7 @@ interface SkillSelectionModalProps {
 
 function getStatusIndicator(skill: DbSkill) {
   const score = skill.student_skill?.current_score as SkillScore | null | undefined;
-  if (!score || score === 0) return { icon: '⚪', color: 'text-muted-foreground' };
+  if (!score || (score as number) === 0) return { icon: '⚪', color: 'text-muted-foreground' };
   if (score >= 5) return { icon: '✓', color: 'text-success' };
   const percentage = scoreToPercentage(score);
   return { icon: `${percentage}%`, color: score >= 4 ? 'text-success' : 'text-warning' };
