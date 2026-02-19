@@ -28,11 +28,14 @@ import { SkillHistoryModal } from '@/components/teacher/SkillHistoryModal';
 import { cn } from '@/lib/utils';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 
-const STATUS_CONFIG: Record<string, { label: string; color: string; icon: React.ReactNode }> = {
-  mastered: { label: 'נשלט', color: 'bg-success/15 text-success border-success/30', icon: <CheckCircle className="h-3 w-3" /> },
-  in_progress: { label: 'בתהליך', color: 'bg-warning/15 text-warning border-warning/30', icon: <Clock className="h-3 w-3" /> },
-  not_learned: { label: 'לא נלמד', color: 'bg-muted text-muted-foreground border-border', icon: <AlertTriangle className="h-3 w-3" /> },
-};
+function getScoreBadgeConfig(score: number): { label: string; color: string; icon: React.ReactNode } {
+  if (score >= 5) return { label: '5 מוכן לטסט', color: 'bg-blue-500/15 text-blue-600 border-blue-500/30', icon: <CheckCircle className="h-3 w-3" /> };
+  if (score >= 4) return { label: '4 טוב ויציב', color: 'bg-success/15 text-success border-success/30', icon: <CheckCircle className="h-3 w-3" /> };
+  if (score >= 3) return { label: '3 ברוב המקרים', color: 'bg-yellow-500/15 text-yellow-600 border-yellow-500/30', icon: <Clock className="h-3 w-3" /> };
+  if (score >= 2) return { label: '2 שולט חלקית', color: 'bg-orange-500/15 text-orange-600 border-orange-500/30', icon: <AlertTriangle className="h-3 w-3" /> };
+  if (score >= 1) return { label: '1 לא שולט', color: 'bg-destructive/15 text-destructive border-destructive/30', icon: <AlertTriangle className="h-3 w-3" /> };
+  return { label: 'לא דורג', color: 'bg-muted text-muted-foreground border-border', icon: <AlertTriangle className="h-3 w-3" /> };
+}
 
 const fadeUp = {
   hidden: { opacity: 0, y: 15 },
@@ -231,14 +234,38 @@ export default function StudentProfile() {
     return { category: cat.name, value: total > 0 ? Math.round((score / total) * 100) : 0, mastered, inProgress, notLearned, total };
   }).filter(d => d.category);
 
-  // Progress over time data from completed lessons
-  const progressData = [...lessons]
-    .filter((l: any) => l.status === 'completed')
-    .reverse()
-    .map((l: any, idx: number) => ({
-      date: format(new Date(l.date), 'dd/MM', { locale: he }),
-      lesson: idx + 1,
-    }));
+  // Progress over time: track mastered skill count from skill history
+  const progressData = (() => {
+    const allHistory: { date: string; skillId: string; score: number }[] = [];
+    for (const cat of data.skillTree) {
+      for (const skill of cat.skills as any[]) {
+        for (const h of skill.history || []) {
+          allHistory.push({ date: h.lesson_date, skillId: skill.id, score: h.score ?? 0 });
+        }
+      }
+    }
+    allHistory.sort((a, b) => a.date.localeCompare(b.date));
+
+    const dateGroups = new Map<string, { skillId: string; score: number }[]>();
+    for (const entry of allHistory) {
+      const group = dateGroups.get(entry.date) ?? [];
+      group.push(entry);
+      dateGroups.set(entry.date, group);
+    }
+
+    const skillStates = new Map<string, number>();
+    const points: { date: string; mastered: number; pct: number }[] = [];
+    for (const [date, entries] of dateGroups) {
+      for (const e of entries) skillStates.set(e.skillId, e.score);
+      const masteredCount = [...skillStates.values()].filter(s => s >= 4).length;
+      points.push({
+        date: format(new Date(date), 'dd/MM', { locale: he }),
+        mastered: masteredCount,
+        pct: totalSkills > 0 ? Math.round((masteredCount / totalSkills) * 100) : 0,
+      });
+    }
+    return points;
+  })();
 
   return (
     <div dir="rtl" className="min-h-screen bg-background pb-24">
@@ -514,9 +541,9 @@ export default function StudentProfile() {
                         <div className="rounded-lg border bg-background p-2.5 text-xs shadow-xl" dir="rtl">
                           <p className="font-semibold text-foreground mb-1.5">{d.category}</p>
                           <div className="space-y-0.5 text-muted-foreground">
-                            <p>✅ נשלטו: <span className="text-foreground font-medium">{d.mastered}</span></p>
-                            <p>🔄 בתהליך: <span className="text-foreground font-medium">{d.inProgress}</span></p>
-                            <p>⬜ לא נלמדו: <span className="text-foreground font-medium">{d.notLearned}</span></p>
+                            <p>✅ טוב ויציב+ (4-5): <span className="text-foreground font-medium">{d.mastered}</span></p>
+                            <p>🔄 בתרגול (1-3): <span className="text-foreground font-medium">{d.inProgress}</span></p>
+                            <p>⬜ לא דורגו (0): <span className="text-foreground font-medium">{d.notLearned}</span></p>
                           </div>
                           <p className="mt-1.5 text-primary font-semibold">{d.value}%</p>
                         </div>
@@ -541,9 +568,9 @@ export default function StudentProfile() {
                   <LineChart data={progressData}>
                     <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
                     <XAxis dataKey="date" tick={{ fontSize: 10, fill: 'hsl(var(--muted-foreground))' }} />
-                    <YAxis tick={{ fontSize: 10, fill: 'hsl(var(--muted-foreground))' }} />
-                    <Tooltip />
-                    <Line type="monotone" dataKey="lesson" stroke="hsl(var(--primary))" strokeWidth={2} dot={{ r: 3 }} name="שיעור מס'" />
+                    <YAxis tick={{ fontSize: 10, fill: 'hsl(var(--muted-foreground))' }} domain={[0, 100]} unit="%" />
+                    <Tooltip formatter={(value: number) => [`${value}%`, 'אחוז שליטה']} />
+                    <Line type="monotone" dataKey="pct" stroke="hsl(var(--primary))" strokeWidth={2} dot={{ r: 3 }} name="אחוז שליטה" />
                   </LineChart>
                 </ResponsiveContainer>
               </CardContent>
@@ -578,8 +605,7 @@ export default function StudentProfile() {
                     <div className="flex flex-wrap gap-1.5">
                       {category.skills.map((skill: any) => {
                         const sc = skill.studentSkill?.current_score ?? 0;
-                        const status = sc >= 4 ? 'mastered' : sc > 0 ? 'in_progress' : 'not_learned';
-                        const cfg = STATUS_CONFIG[status] ?? STATUS_CONFIG.not_learned;
+                        const cfg = getScoreBadgeConfig(sc);
                         return (
                           <Badge
                             key={skill.id}
