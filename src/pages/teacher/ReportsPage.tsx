@@ -104,6 +104,33 @@ export default function ReportsPage() {
               </Card>
             </motion.div>
 
+            {/* Lesson Type Breakdown */}
+            {(data.currentMonthStats.internalTests > 0 || data.currentMonthStats.externalTests > 0) && (
+              <motion.div className="grid grid-cols-3 gap-2" variants={fadeUp} initial="hidden" animate="visible" custom={1.5}>
+                <Card>
+                  <CardContent className="p-2.5 text-center">
+                    <p className="text-sm font-heading font-bold text-foreground">{data.currentMonthStats.regularLessons}</p>
+                    <p className="text-[10px] text-muted-foreground font-body">שיעורים רגילים</p>
+                    <p className="text-[10px] text-primary font-body">₪{data.currentMonthStats.regularIncome.toLocaleString()}</p>
+                  </CardContent>
+                </Card>
+                <Card>
+                  <CardContent className="p-2.5 text-center">
+                    <p className="text-sm font-heading font-bold text-foreground">{data.currentMonthStats.internalTests}</p>
+                    <p className="text-[10px] text-muted-foreground font-body">טסט פנימי</p>
+                    <p className="text-[10px] text-primary font-body">₪{data.currentMonthStats.internalTestIncome.toLocaleString()}</p>
+                  </CardContent>
+                </Card>
+                <Card>
+                  <CardContent className="p-2.5 text-center">
+                    <p className="text-sm font-heading font-bold text-foreground">{data.currentMonthStats.externalTests}</p>
+                    <p className="text-[10px] text-muted-foreground font-body">טסט חיצוני</p>
+                    <p className="text-[10px] text-primary font-body">₪{data.currentMonthStats.externalTestIncome.toLocaleString()}</p>
+                  </CardContent>
+                </Card>
+              </motion.div>
+            )}
+
             {/* Income Trend Chart */}
             <motion.div variants={fadeUp} initial="hidden" animate="visible" custom={2}>
               <Card>

@@ -14,7 +14,7 @@ export function useReportsData(currentMonth: Date) {
 
       const { data: lessons, error } = await supabase
         .from('lessons')
-        .select('id, amount, status, payment_status, date, student_id, actual_duration_minutes, scheduled_duration_minutes')
+        .select('id, amount, status, payment_status, date, student_id, actual_duration_minutes, scheduled_duration_minutes, notes')
         .eq('teacher_id', TEACHER_ID)
         .gte('date', sixMonthsAgo)
         .lte('date', monthEnd)
@@ -30,6 +30,12 @@ export function useReportsData(currentMonth: Date) {
 
       const all = lessons ?? [];
 
+      const getLessonType = (notes: string | null): 'regular' | 'internal_test' | 'external_test' => {
+        if (notes?.startsWith('[טסט פנימי]')) return 'internal_test';
+        if (notes?.startsWith('[טסט חיצוני]')) return 'external_test';
+        return 'regular';
+      };
+
       // Monthly trend data (last 6 months)
       const monthlyTrend: Array<{
         month: string;
@@ -38,6 +44,8 @@ export function useReportsData(currentMonth: Date) {
         paid: number;
         debt: number;
         cancelled: number;
+        internalTests: number;
+        externalTests: number;
       }> = [];
 
       for (let i = 5; i >= 0; i--) {
@@ -59,6 +67,8 @@ export function useReportsData(currentMonth: Date) {
           paid: completed.filter((l) => l.payment_status === 'paid').reduce((s, l) => s + Number(l.amount), 0),
           debt: completed.filter((l) => l.payment_status === 'debt').reduce((s, l) => s + Number(l.amount), 0),
           cancelled,
+          internalTests: completed.filter((l) => getLessonType(l.notes) === 'internal_test').length,
+          externalTests: completed.filter((l) => getLessonType(l.notes) === 'external_test').length,
         });
       }
 
@@ -73,6 +83,10 @@ export function useReportsData(currentMonth: Date) {
       const cmCancelled = currentMonthLessons.filter((l) => l.status === 'cancelled');
       const cmScheduled = currentMonthLessons.filter((l) => l.status === 'scheduled' || l.status === 'in_progress');
 
+      const cmRegular = cmCompleted.filter((l) => getLessonType(l.notes) === 'regular');
+      const cmInternal = cmCompleted.filter((l) => getLessonType(l.notes) === 'internal_test');
+      const cmExternal = cmCompleted.filter((l) => getLessonType(l.notes) === 'external_test');
+
       const currentMonthStats = {
         totalLessons: currentMonthLessons.length,
         completed: cmCompleted.length,
@@ -82,6 +96,12 @@ export function useReportsData(currentMonth: Date) {
         paidIncome: cmCompleted.filter((l) => l.payment_status === 'paid').reduce((s, l) => s + Number(l.amount), 0),
         debtAmount: cmCompleted.filter((l) => l.payment_status === 'debt').reduce((s, l) => s + Number(l.amount), 0),
         pendingAmount: cmCompleted.filter((l) => l.payment_status === 'pending').reduce((s, l) => s + Number(l.amount), 0),
+        regularLessons: cmRegular.length,
+        regularIncome: cmRegular.reduce((s, l) => s + Number(l.amount), 0),
+        internalTests: cmInternal.length,
+        internalTestIncome: cmInternal.reduce((s, l) => s + Number(l.amount), 0),
+        externalTests: cmExternal.length,
+        externalTestIncome: cmExternal.reduce((s, l) => s + Number(l.amount), 0),
       };
 
       // Per-student breakdown for current month

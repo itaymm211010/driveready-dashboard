@@ -13,7 +13,7 @@ export function useMonthlySummary(month: Date) {
 
       const { data: lessons, error } = await supabase
         .from('lessons')
-        .select('id, amount, status, payment_status, date')
+        .select('id, amount, status, payment_status, date, notes')
         .eq('teacher_id', TEACHER_ID)
         .gte('date', monthStart)
         .lte('date', monthEnd);
@@ -32,12 +32,17 @@ export function useMonthlySummary(month: Date) {
         .filter((l) => l.payment_status === 'debt')
         .reduce((s, l) => s + Number(l.amount), 0);
 
+      const internalTests = completed.filter((l) => l.notes?.startsWith('[טסט פנימי]')).length;
+      const externalTests = completed.filter((l) => l.notes?.startsWith('[טסט חיצוני]')).length;
+
       return {
         totalLessons,
         completedLessons,
         totalIncome,
         paidIncome,
         debtAmount,
+        internalTests,
+        externalTests,
         monthLabel: format(month, 'MMMM yyyy'),
       };
     },

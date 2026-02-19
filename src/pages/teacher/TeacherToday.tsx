@@ -102,44 +102,60 @@ export default function TeacherToday() {
                   ))}
                 </div>
               ) : (
-                <div className="grid grid-cols-2 gap-3">
-                  <div className="glass rounded-xl p-3 flex items-center gap-2.5 transition-smooth hover:scale-[1.02]">
-                    <div className="h-9 w-9 rounded-full bg-primary/15 flex items-center justify-center">
-                      <CalendarDays className="h-4 w-4 text-primary" />
+                <>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="glass rounded-xl p-3 flex items-center gap-2.5 transition-smooth hover:scale-[1.02]">
+                      <div className="h-9 w-9 rounded-full bg-primary/15 flex items-center justify-center">
+                        <CalendarDays className="h-4 w-4 text-primary" />
+                      </div>
+                      <div>
+                        <p className="text-[10px] uppercase tracking-wider text-muted-foreground">שיעורים</p>
+                        <p className="text-lg font-heading font-bold text-foreground">{monthly?.completedLessons}/{monthly?.totalLessons}</p>
+                      </div>
                     </div>
-                    <div>
-                      <p className="text-[10px] uppercase tracking-wider text-muted-foreground">שיעורים</p>
-                      <p className="text-lg font-heading font-bold text-foreground">{monthly?.completedLessons}/{monthly?.totalLessons}</p>
+                    <div className="glass rounded-xl p-3 flex items-center gap-2.5 transition-smooth hover:scale-[1.02]">
+                      <div className="h-9 w-9 rounded-full bg-success/15 flex items-center justify-center">
+                        <TrendingUp className="h-4 w-4 text-success" />
+                      </div>
+                      <div>
+                        <p className="text-[10px] uppercase tracking-wider text-muted-foreground">הכנסה</p>
+                        <p className="text-lg font-heading font-bold text-foreground">₪{monthly?.totalIncome.toLocaleString()}</p>
+                      </div>
+                    </div>
+                    <div className="glass rounded-xl p-3 flex items-center gap-2.5 transition-smooth hover:scale-[1.02]">
+                      <div className="h-9 w-9 rounded-full bg-success/15 flex items-center justify-center">
+                        <CheckCircle className="h-4 w-4 text-success" />
+                      </div>
+                      <div>
+                        <p className="text-[10px] uppercase tracking-wider text-muted-foreground">שולם</p>
+                        <p className="text-lg font-heading font-bold text-foreground">₪{monthly?.paidIncome.toLocaleString()}</p>
+                      </div>
+                    </div>
+                    <div className="glass rounded-xl p-3 flex items-center gap-2.5 transition-smooth hover:scale-[1.02]">
+                      <div className="h-9 w-9 rounded-full bg-destructive/15 flex items-center justify-center">
+                        <AlertTriangle className="h-4 w-4 text-destructive" />
+                      </div>
+                      <div>
+                        <p className="text-[10px] uppercase tracking-wider text-muted-foreground">חוב</p>
+                        <p className="text-lg font-heading font-bold text-destructive">₪{monthly?.debtAmount.toLocaleString()}</p>
+                      </div>
                     </div>
                   </div>
-                  <div className="glass rounded-xl p-3 flex items-center gap-2.5 transition-smooth hover:scale-[1.02]">
-                    <div className="h-9 w-9 rounded-full bg-success/15 flex items-center justify-center">
-                      <TrendingUp className="h-4 w-4 text-success" />
+                  {((monthly?.internalTests ?? 0) > 0 || (monthly?.externalTests ?? 0) > 0) && (
+                    <div className="flex gap-3 mt-3">
+                      {(monthly?.internalTests ?? 0) > 0 && (
+                        <div className="glass rounded-xl px-3 py-1.5 text-xs font-body text-muted-foreground">
+                          טסט פנימי: <span className="font-heading font-bold text-foreground">{monthly?.internalTests}</span>
+                        </div>
+                      )}
+                      {(monthly?.externalTests ?? 0) > 0 && (
+                        <div className="glass rounded-xl px-3 py-1.5 text-xs font-body text-muted-foreground">
+                          טסט חיצוני: <span className="font-heading font-bold text-foreground">{monthly?.externalTests}</span>
+                        </div>
+                      )}
                     </div>
-                    <div>
-                      <p className="text-[10px] uppercase tracking-wider text-muted-foreground">הכנסה</p>
-                      <p className="text-lg font-heading font-bold text-foreground">₪{monthly?.totalIncome.toLocaleString()}</p>
-                    </div>
-                  </div>
-                  <div className="glass rounded-xl p-3 flex items-center gap-2.5 transition-smooth hover:scale-[1.02]">
-                    <div className="h-9 w-9 rounded-full bg-success/15 flex items-center justify-center">
-                      <CheckCircle className="h-4 w-4 text-success" />
-                    </div>
-                    <div>
-                      <p className="text-[10px] uppercase tracking-wider text-muted-foreground">שולם</p>
-                      <p className="text-lg font-heading font-bold text-foreground">₪{monthly?.paidIncome.toLocaleString()}</p>
-                    </div>
-                  </div>
-                  <div className="glass rounded-xl p-3 flex items-center gap-2.5 transition-smooth hover:scale-[1.02]">
-                    <div className="h-9 w-9 rounded-full bg-destructive/15 flex items-center justify-center">
-                      <AlertTriangle className="h-4 w-4 text-destructive" />
-                    </div>
-                    <div>
-                      <p className="text-[10px] uppercase tracking-wider text-muted-foreground">חוב</p>
-                      <p className="text-lg font-heading font-bold text-destructive">₪{monthly?.debtAmount.toLocaleString()}</p>
-                    </div>
-                  </div>
-                </div>
+                  )}
+                </>
               )}
             </CardContent>
           </Card>
