@@ -104,6 +104,7 @@ export type Database = {
           skills_practiced: string[] | null
           status: string
           student_id: string
+          taught_by_teacher_id: string | null
           teacher_id: string
           time_end: string
           time_start: string
@@ -127,6 +128,7 @@ export type Database = {
           skills_practiced?: string[] | null
           status?: string
           student_id: string
+          taught_by_teacher_id?: string | null
           teacher_id: string
           time_end: string
           time_start: string
@@ -150,6 +152,7 @@ export type Database = {
           skills_practiced?: string[] | null
           status?: string
           student_id?: string
+          taught_by_teacher_id?: string | null
           teacher_id?: string
           time_end?: string
           time_start?: string
@@ -161,6 +164,48 @@ export type Database = {
             columns: ["student_id"]
             isOneToOne: false
             referencedRelation: "students"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "lessons_taught_by_teacher_id_fkey"
+            columns: ["taught_by_teacher_id"]
+            isOneToOne: false
+            referencedRelation: "teachers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      teachers: {
+        Row: {
+          created_at: string
+          email: string
+          id: string
+          name: string
+          parent_teacher_id: string | null
+          phone: string | null
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          id: string
+          name: string
+          parent_teacher_id?: string | null
+          phone?: string | null
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          id?: string
+          name?: string
+          parent_teacher_id?: string | null
+          phone?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "teachers_parent_teacher_id_fkey"
+            columns: ["parent_teacher_id"]
+            isOneToOne: false
+            referencedRelation: "teachers"
             referencedColumns: ["id"]
           },
         ]

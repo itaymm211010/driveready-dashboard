@@ -12,8 +12,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-
-const TEACHER_ID = 'a1b2c3d4-e5f6-7890-abcd-ef1234567890';
+import { useAuth } from '@/hooks/use-auth';
 
 interface AddStudentModalProps {
   open: boolean;
@@ -21,6 +20,7 @@ interface AddStudentModalProps {
 }
 
 export function AddStudentModal({ open, onOpenChange }: AddStudentModalProps) {
+  const { rootTeacherId } = useAuth();
   const [name, setName] = useState('');
   const [phone, setPhone] = useState('');
   const [email, setEmail] = useState('');
@@ -40,7 +40,7 @@ export function AddStudentModal({ open, onOpenChange }: AddStudentModalProps) {
         lesson_price: Number(lessonPrice) || 0,
         internal_test_price: Number(internalTestPrice) || 0,
         external_test_price: Number(externalTestPrice) || 0,
-        teacher_id: TEACHER_ID,
+        teacher_id: rootTeacherId!,
       });
       if (error) throw error;
     },

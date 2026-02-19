@@ -1,12 +1,14 @@
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/hooks/use-auth';
 import { format, subMonths, startOfMonth, endOfMonth } from 'date-fns';
 
-const TEACHER_ID = 'a1b2c3d4-e5f6-7890-abcd-ef1234567890';
-
 export function useReportsData(currentMonth: Date) {
+  const { rootTeacherId } = useAuth();
+
   return useQuery({
-    queryKey: ['reports-data', format(currentMonth, 'yyyy-MM')],
+    queryKey: ['reports-data', format(currentMonth, 'yyyy-MM'), rootTeacherId],
+    enabled: !!rootTeacherId,
     queryFn: async () => {
       // Fetch last 6 months of lessons for trend analysis
       const sixMonthsAgo = format(startOfMonth(subMonths(currentMonth, 5)), 'yyyy-MM-dd');
@@ -15,7 +17,7 @@ export function useReportsData(currentMonth: Date) {
       const { data: lessons, error } = await supabase
         .from('lessons')
         .select('id, amount, status, payment_status, date, student_id, actual_duration_minutes, scheduled_duration_minutes, notes')
-        .eq('teacher_id', TEACHER_ID)
+        .eq('teacher_id', rootTeacherId!)
         .gte('date', sixMonthsAgo)
         .lte('date', monthEnd)
         .order('date', { ascending: true });
@@ -25,7 +27,7 @@ export function useReportsData(currentMonth: Date) {
       const { data: students } = await supabase
         .from('students')
         .select('id, name, total_lessons, readiness_percentage, balance, lesson_price')
-        .eq('teacher_id', TEACHER_ID)
+        .eq('teacher_id', rootTeacherId!)
         .order('name');
 
       const all = lessons ?? [];

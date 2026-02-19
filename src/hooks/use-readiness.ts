@@ -1,12 +1,11 @@
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/hooks/use-auth';
 import {
   calculateReadiness,
   type StudentSkillWithCategory,
   type ReadinessResult,
 } from '@/lib/calculations';
-
-const TEACHER_ID = 'a1b2c3d4-e5f6-7890-abcd-ef1234567890';
 
 /** Name used to identify the advanced-driving category (category 4). */
 const ADVANCED_CATEGORY_NAME = 'מצבים מתקדמים';
@@ -16,9 +15,11 @@ const ADVANCED_CATEGORY_NAME = 'מצבים מתקדמים';
  * and return the result alongside React Query loading / error states.
  */
 export function useReadiness(studentId: string | undefined) {
+  const { rootTeacherId } = useAuth();
+
   return useQuery({
-    queryKey: ['readiness', studentId],
-    enabled: !!studentId,
+    queryKey: ['readiness', studentId, rootTeacherId],
+    enabled: !!studentId && !!rootTeacherId,
     queryFn: async (): Promise<ReadinessResult> => {
       // Fetch student_skills for this student
       const { data: studentSkills, error: ssErr } = await supabase
@@ -32,7 +33,7 @@ export function useReadiness(studentId: string | undefined) {
       const { data: skills, error: skErr } = await supabase
         .from('skills')
         .select('*')
-        .eq('teacher_id', TEACHER_ID);
+        .eq('teacher_id', rootTeacherId!);
 
       if (skErr) throw skErr;
 
@@ -40,7 +41,7 @@ export function useReadiness(studentId: string | undefined) {
       const { data: categories, error: catErr } = await supabase
         .from('skill_categories')
         .select('*')
-        .eq('teacher_id', TEACHER_ID);
+        .eq('teacher_id', rootTeacherId!);
 
       if (catErr) throw catErr;
 

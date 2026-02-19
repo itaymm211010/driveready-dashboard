@@ -1,5 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/hooks/use-auth';
 import { format, startOfWeek, endOfWeek, startOfMonth, endOfMonth, startOfDay, endOfDay } from 'date-fns';
 
 export type CalendarView = 'week' | 'day' | 'month';
@@ -34,16 +35,19 @@ function getDateRange(view: CalendarView, date: Date) {
 }
 
 export function useCalendarLessons(view: CalendarView, date: Date) {
+  const { rootTeacherId } = useAuth();
   const { start, end } = getDateRange(view, date);
   const startStr = format(start, 'yyyy-MM-dd');
   const endStr = format(end, 'yyyy-MM-dd');
 
   return useQuery({
-    queryKey: ['calendar-lessons', view, startStr, endStr],
+    queryKey: ['calendar-lessons', view, startStr, endStr, rootTeacherId],
+    enabled: !!rootTeacherId,
     queryFn: async () => {
       const { data, error } = await supabase
         .from('lessons')
         .select('id, date, time_start, time_end, amount, status, payment_status, notes, student_id, students(id, name, phone, balance)')
+        .eq('teacher_id', rootTeacherId!)
         .gte('date', startStr)
         .lte('date', endStr)
         .order('date')

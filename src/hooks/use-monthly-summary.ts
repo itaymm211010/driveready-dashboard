@@ -1,12 +1,14 @@
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/hooks/use-auth';
 import { startOfMonth, endOfMonth, format } from 'date-fns';
 
-const TEACHER_ID = 'a1b2c3d4-e5f6-7890-abcd-ef1234567890';
-
 export function useMonthlySummary(month: Date) {
+  const { rootTeacherId } = useAuth();
+
   return useQuery({
-    queryKey: ['monthly-summary', format(month, 'yyyy-MM')],
+    queryKey: ['monthly-summary', format(month, 'yyyy-MM'), rootTeacherId],
+    enabled: !!rootTeacherId,
     queryFn: async () => {
       const monthStart = format(startOfMonth(month), 'yyyy-MM-dd');
       const monthEnd = format(endOfMonth(month), 'yyyy-MM-dd');
@@ -14,7 +16,7 @@ export function useMonthlySummary(month: Date) {
       const { data: lessons, error } = await supabase
         .from('lessons')
         .select('id, amount, status, payment_status, date, notes')
-        .eq('teacher_id', TEACHER_ID)
+        .eq('teacher_id', rootTeacherId!)
         .gte('date', monthStart)
         .lte('date', monthEnd);
 

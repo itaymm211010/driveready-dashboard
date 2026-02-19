@@ -1,8 +1,9 @@
-import { Home, CalendarDays, Users, BarChart3 } from 'lucide-react';
+import { Home, CalendarDays, Users, BarChart3, UserCheck } from 'lucide-react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { cn } from '@/lib/utils';
+import { useAuth } from '@/hooks/use-auth';
 
-const tabs = [
+const baseTabs = [
   { path: '/teacher/today', label: 'היום', icon: Home },
   { path: '/teacher/calendar', label: 'יומן', icon: CalendarDays },
   { path: '/teacher/students', label: 'תלמידים', icon: Users },
@@ -12,6 +13,12 @@ const tabs = [
 export function BottomNav() {
   const location = useLocation();
   const navigate = useNavigate();
+  const { isSubstitute } = useAuth();
+
+  const tabs = [
+    ...baseTabs,
+    ...(!isSubstitute ? [{ path: '/teacher/substitutes', label: 'מחליפים', icon: UserCheck }] : []),
+  ];
 
   return (
     <nav className="fixed bottom-0 inset-x-0 z-50 border-t border-border/50 nav-glass safe-area-bottom">

@@ -2,8 +2,6 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import type { SkillScore } from '@/lib/scoring';
 
-const TEACHER_ID = 'a1b2c3d4-e5f6-7890-abcd-ef1234567890';
-
 interface SaveLessonParams {
   lessonId: string;
   studentId: string;

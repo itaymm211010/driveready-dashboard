@@ -1,8 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-
-// Hardcoded teacher ID until auth is implemented
-const TEACHER_ID = 'a1b2c3d4-e5f6-7890-abcd-ef1234567890';
+import { useAuth } from '@/hooks/use-auth';
 
 export type DbStudent = {
   id: string;
@@ -64,15 +62,18 @@ export type DbSkillHistory = {
 };
 
 export function useTodayLessons() {
+  const { rootTeacherId } = useAuth();
+
   return useQuery({
-    queryKey: ['today-lessons'],
+    queryKey: ['today-lessons', rootTeacherId],
+    enabled: !!rootTeacherId,
     queryFn: async () => {
       const today = new Date().toISOString().slice(0, 10);
 
       const { data: lessons, error: lessonsError } = await supabase
         .from('lessons')
         .select('*')
-        .eq('teacher_id', TEACHER_ID)
+        .eq('teacher_id', rootTeacherId!)
         .eq('date', today)
         .order('time_start');
 
@@ -125,14 +126,16 @@ export function useLessonWithStudent(lessonId: string | undefined) {
 }
 
 export function useStudentSkillTree(studentId: string | undefined) {
+  const { rootTeacherId } = useAuth();
+
   return useQuery({
-    queryKey: ['skill-tree', studentId],
-    enabled: !!studentId,
+    queryKey: ['skill-tree', studentId, rootTeacherId],
+    enabled: !!studentId && !!rootTeacherId,
     queryFn: async () => {
       const { data: categories, error: catError } = await supabase
         .from('skill_categories')
         .select('*')
-        .eq('teacher_id', TEACHER_ID)
+        .eq('teacher_id', rootTeacherId!)
         .order('sort_order');
 
       if (catError) throw catError;
@@ -140,7 +143,7 @@ export function useStudentSkillTree(studentId: string | undefined) {
       const { data: skills, error: skillError } = await supabase
         .from('skills')
         .select('*')
-        .eq('teacher_id', TEACHER_ID)
+        .eq('teacher_id', rootTeacherId!)
         .order('sort_order');
 
       if (skillError) throw skillError;

@@ -14,6 +14,9 @@ interface LessonCardProps {
     status: string;
     amount: number;
     notes?: string | null;
+    teacher_id?: string;
+    taught_by_teacher_id?: string | null;
+    substitute_name?: string | null;
   };
   student: {
     id: string;
@@ -31,6 +34,7 @@ export function LessonCard({ lesson, student }: LessonCardProps) {
   const isInProgress = lesson.status === 'in_progress';
   const isInternalTest = lesson.notes?.startsWith('[טסט פנימי]');
   const isExternalTest = lesson.notes?.startsWith('[טסט חיצוני]');
+  const isSubstituteLesson = lesson.taught_by_teacher_id && lesson.taught_by_teacher_id !== lesson.teacher_id;
 
   const handleStartLesson = () => {
     if (isInProgress) {
@@ -68,6 +72,7 @@ export function LessonCard({ lesson, student }: LessonCardProps) {
               ⏰ {lesson.time_start} - {lesson.time_end}
               {isInternalTest && <span className="text-blue-600 font-medium"> · טסט פנימי</span>}
               {isExternalTest && <span className="text-purple-600 font-medium"> · טסט חיצוני</span>}
+              {isSubstituteLesson && <span className="text-xs text-orange-600 font-medium"> · מחליף</span>}
             </p>
           </button>
           {isCompleted ? (

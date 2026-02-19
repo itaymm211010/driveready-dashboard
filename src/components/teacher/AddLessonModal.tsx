@@ -18,8 +18,7 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useStudentsList } from '@/hooks/use-students-list';
 import { useLessonConflicts } from '@/hooks/use-lesson-conflicts';
-
-const TEACHER_ID = 'a1b2c3d4-e5f6-7890-abcd-ef1234567890';
+import { useAuth } from '@/hooks/use-auth';
 const DURATION_PRESETS = [40, 80, 120, 160];
 
 interface AddLessonModalProps {
@@ -32,6 +31,7 @@ interface AddLessonModalProps {
 
 export function AddLessonModal({ open, onOpenChange, preselectedStudentId, prefilledDate, prefilledTime }: AddLessonModalProps) {
   const queryClient = useQueryClient();
+  const { rootTeacherId, teacherProfile } = useAuth();
   const { data: students } = useStudentsList();
 
   const [studentId, setStudentId] = useState(preselectedStudentId ?? '');
@@ -85,7 +85,8 @@ export function AddLessonModal({ open, onOpenChange, preselectedStudentId, prefi
     mutationFn: async () => {
       const { error } = await supabase.from('lessons').insert({
         student_id: studentId,
-        teacher_id: TEACHER_ID,
+        teacher_id: rootTeacherId!,
+        taught_by_teacher_id: teacherProfile?.id,
         date: format(date, 'yyyy-MM-dd'),
         time_start: timeStart,
         time_end: timeEnd,

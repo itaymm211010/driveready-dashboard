@@ -1,13 +1,14 @@
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/hooks/use-auth';
 import { format } from 'date-fns';
 
-const TEACHER_ID = 'a1b2c3d4-e5f6-7890-abcd-ef1234567890';
-
 export function useStudentReport(studentId: string | undefined) {
+  const { rootTeacherId } = useAuth();
+
   return useQuery({
-    queryKey: ['student-report', studentId],
-    enabled: !!studentId,
+    queryKey: ['student-report', studentId, rootTeacherId],
+    enabled: !!studentId && !!rootTeacherId,
     queryFn: async () => {
       const { data: student, error: sErr } = await supabase
         .from('students')
@@ -20,13 +21,13 @@ export function useStudentReport(studentId: string | undefined) {
       const { data: categories } = await supabase
         .from('skill_categories')
         .select('*')
-        .eq('teacher_id', TEACHER_ID)
+        .eq('teacher_id', rootTeacherId!)
         .order('sort_order');
 
       const { data: skills } = await supabase
         .from('skills')
         .select('*')
-        .eq('teacher_id', TEACHER_ID)
+        .eq('teacher_id', rootTeacherId!)
         .order('sort_order');
 
       const { data: studentSkills } = await supabase
