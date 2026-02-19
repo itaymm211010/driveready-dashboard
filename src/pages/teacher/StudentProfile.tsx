@@ -729,6 +729,16 @@ export default function StudentProfile() {
                 <p className="text-sm text-muted-foreground font-body">מחיר שיעור</p>
                 <p className="text-lg font-heading font-bold text-foreground">₪{student.lesson_price ?? 0}</p>
               </div>
+              <Separator />
+              <div className="flex items-center justify-between">
+                <p className="text-sm text-muted-foreground font-body">טסט פנימי</p>
+                <p className="text-lg font-heading font-bold text-foreground">₪{(student as any).internal_test_price ?? 0}</p>
+              </div>
+              <Separator />
+              <div className="flex items-center justify-between">
+                <p className="text-sm text-muted-foreground font-body">טסט חיצוני</p>
+                <p className="text-lg font-heading font-bold text-foreground">₪{(student as any).external_test_price ?? 0}</p>
+              </div>
             </CardContent>
           </Card>
         </motion.div>

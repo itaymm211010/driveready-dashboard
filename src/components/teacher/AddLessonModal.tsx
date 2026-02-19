@@ -40,6 +40,7 @@ export function AddLessonModal({ open, onOpenChange, preselectedStudentId, prefi
   const [duration, setDuration] = useState(60);
   const [amount, setAmount] = useState('');
   const [notes, setNotes] = useState('');
+  const [lessonType, setLessonType] = useState<'regular' | 'internal_test' | 'external_test'>('regular');
 
   const timeEnd = timeStart
     ? format(addMinutes(parse(timeStart, 'HH:mm', new Date()), duration), 'HH:mm')
@@ -51,13 +52,20 @@ export function AddLessonModal({ open, onOpenChange, preselectedStudentId, prefi
     timeEnd || null
   );
 
-  // Auto-fill amount when student changes
+  // Auto-fill amount when student or lesson type changes
   useEffect(() => {
     const selected = (students ?? []).find((s) => s.id === studentId);
-    if (selected?.lesson_price) {
-      setAmount(String(selected.lesson_price));
+    if (!selected) return;
+    const priceMap = {
+      regular: selected.lesson_price,
+      internal_test: (selected as any).internal_test_price ?? 0,
+      external_test: (selected as any).external_test_price ?? 0,
+    };
+    const price = priceMap[lessonType];
+    if (price != null) {
+      setAmount(String(price));
     }
-  }, [studentId, students]);
+  }, [studentId, students, lessonType]);
 
   // Reset form when modal opens
   const handleOpenChange = (next: boolean) => {
@@ -68,6 +76,7 @@ export function AddLessonModal({ open, onOpenChange, preselectedStudentId, prefi
       setDuration(60);
       setAmount('');
       setNotes('');
+      setLessonType('regular');
     }
     onOpenChange(next);
   };
@@ -83,7 +92,9 @@ export function AddLessonModal({ open, onOpenChange, preselectedStudentId, prefi
         amount: Number(amount),
         status: 'scheduled',
         payment_status: 'pending',
-        notes: notes || null,
+        notes: lessonType !== 'regular'
+          ? [lessonType === 'internal_test' ? '[טסט פנימי]' : '[טסט חיצוני]', notes].filter(Boolean).join(' ')
+          : notes || null,
       });
       if (error) throw error;
     },
@@ -169,6 +180,22 @@ export function AddLessonModal({ open, onOpenChange, preselectedStudentId, prefi
               </div>
             </div>
           )}
+
+          {/* Lesson Type */}
+          <div className="space-y-2">
+            <Label>סוג שיעור</Label>
+            <div className="flex gap-2">
+              <Button type="button" variant={lessonType === 'regular' ? 'default' : 'outline'} size="sm" className="flex-1" onClick={() => setLessonType('regular')}>
+                שיעור רגיל
+              </Button>
+              <Button type="button" variant={lessonType === 'internal_test' ? 'default' : 'outline'} size="sm" className="flex-1" onClick={() => setLessonType('internal_test')}>
+                טסט פנימי
+              </Button>
+              <Button type="button" variant={lessonType === 'external_test' ? 'default' : 'outline'} size="sm" className="flex-1" onClick={() => setLessonType('external_test')}>
+                טסט חיצוני
+              </Button>
+            </div>
+          </div>
 
           {/* Amount */}
           <div className="space-y-2">

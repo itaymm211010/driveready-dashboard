@@ -26,6 +26,8 @@ export function AddStudentModal({ open, onOpenChange }: AddStudentModalProps) {
   const [email, setEmail] = useState('');
   const [idNumber, setIdNumber] = useState('');
   const [lessonPrice, setLessonPrice] = useState('');
+  const [internalTestPrice, setInternalTestPrice] = useState('');
+  const [externalTestPrice, setExternalTestPrice] = useState('');
   const queryClient = useQueryClient();
 
   const mutation = useMutation({
@@ -36,6 +38,8 @@ export function AddStudentModal({ open, onOpenChange }: AddStudentModalProps) {
         email: email.trim() || null,
         id_number: idNumber.trim() || null,
         lesson_price: Number(lessonPrice) || 0,
+        internal_test_price: Number(internalTestPrice) || 0,
+        external_test_price: Number(externalTestPrice) || 0,
         teacher_id: TEACHER_ID,
       });
       if (error) throw error;
@@ -56,6 +60,8 @@ export function AddStudentModal({ open, onOpenChange }: AddStudentModalProps) {
     setEmail('');
     setIdNumber('');
     setLessonPrice('');
+    setInternalTestPrice('');
+    setExternalTestPrice('');
     onOpenChange(false);
   };
 
@@ -125,6 +131,28 @@ export function AddStudentModal({ open, onOpenChange }: AddStudentModalProps) {
               min={0}
               value={lessonPrice}
               onChange={(e) => setLessonPrice(e.target.value)}
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="student-internal-test-price">מחיר טסט פנימי (₪)</Label>
+            <Input
+              id="student-internal-test-price"
+              placeholder="0"
+              type="number"
+              min={0}
+              value={internalTestPrice}
+              onChange={(e) => setInternalTestPrice(e.target.value)}
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="student-external-test-price">מחיר טסט חיצוני (₪)</Label>
+            <Input
+              id="student-external-test-price"
+              placeholder="0"
+              type="number"
+              min={0}
+              value={externalTestPrice}
+              onChange={(e) => setExternalTestPrice(e.target.value)}
             />
           </div>
           <div className="flex justify-end gap-2 pt-2">

@@ -16,7 +16,7 @@ import { Label } from '@/components/ui/label';
 interface EditStudentModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  student: { id: string; name: string; phone: string | null; email: string | null; lesson_price: number; id_number?: string | null };
+  student: { id: string; name: string; phone: string | null; email: string | null; lesson_price: number; internal_test_price?: number; external_test_price?: number; id_number?: string | null };
 }
 
 export function EditStudentModal({ open, onOpenChange, student }: EditStudentModalProps) {
@@ -25,6 +25,8 @@ export function EditStudentModal({ open, onOpenChange, student }: EditStudentMod
   const [email, setEmail] = useState(student.email ?? '');
   const [idNumber, setIdNumber] = useState(student.id_number ?? '');
   const [lessonPrice, setLessonPrice] = useState(String(student.lesson_price ?? 0));
+  const [internalTestPrice, setInternalTestPrice] = useState(String(student.internal_test_price ?? 0));
+  const [externalTestPrice, setExternalTestPrice] = useState(String(student.external_test_price ?? 0));
   const queryClient = useQueryClient();
 
   const mutation = useMutation({
@@ -37,6 +39,8 @@ export function EditStudentModal({ open, onOpenChange, student }: EditStudentMod
           email: email.trim() || null,
           id_number: idNumber.trim() || null,
           lesson_price: Number(lessonPrice) || 0,
+          internal_test_price: Number(internalTestPrice) || 0,
+          external_test_price: Number(externalTestPrice) || 0,
         })
         .eq('id', student.id);
       if (error) throw error;
@@ -113,6 +117,26 @@ export function EditStudentModal({ open, onOpenChange, student }: EditStudentMod
               min={0}
               value={lessonPrice}
               onChange={(e) => setLessonPrice(e.target.value)}
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="edit-internal-test-price">מחיר טסט פנימי (₪)</Label>
+            <Input
+              id="edit-internal-test-price"
+              type="number"
+              min={0}
+              value={internalTestPrice}
+              onChange={(e) => setInternalTestPrice(e.target.value)}
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="edit-external-test-price">מחיר טסט חיצוני (₪)</Label>
+            <Input
+              id="edit-external-test-price"
+              type="number"
+              min={0}
+              value={externalTestPrice}
+              onChange={(e) => setExternalTestPrice(e.target.value)}
             />
           </div>
           <div className="flex justify-end gap-2 pt-2">
