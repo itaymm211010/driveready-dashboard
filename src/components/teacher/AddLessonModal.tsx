@@ -20,7 +20,7 @@ import { useStudentsList } from '@/hooks/use-students-list';
 import { useLessonConflicts } from '@/hooks/use-lesson-conflicts';
 
 const TEACHER_ID = 'a1b2c3d4-e5f6-7890-abcd-ef1234567890';
-const DURATION_PRESETS = [30, 45, 60, 90, 120];
+const DURATION_PRESETS = [40, 80, 120, 160];
 
 interface AddLessonModalProps {
   open: boolean;
@@ -37,7 +37,7 @@ export function AddLessonModal({ open, onOpenChange, preselectedStudentId, prefi
   const [studentId, setStudentId] = useState(preselectedStudentId ?? '');
   const [date, setDate] = useState<Date>(prefilledDate ?? new Date());
   const [timeStart, setTimeStart] = useState(prefilledTime ?? '');
-  const [duration, setDuration] = useState(60);
+  const [duration, setDuration] = useState(40);
   const [amount, setAmount] = useState('');
   const [notes, setNotes] = useState('');
   const [lessonType, setLessonType] = useState<'regular' | 'internal_test' | 'external_test'>('regular');
@@ -73,7 +73,7 @@ export function AddLessonModal({ open, onOpenChange, preselectedStudentId, prefi
       setStudentId(preselectedStudentId ?? '');
       setDate(prefilledDate ?? new Date());
       setTimeStart(prefilledTime ?? '');
-      setDuration(60);
+      setDuration(40);
       setAmount('');
       setNotes('');
       setLessonType('regular');

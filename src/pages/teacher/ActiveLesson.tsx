@@ -104,6 +104,7 @@ export default function ActiveLesson() {
   useEffect(() => {
     if (isTestLessonEarly) {
       setHasStarted(true);
+      setShowSkillSelectionInitial(false);
       return;
     }
     if (!plannedLoading && plannedSkills && plannedSkills.length === 0 && !hasStarted) {

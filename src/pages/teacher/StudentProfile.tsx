@@ -663,6 +663,10 @@ export default function StudentProfile() {
                       : null;
                     const variance = lesson.duration_variance_minutes;
                     const actualDuration = lesson.actual_duration_minutes;
+                    const isInternalTest = lesson.notes?.startsWith('[טסט פנימי]');
+                    const isExternalTest = lesson.notes?.startsWith('[טסט חיצוני]');
+                    const isTest = isInternalTest || isExternalTest;
+                    const lessonTypeLabel = isInternalTest ? 'טסט פנימי' : isExternalTest ? 'טסט חיצוני' : 'שיעור';
 
                     return (
                       <div
@@ -679,9 +683,19 @@ export default function StudentProfile() {
                           {lesson.status === 'completed' ? <CheckCircle className="h-5 w-5" /> : <Clock className="h-5 w-5" />}
                         </div>
                         <div className="flex-1 min-w-0">
-                          <p className="text-sm font-medium text-foreground font-body">
-                            {format(new Date(lesson.date), 'd בMMM yyyy', { locale: he })}
-                          </p>
+                          <div className="flex items-center gap-1.5">
+                            <p className="text-sm font-medium text-foreground font-body">
+                              {format(new Date(lesson.date), 'd בMMM yyyy', { locale: he })}
+                            </p>
+                            {isTest && (
+                              <Badge variant="outline" className={cn(
+                                'text-[10px] px-1.5',
+                                isInternalTest ? 'text-blue-600 border-blue-500/30' : 'text-purple-600 border-purple-500/30'
+                              )}>
+                                {lessonTypeLabel}
+                              </Badge>
+                            )}
+                          </div>
                           <p className="text-xs text-muted-foreground">
                             {actualStart && actualEnd
                               ? `${actualStart} - ${actualEnd}${actualDuration ? ` (${actualDuration} דק')` : ''}`
