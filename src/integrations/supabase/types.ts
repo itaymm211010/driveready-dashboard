@@ -401,6 +401,7 @@ export type Database = {
           created_at: string
           email: string
           id: string
+          is_admin: boolean
           name: string
           parent_teacher_id: string | null
           phone: string | null
@@ -409,6 +410,7 @@ export type Database = {
           created_at?: string
           email: string
           id: string
+          is_admin?: boolean
           name: string
           parent_teacher_id?: string | null
           phone?: string | null
@@ -417,6 +419,7 @@ export type Database = {
           created_at?: string
           email?: string
           id?: string
+          is_admin?: boolean
           name?: string
           parent_teacher_id?: string | null
           phone?: string | null

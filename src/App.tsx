@@ -15,15 +15,36 @@ import StudentsList from "./pages/teacher/StudentsList";
 import CalendarPage from "./pages/teacher/CalendarPage";
 import ReportsPage from "./pages/teacher/ReportsPage";
 import SubstitutesPage from "./pages/teacher/SubstitutesPage";
+import TeachersPage from "./pages/admin/TeachersPage";
 import LoginPage from "./pages/LoginPage";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
 
-function ProtectedRoute({ children }: { children: React.ReactNode }) {
-  const { currentUser, loading } = useAuthContext();
+/** מנתב ל-home הנכון לפי תפקיד */
+function HomeRedirect() {
+  const { currentUser, isAdmin, loading } = useAuthContext();
   if (loading) return null;
   if (!currentUser) return <Navigate to="/login" replace />;
+  if (isAdmin) return <Navigate to="/admin/teachers" replace />;
+  return <Navigate to="/teacher/today" replace />;
+}
+
+/** Route שמגן על דפי מורה — מנתב אדמין ומשתמש לא מחובר החוצה */
+function TeacherRoute({ children }: { children: React.ReactNode }) {
+  const { currentUser, isAdmin, loading } = useAuthContext();
+  if (loading) return null;
+  if (!currentUser) return <Navigate to="/login" replace />;
+  if (isAdmin) return <Navigate to="/admin/teachers" replace />;
+  return <>{children}</>;
+}
+
+/** Route שמגן על דפי אדמין */
+function AdminRoute({ children }: { children: React.ReactNode }) {
+  const { currentUser, isAdmin, loading } = useAuthContext();
+  if (loading) return null;
+  if (!currentUser) return <Navigate to="/login" replace />;
+  if (!isAdmin) return <Navigate to="/teacher/today" replace />;
   return <>{children}</>;
 }
 
@@ -31,14 +52,21 @@ function AppRoutes() {
   return (
     <Routes>
       <Route path="/login" element={<LoginPage />} />
-      <Route path="/" element={<Navigate to="/teacher/today" replace />} />
-      <Route path="/teacher/today" element={<ProtectedRoute><TeacherToday /></ProtectedRoute>} />
-      <Route path="/teacher/lesson/:id" element={<ProtectedRoute><ActiveLesson /></ProtectedRoute>} />
-      <Route path="/teacher/calendar" element={<ProtectedRoute><CalendarPage /></ProtectedRoute>} />
-      <Route path="/teacher/students" element={<ProtectedRoute><StudentsList /></ProtectedRoute>} />
-      <Route path="/teacher/student/:id" element={<ProtectedRoute><StudentProfile /></ProtectedRoute>} />
-      <Route path="/teacher/reports" element={<ProtectedRoute><ReportsPage /></ProtectedRoute>} />
-      <Route path="/teacher/substitutes" element={<ProtectedRoute><SubstitutesPage /></ProtectedRoute>} />
+      <Route path="/" element={<HomeRedirect />} />
+
+      {/* Teacher routes */}
+      <Route path="/teacher/today" element={<TeacherRoute><TeacherToday /></TeacherRoute>} />
+      <Route path="/teacher/lesson/:id" element={<TeacherRoute><ActiveLesson /></TeacherRoute>} />
+      <Route path="/teacher/calendar" element={<TeacherRoute><CalendarPage /></TeacherRoute>} />
+      <Route path="/teacher/students" element={<TeacherRoute><StudentsList /></TeacherRoute>} />
+      <Route path="/teacher/student/:id" element={<TeacherRoute><StudentProfile /></TeacherRoute>} />
+      <Route path="/teacher/reports" element={<TeacherRoute><ReportsPage /></TeacherRoute>} />
+      <Route path="/teacher/substitutes" element={<TeacherRoute><SubstitutesPage /></TeacherRoute>} />
+
+      {/* Admin routes */}
+      <Route path="/admin/teachers" element={<AdminRoute><TeachersPage /></AdminRoute>} />
+
+      {/* Public */}
       <Route path="/student/:id/report" element={<StudentReport />} />
       <Route path="*" element={<NotFound />} />
     </Routes>

@@ -11,7 +11,6 @@ Deno.serve(async (req) => {
   }
 
   try {
-    // Get the auth token from the request
     const authHeader = req.headers.get('Authorization')
     if (!authHeader) {
       return new Response(JSON.stringify({ error: 'No authorization header' }), {
@@ -20,7 +19,6 @@ Deno.serve(async (req) => {
       })
     }
 
-    // Create regular client to verify the caller
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!
     const supabaseAnonKey = Deno.env.get('SUPABASE_ANON_KEY')!
     const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
@@ -38,35 +36,20 @@ Deno.serve(async (req) => {
       })
     }
 
-    // Verify caller is a main teacher (not a substitute, not an admin)
-    const { data: callerTeacher, error: teacherError } = await callerClient
+    // Verify caller is admin
+    const { data: callerTeacher } = await callerClient
       .from('teachers')
-      .select('id, parent_teacher_id, is_admin')
+      .select('id, is_admin')
       .eq('id', user.id)
       .maybeSingle()
 
-    if (teacherError || !callerTeacher) {
-      return new Response(JSON.stringify({ error: 'Teacher profile not found' }), {
+    if (!callerTeacher?.is_admin) {
+      return new Response(JSON.stringify({ error: 'Only admins can create teachers' }), {
         status: 403,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       })
     }
 
-    if (callerTeacher.is_admin) {
-      return new Response(JSON.stringify({ error: 'Admins cannot create substitutes directly' }), {
-        status: 403,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      })
-    }
-
-    if (callerTeacher.parent_teacher_id !== null) {
-      return new Response(JSON.stringify({ error: 'Only main teachers can create substitutes' }), {
-        status: 403,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      })
-    }
-
-    // Parse request body
     const { name, email, password } = await req.json()
     if (!name || !email || !password) {
       return new Response(JSON.stringify({ error: 'Missing required fields: name, email, password' }), {
@@ -75,7 +58,6 @@ Deno.serve(async (req) => {
       })
     }
 
-    // Create admin client
     const adminClient = createClient(supabaseUrl, supabaseServiceKey, {
       auth: { autoRefreshToken: false, persistSession: false },
     })
@@ -94,18 +76,18 @@ Deno.serve(async (req) => {
       })
     }
 
-    // Create teacher profile
+    // Create teacher profile (main teacher, not substitute, not admin)
     const { error: profileError } = await adminClient
       .from('teachers')
       .insert({
         id: newUser.user.id,
         name,
         email,
-        parent_teacher_id: user.id,
+        parent_teacher_id: null,
+        is_admin: false,
       })
 
     if (profileError) {
-      // Rollback: delete the auth user
       await adminClient.auth.admin.deleteUser(newUser.user.id)
       return new Response(JSON.stringify({ error: profileError.message }), {
         status: 400,

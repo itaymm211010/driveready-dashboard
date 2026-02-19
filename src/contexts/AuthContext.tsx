@@ -8,6 +8,7 @@ interface Teacher {
   email: string;
   phone: string | null;
   parent_teacher_id: string | null;
+  is_admin: boolean;
 }
 
 interface AuthContextType {
@@ -15,6 +16,7 @@ interface AuthContextType {
   teacherProfile: Teacher | null;
   rootTeacherId: string | null;
   isSubstitute: boolean;
+  isAdmin: boolean;
   loading: boolean;
   signIn: (email: string, password: string) => Promise<void>;
   signOut: () => Promise<void>;
@@ -60,8 +62,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return () => subscription.unsubscribe();
   }, []);
 
-  const rootTeacherId = teacherProfile?.parent_teacher_id ?? teacherProfile?.id ?? null;
-  const isSubstitute = !!teacherProfile?.parent_teacher_id;
+  const isAdmin = !!teacherProfile?.is_admin;
+  const rootTeacherId = isAdmin ? null : (teacherProfile?.parent_teacher_id ?? teacherProfile?.id ?? null);
+  const isSubstitute = !isAdmin && !!teacherProfile?.parent_teacher_id;
 
   async function signIn(email: string, password: string) {
     const { error } = await supabase.auth.signInWithPassword({ email, password });
@@ -74,7 +77,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }
 
   return (
-    <AuthContext.Provider value={{ currentUser, teacherProfile, rootTeacherId, isSubstitute, loading, signIn, signOut }}>
+    <AuthContext.Provider value={{ currentUser, teacherProfile, rootTeacherId, isSubstitute, isAdmin, loading, signIn, signOut }}>
       {children}
     </AuthContext.Provider>
   );
