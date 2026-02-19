@@ -1,47 +1,54 @@
 
-# Run Database Migration: Create Teachers Table and Update Lessons
+
+# Run Database Migration: Add Admin Role to Teachers
 
 ## What will be done
 
-Run a SQL migration to:
+Execute a SQL migration to add admin capabilities to the teachers table:
 
-1. **Create the `teachers` table** with columns: id, name, email, phone, parent_teacher_id, created_at
-2. **Enable RLS** on the teachers table with two policies:
-   - Teachers can read their own record and their substitutes' records
-   - Teachers can update their own record
-3. **Add `taught_by_teacher_id`** column to the `lessons` table (foreign key to teachers)
-4. **Enable Email/Password authentication** in auth settings
+1. **Add `is_admin` column** (BOOLEAN, default false) to the `teachers` table
+2. **Create `is_admin()` security definer function** to safely check admin status without RLS recursion
+3. **Create 4 admin RLS policies** on the `teachers` table:
+   - `admin_read_all_teachers` -- admins can view all teacher records
+   - `admin_insert_teachers` -- admins can add new teachers
+   - `admin_delete_teachers` -- admins can delete teachers (but not themselves)
+   - `admin_update_all_teachers` -- admins can update any teacher record
 
 ## SQL to Execute
 
 ```text
-CREATE TABLE public.teachers (
-  id UUID PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
-  name TEXT NOT NULL,
-  email TEXT NOT NULL,
-  phone TEXT,
-  parent_teacher_id UUID REFERENCES public.teachers(id) ON DELETE SET NULL,
-  created_at TIMESTAMPTZ NOT NULL DEFAULT now()
-);
+ALTER TABLE public.teachers ADD COLUMN IF NOT EXISTS is_admin BOOLEAN NOT NULL DEFAULT false;
 
-ALTER TABLE public.teachers ENABLE ROW LEVEL SECURITY;
+CREATE OR REPLACE FUNCTION public.is_admin(_user_id UUID)
+RETURNS BOOLEAN
+LANGUAGE sql
+STABLE
+SECURITY DEFINER
+SET search_path = public
+AS $$
+  SELECT EXISTS (
+    SELECT 1 FROM public.teachers
+    WHERE id = _user_id AND is_admin = true
+  )
+$$;
 
-CREATE POLICY "teachers_read_own_and_substitutes" ON public.teachers
-  FOR SELECT USING (
-    auth.uid() = id OR
-    auth.uid() = parent_teacher_id
-  );
+CREATE POLICY "admin_read_all_teachers" ON public.teachers
+  FOR SELECT USING (public.is_admin(auth.uid()));
 
-CREATE POLICY "teachers_update_own" ON public.teachers
-  FOR UPDATE USING (auth.uid() = id);
+CREATE POLICY "admin_insert_teachers" ON public.teachers
+  FOR INSERT WITH CHECK (public.is_admin(auth.uid()));
 
-ALTER TABLE public.lessons ADD COLUMN IF NOT EXISTS taught_by_teacher_id UUID REFERENCES public.teachers(id);
+CREATE POLICY "admin_delete_teachers" ON public.teachers
+  FOR DELETE USING (id != auth.uid() AND public.is_admin(auth.uid()));
+
+CREATE POLICY "admin_update_all_teachers" ON public.teachers
+  FOR UPDATE USING (public.is_admin(auth.uid()));
 ```
 
 ## Technical Notes
 
-- The `teachers` table does not currently exist in the database, confirmed by query
-- The `taught_by_teacher_id` column is also missing from `lessons`
-- The TypeScript types already include both `teachers` and `taught_by_teacher_id`, so no code changes are needed
-- Email/Password auth will be enabled via the configure-auth tool
-- The `create-substitute` edge function already exists and depends on this table
+- Confirmed via database queries: `is_admin` column, `is_admin()` function, and admin policies do **not** yet exist
+- The `SECURITY DEFINER` function pattern prevents infinite recursion when RLS policies query the same table
+- The existing TypeScript types and code (AuthContext, TeachersPage, edge functions) already reference `is_admin`, so no code changes are needed
+- The migration file already exists in the repo (`supabase/migrations/20260219_add_admin_role.sql`) with the correct content -- it just needs to be executed
+
