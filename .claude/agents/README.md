@@ -127,6 +127,31 @@ This directory contains custom AI agents specialized for the DriveReady driving 
 
 ---
 
+### 7️⃣ Marketing Strategist 📣
+**File:** `marketing-strategist.yaml`
+
+**Brand:** DriveKal (דרייבקל) — Marketing DriveReady to Israeli driving instructors
+
+**Responsibilities:**
+- DriveKal marketing website planning and copywriting (Hebrew)
+- Target audience personas (מורי נהגיה)
+- Landing page wireframes and content sections
+- Social media strategy (Facebook, Instagram, WhatsApp)
+- SEO keywords and Google Ads strategy
+- Competitor research and positioning
+- Onboarding funnel design
+- Value proposition crafting
+
+**Use when:**
+- Planning the DriveKal marketing website
+- Writing Hebrew marketing copy
+- Defining target audience and messaging
+- Planning campaigns and content calendar
+- Researching competitors
+- Designing the customer acquisition funnel
+
+---
+
 ## 🚀 How to Use Agents
 
 ### Option 1: Team-Based Work (Recommended for complex tasks)
@@ -206,6 +231,7 @@ Use agents in sequence for phased development:
 | UI Designer | Read, Grep, Edit | Components, Styling, A11y | UI work, Animations, RTL |
 | Integration Engineer | Read, Grep, Edit | Hooks, APIs, State | Data fetching, N8N, Cache |
 | Logic Validator | Bash, Read, Grep | Calculations, Validation | Complex logic, Formulas |
+| Marketing Strategist | Read, Grep, Write, WebSearch | Marketing, Copy, Website | DriveKal brand, Campaigns |
 
 ---
 
@@ -252,6 +278,6 @@ Agents are defined in YAML files and can be:
 
 ---
 
-**Version:** 1.0.0
-**Last Updated:** 2026-02-18
+**Version:** 1.1.0
+**Last Updated:** 2026-02-19
 **Project:** DriveReady Dashboard
