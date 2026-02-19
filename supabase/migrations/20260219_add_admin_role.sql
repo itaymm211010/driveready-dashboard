@@ -1,39 +1,30 @@
 -- Add is_admin flag to teachers table
 ALTER TABLE public.teachers ADD COLUMN IF NOT EXISTS is_admin BOOLEAN NOT NULL DEFAULT false;
 
--- Allow admins to read ALL teachers (stacks OR with existing policy)
+-- Security definer function to check admin status
+-- (avoids infinite recursion in RLS policies that query the same table)
+CREATE OR REPLACE FUNCTION public.is_admin(_user_id UUID)
+RETURNS BOOLEAN
+LANGUAGE sql
+STABLE
+SECURITY DEFINER
+SET search_path = public
+AS $$
+  SELECT EXISTS (
+    SELECT 1 FROM public.teachers
+    WHERE id = _user_id AND is_admin = true
+  )
+$$;
+
+-- Admin RLS policies (reference the function, not the table directly)
 CREATE POLICY "admin_read_all_teachers" ON public.teachers
-  FOR SELECT USING (
-    EXISTS (
-      SELECT 1 FROM public.teachers t
-      WHERE t.id = auth.uid() AND t.is_admin = true
-    )
-  );
+  FOR SELECT USING (public.is_admin(auth.uid()));
 
--- Allow admins to insert new teachers
 CREATE POLICY "admin_insert_teachers" ON public.teachers
-  FOR INSERT WITH CHECK (
-    EXISTS (
-      SELECT 1 FROM public.teachers t
-      WHERE t.id = auth.uid() AND t.is_admin = true
-    )
-  );
+  FOR INSERT WITH CHECK (public.is_admin(auth.uid()));
 
--- Allow admins to delete teachers (not themselves)
 CREATE POLICY "admin_delete_teachers" ON public.teachers
-  FOR DELETE USING (
-    id != auth.uid() AND
-    EXISTS (
-      SELECT 1 FROM public.teachers t
-      WHERE t.id = auth.uid() AND t.is_admin = true
-    )
-  );
+  FOR DELETE USING (id != auth.uid() AND public.is_admin(auth.uid()));
 
--- Allow admins to update any teacher
 CREATE POLICY "admin_update_all_teachers" ON public.teachers
-  FOR UPDATE USING (
-    EXISTS (
-      SELECT 1 FROM public.teachers t
-      WHERE t.id = auth.uid() AND t.is_admin = true
-    )
-  );
+  FOR UPDATE USING (public.is_admin(auth.uid()));
