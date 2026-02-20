@@ -127,7 +127,31 @@ This directory contains custom AI agents specialized for the DriveReady driving 
 
 ---
 
-### 7️⃣ Marketing Strategist 📣
+### 7️⃣ DriveKal Web Designer 🌐
+**File:** `drivekal-web-designer.yaml`
+
+**Stack:** Next.js 14 (App Router) + Tailwind CSS + Framer Motion + TypeScript
+
+**Responsibilities:**
+- Building the DriveKal marketing website (Next.js + Tailwind)
+- Landing page sections: Hero, Features, Pricing, FAQ, Testimonials, CTA
+- Hebrew RTL layout with Rubik font
+- SEO metadata, OpenGraph, JSON-LD structured data
+- CRO patterns (Conversion Rate Optimization)
+- Framer Motion scroll animations
+- Mobile-first responsive design (instructors on phones)
+- Lead capture form → N8N → ClickUp CRM
+
+**Use when:**
+- Implementing any page of the DriveKal website
+- Creating landing page section components
+- Setting up Next.js project structure
+- Optimizing for SEO or Core Web Vitals
+- Building lead capture forms
+
+---
+
+### 8️⃣ Marketing Strategist 📣
 **File:** `marketing-strategist.yaml`
 
 **Brand:** DriveKal (דרייבקל) — Marketing DriveReady to Israeli driving instructors
@@ -231,6 +255,7 @@ Use agents in sequence for phased development:
 | UI Designer | Read, Grep, Edit | Components, Styling, A11y | UI work, Animations, RTL |
 | Integration Engineer | Read, Grep, Edit | Hooks, APIs, State | Data fetching, N8N, Cache |
 | Logic Validator | Bash, Read, Grep | Calculations, Validation | Complex logic, Formulas |
+| DriveKal Web Designer | Read, Write, Bash, WebSearch | Next.js, Landing Pages, CRO | Building DriveKal website |
 | Marketing Strategist | Read, Grep, Write, WebSearch | Marketing, Copy, Website | DriveKal brand, Campaigns |
 
 ---
