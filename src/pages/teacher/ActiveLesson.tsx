@@ -199,6 +199,12 @@ export default function ActiveLesson() {
   const progressPct = totalSkills > 0 ? Math.round((mastered / totalSkills) * 100) : 0;
   const alreadySelectedIds = plannedSkills?.map(ps => ps.skill_id) ?? [];
 
+  // Categories with already-planned skills removed (for "add more" modal during lesson)
+  const plannedSet = new Set(alreadySelectedIds);
+  const categoriesForAddMore = categories
+    .map(cat => ({ ...cat, skills: cat.skills.filter(s => !plannedSet.has(s.id)) }))
+    .filter(cat => cat.skills.length > 0);
+
   const timerColor = getTimerColor(timer, scheduledMinutes);
   const remainingText = getRemainingText(timer, scheduledMinutes);
 
@@ -338,8 +344,8 @@ export default function ActiveLesson() {
       <SkillSelectionModal
         open={showSkillSelection}
         onOpenChange={setShowSkillSelection}
-        categories={categories}
-        alreadySelected={alreadySelectedIds}
+        categories={categoriesForAddMore}
+        alreadySelected={[]}
         studentName={student.name}
         lessonNumber={student.total_lessons + 1}
         onConfirm={handleAddMoreSkills}
