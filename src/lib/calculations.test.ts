@@ -139,7 +139,8 @@ describe("calculateReadiness", () => {
   it("returns not-ready with zeroed values for empty skills", () => {
     const result = calculateReadiness([], CAT_ADVANCED);
     expect(result).toEqual({
-      ready: false, avg: 0, percentage: 0, hasLow: false, cat4Avg: 0, cat4Percentage: 0,
+      ready: false, avg: 0, percentage: 0, coverage: 0,
+      hasLow: false, cat4Avg: 0, cat4Percentage: 0,
     });
   });
 
@@ -148,9 +149,10 @@ describe("calculateReadiness", () => {
     const result = calculateReadiness(skills, CAT_ADVANCED);
     expect(result.ready).toBe(false);
     expect(result.avg).toBe(0);
+    expect(result.coverage).toBe(0);
   });
 
-  it("returns ready when all conditions are met", () => {
+  it("returns ready when all conditions are met (full coverage)", () => {
     const skills = [
       makeSkill({ score: 4, categoryId: CAT_VEHICLE }),
       makeSkill({ score: 5, categoryId: CAT_ROAD }),
@@ -160,11 +162,41 @@ describe("calculateReadiness", () => {
     const result = calculateReadiness(skills, CAT_ADVANCED);
     expect(result.ready).toBe(true);
     expect(result.avg).toBeCloseTo(4.25, 2);
+    expect(result.coverage).toBe(100);
     expect(result.hasLow).toBe(false);
     expect(result.cat4Avg).toBe(4);
   });
 
-  it("returns not-ready when overall average is below 4", () => {
+  it("returns not-ready when coverage is below 90%", () => {
+    // 5 rated out of 10 total = 50% coverage
+    const skills = [
+      makeSkill({ score: 5, categoryId: CAT_VEHICLE }),
+      makeSkill({ score: 5, categoryId: CAT_VEHICLE }),
+      makeSkill({ score: 5, categoryId: CAT_ADVANCED }),
+      makeSkill({ score: 5, categoryId: CAT_ADVANCED }),
+      makeSkill({ score: 5, categoryId: CAT_ROAD }),
+      makeSkill({ score: 0, categoryId: CAT_VEHICLE }),
+      makeSkill({ score: 0, categoryId: CAT_VEHICLE }),
+      makeSkill({ score: 0, categoryId: CAT_ROAD }),
+      makeSkill({ score: 0, categoryId: CAT_ROAD }),
+      makeSkill({ score: 0, categoryId: CAT_ADVANCED }),
+    ];
+    const result = calculateReadiness(skills, CAT_ADVANCED);
+    expect(result.ready).toBe(false);
+    expect(result.coverage).toBe(50);
+  });
+
+  it("percentage reflects coverage × quality (not quality alone)", () => {
+    // 5/31-like scenario: 5 rated out of 31, all score 4
+    const rated = Array.from({ length: 5 }, () => makeSkill({ score: 4, categoryId: CAT_VEHICLE }));
+    const unrated = Array.from({ length: 26 }, () => makeSkill({ score: 0, categoryId: CAT_ROAD }));
+    const result = calculateReadiness([...rated, ...unrated], CAT_ADVANCED);
+    // coverage = 5/31 ≈ 16%, quality = 4/5 = 80%, readiness ≈ 13%
+    expect(result.percentage).toBeLessThan(20);
+    expect(result.ready).toBe(false);
+  });
+
+  it("returns not-ready when overall average is below threshold", () => {
     const skills = [
       makeSkill({ score: 3, categoryId: CAT_VEHICLE }),
       makeSkill({ score: 3, categoryId: CAT_ROAD }),
@@ -205,13 +237,16 @@ describe("calculateReadiness", () => {
     expect(result.cat4Avg).toBe(0);
   });
 
-  it("correctly handles boundary value: avg exactly 4, cat4 exactly 4, no low", () => {
+  it("correctly handles boundary value: all conditions met at exactly threshold", () => {
     const skills = [
       makeSkill({ score: 4, categoryId: CAT_VEHICLE }),
       makeSkill({ score: 4, categoryId: CAT_ADVANCED }),
     ];
     const result = calculateReadiness(skills, CAT_ADVANCED);
+    // coverage=100%, quality=80%, percentage=80 — exactly at threshold
     expect(result.ready).toBe(true);
+    expect(result.percentage).toBe(80);
+    expect(result.coverage).toBe(100);
     expect(result.avg).toBe(4);
     expect(result.cat4Avg).toBe(4);
   });
@@ -222,7 +257,6 @@ describe("calculateReadiness", () => {
       makeSkill({ score: 5, categoryId: CAT_ADVANCED }),
     ];
     const result = calculateReadiness(skills, CAT_ADVANCED);
-    expect(result.ready).toBe(true);
     expect(result.hasLow).toBe(false);
   });
 
@@ -245,5 +279,6 @@ describe("calculateReadiness", () => {
     const result = calculateReadiness(skills, CAT_ADVANCED);
     expect(result.hasLow).toBe(false);
     expect(result.avg).toBe(4);
+    expect(result.coverage).toBe(67); // 2/3
   });
 });

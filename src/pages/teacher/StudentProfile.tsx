@@ -79,10 +79,12 @@ function flattenSkillTree(skillTree: any[]): { skills: StudentSkillWithCategory[
 interface ReadinessDisplay {
   ready: boolean;
   overallAvg: number;
+  coverage: number;
   hasLowSkills: boolean;
   lowSkillCount: number;
   advancedCatAvg: number;
   ratedCount: number;
+  totalCount: number;
 }
 
 /** Compute readiness using the canonical calcReadiness, mapped to the UI-friendly shape. */
@@ -94,10 +96,12 @@ function computeReadiness(skillTree: any[]): ReadinessDisplay {
   return {
     ready: r.ready,
     overallAvg: r.percentage,
+    coverage: r.coverage,
     hasLowSkills: r.hasLow,
     lowSkillCount: lowCount,
     advancedCatAvg: r.cat4Percentage,
     ratedCount: rated.length,
+    totalCount: skills.length,
   };
 }
 
@@ -403,7 +407,7 @@ export default function StudentProfile() {
                       {readiness.ready ? 'מוכן למבחן' : 'עדיין לא מוכן'}
                     </h3>
                     <p className="text-xs text-muted-foreground font-body">
-                      {readiness.ratedCount} מיומנויות דורגו
+                      {readiness.ratedCount} / {readiness.totalCount} מיומנויות דורגו
                     </p>
                   </div>
                 </div>
@@ -442,6 +446,24 @@ export default function StudentProfile() {
                         {readiness.lowSkillCount} דורשות שיפור
                       </span>
                     )}
+                  </div>
+
+                  {/* Criterion 2b: Coverage >= 90% */}
+                  <div className="flex items-center gap-2.5" role="listitem">
+                    {readiness.coverage >= 90 ? (
+                      <CheckCircle className="h-5 w-5 text-emerald-500 shrink-0" />
+                    ) : (
+                      <XCircle className="h-5 w-5 text-red-400 shrink-0" />
+                    )}
+                    <span className="text-sm font-body text-foreground flex-1">
+                      כיסוי חומר 90%+
+                    </span>
+                    <span className={cn(
+                      'text-sm font-heading font-bold tabular-nums',
+                      readiness.coverage >= 90 ? 'text-emerald-500' : 'text-red-400'
+                    )}>
+                      {readiness.coverage}%
+                    </span>
                   </div>
 
                   {/* Criterion 3: Advanced category >= 80% */}

@@ -10,10 +10,6 @@ import {
 /** Name used to identify the advanced-driving category (category 4). */
 const ADVANCED_CATEGORY_NAME = 'מצבים מתקדמים';
 
-/**
- * Fetch student skills joined with skill metadata, calculate readiness,
- * and return the result alongside React Query loading / error states.
- */
 export function useReadiness(studentId: string | undefined) {
   const { rootTeacherId } = useAuth();
 
@@ -21,7 +17,6 @@ export function useReadiness(studentId: string | undefined) {
     queryKey: ['readiness', studentId, rootTeacherId],
     enabled: !!studentId && !!rootTeacherId,
     queryFn: async (): Promise<ReadinessResult> => {
-      // Fetch student_skills for this student
       const { data: studentSkills, error: ssErr } = await supabase
         .from('student_skills')
         .select('*')
@@ -29,7 +24,6 @@ export function useReadiness(studentId: string | undefined) {
 
       if (ssErr) throw ssErr;
 
-      // Fetch skills (to get category_id and name)
       const { data: skills, error: skErr } = await supabase
         .from('skills')
         .select('*')
@@ -37,7 +31,6 @@ export function useReadiness(studentId: string | undefined) {
 
       if (skErr) throw skErr;
 
-      // Fetch categories to find the advanced one
       const { data: categories, error: catErr } = await supabase
         .from('skill_categories')
         .select('*')
@@ -49,20 +42,24 @@ export function useReadiness(studentId: string | undefined) {
         (c) => c.name === ADVANCED_CATEGORY_NAME,
       );
 
-      // Build the joined shape that calculateReadiness expects
-      const skillMap = new Map(
-        (skills ?? []).map((s) => [s.id, s]),
-      );
+      // Build a record for every skill — score=0 for never-practiced ones.
+      // This ensures coverage is computed against the full skill set.
+      const ssMap = new Map((studentSkills ?? []).map((ss) => [ss.skill_id, ss]));
 
-      const joined: StudentSkillWithCategory[] = (studentSkills ?? [])
-        .filter((ss) => skillMap.has(ss.skill_id))
-        .map((ss) => {
-          const s = skillMap.get(ss.skill_id)!;
-          return {
-            ...ss,
-            skill: { id: s.id, category_id: s.category_id, name: s.name },
-          };
-        });
+      const joined: StudentSkillWithCategory[] = (skills ?? []).map((s) => {
+        const ss = ssMap.get(s.id);
+        return {
+          id: ss?.id ?? `virtual-${s.id}`,
+          student_id: studentId!,
+          skill_id: s.id,
+          current_score: ss?.current_score ?? 0,
+          times_practiced: ss?.times_practiced ?? 0,
+          last_practiced_date: ss?.last_practiced_date ?? null,
+          last_note: ss?.last_note ?? null,
+          updated_at: ss?.updated_at ?? new Date().toISOString(),
+          skill: { id: s.id, category_id: s.category_id, name: s.name },
+        };
+      });
 
       return calculateReadiness(joined, advancedCategory?.id);
     },
