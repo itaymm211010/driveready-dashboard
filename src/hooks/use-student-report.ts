@@ -1,14 +1,11 @@
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-import { useAuth } from '@/hooks/use-auth';
 import { format } from 'date-fns';
 
 export function useStudentReport(studentId: string | undefined) {
-  const { rootTeacherId } = useAuth();
-
   return useQuery({
-    queryKey: ['student-report', studentId, rootTeacherId],
-    enabled: !!studentId && !!rootTeacherId,
+    queryKey: ['student-report', studentId],
+    enabled: !!studentId,
     queryFn: async () => {
       const { data: student, error: sErr } = await supabase
         .from('students')
@@ -18,16 +15,19 @@ export function useStudentReport(studentId: string | undefined) {
       if (sErr) throw sErr;
       if (!student) return null;
 
+      // Use the student's own teacher_id — no auth context needed (public route)
+      const teacherId = student.teacher_id;
+
       const { data: categories } = await supabase
         .from('skill_categories')
         .select('*')
-        .eq('teacher_id', rootTeacherId!)
+        .eq('teacher_id', teacherId)
         .order('sort_order');
 
       const { data: skills } = await supabase
         .from('skills')
         .select('*')
-        .eq('teacher_id', rootTeacherId!)
+        .eq('teacher_id', teacherId)
         .order('sort_order');
 
       const { data: studentSkills } = await supabase
