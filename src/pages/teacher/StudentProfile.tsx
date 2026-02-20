@@ -201,7 +201,7 @@ export default function StudentProfile() {
   }, [id, teacherNotes, updateNotes]);
 
   const skillTree = data?.skillTree;
-  const readiness = useMemo(() => skillTree ? computeReadiness(skillTree) : { ready: false, overallAvg: 0, hasLowSkills: false, lowSkillCount: 0, advancedCatAvg: 0, ratedCount: 0 }, [skillTree]);
+  const readiness = useMemo(() => skillTree ? computeReadiness(skillTree) : { ready: false, overallAvg: 0, coverage: 0, hasLowSkills: false, lowSkillCount: 0, advancedCatAvg: 0, ratedCount: 0, totalCount: 0 }, [skillTree]);
   const categoryAverages = useMemo(() => skillTree ? computeCategoryAverages(skillTree) : [], [skillTree]);
 
   if (isLoading) {
