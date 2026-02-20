@@ -95,6 +95,9 @@ Deno.serve(async (req) => {
       })
     }
 
+    // Seed default skills for the new teacher
+    await adminClient.rpc('seed_default_skills', { p_teacher_id: newUser.user.id })
+
     return new Response(JSON.stringify({ success: true, userId: newUser.user.id }), {
       status: 200,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
