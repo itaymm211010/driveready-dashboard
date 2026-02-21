@@ -21,6 +21,8 @@ export interface CalendarLesson {
     phone: string | null;
     balance: number;
   };
+  /** שם המורה המחליף — null אם המורה הראשי מעביר */
+  taught_by_teacher_name: string | null;
 }
 
 function getDateRange(view: CalendarView, date: Date) {
@@ -46,7 +48,7 @@ export function useCalendarLessons(view: CalendarView, date: Date) {
     queryFn: async () => {
       const { data, error } = await supabase
         .from('lessons')
-        .select('id, date, time_start, time_end, amount, status, payment_status, notes, student_id, students(id, name, phone, balance)')
+        .select('id, date, time_start, time_end, amount, status, payment_status, notes, student_id, taught_by_teacher_id, students(id, name, phone, balance), taught_by_teacher:teachers!taught_by_teacher_id(name)')
         .eq('teacher_id', rootTeacherId!)
         .gte('date', startStr)
         .lte('date', endStr)
@@ -55,18 +57,23 @@ export function useCalendarLessons(view: CalendarView, date: Date) {
 
       if (error) throw error;
 
-      const lessons: CalendarLesson[] = (data ?? []).map((l) => ({
-        id: l.id,
-        date: l.date,
-        time_start: l.time_start,
-        time_end: l.time_end,
-        amount: l.amount,
-        status: l.status,
-        payment_status: l.payment_status,
-        notes: l.notes,
-        student_id: l.student_id,
-        student: l.students!,
-      }));
+      const lessons: CalendarLesson[] = (data ?? []).map((l) => {
+        const row = l as typeof l & { taught_by_teacher: { name: string } | null };
+        const isSubstitute = l.taught_by_teacher_id !== null && l.taught_by_teacher_id !== rootTeacherId;
+        return {
+          id: l.id,
+          date: l.date,
+          time_start: l.time_start,
+          time_end: l.time_end,
+          amount: l.amount,
+          status: l.status,
+          payment_status: l.payment_status,
+          notes: l.notes,
+          student_id: l.student_id,
+          student: l.students!,
+          taught_by_teacher_name: isSubstitute ? (row.taught_by_teacher?.name ?? null) : null,
+        };
+      });
 
       // Group by date
       const grouped: Record<string, CalendarLesson[]> = {};

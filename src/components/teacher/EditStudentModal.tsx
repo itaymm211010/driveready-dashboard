@@ -114,7 +114,7 @@ export function EditStudentModal({ open, onOpenChange, student }: EditStudentMod
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-md max-h-[90vh] overflow-y-auto">
+      <DialogContent className="sm:max-w-md top-2 translate-y-0 sm:top-[50%] sm:translate-y-[-50%] max-h-[calc(100dvh-1rem)] sm:max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>עריכת תלמיד</DialogTitle>
           <DialogDescription>עדכן את פרטי התלמיד.</DialogDescription>
