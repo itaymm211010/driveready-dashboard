@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { format, addMinutes, parse } from 'date-fns';
 import { CalendarIcon, AlertTriangle } from 'lucide-react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
@@ -88,10 +88,21 @@ export function AddLessonModal({ open, onOpenChange, preselectedStudentId, prefi
     }
   }, [studentId, students, lessonType, duration]);
 
-  // Pre-fill pickup address from student's default
+  // Build address shortcuts from the selected student's stored addresses
+  const addressShortcuts = useMemo(() => {
+    const s = (students ?? []).find((s) => s.id === studentId) as any;
+    if (!s) return [];
+    const opts: { key: string; label: string; address: string }[] = [];
+    if (s.pickup_address) opts.push({ key: 'home', label: '🏠 מגורים', address: s.pickup_address });
+    if (s.school_address) opts.push({ key: 'school', label: '🏫 בית ספר', address: s.school_address });
+    if (s.work_address) opts.push({ key: 'work', label: '💼 עבודה', address: s.work_address });
+    return opts;
+  }, [studentId, students]);
+
+  // Pre-fill pickup address from student's home address when student changes
   useEffect(() => {
-    const selected = (students ?? []).find((s) => s.id === studentId);
-    setPickupAddress((selected as any)?.pickup_address ?? '');
+    const s = (students ?? []).find((s) => s.id === studentId) as any;
+    setPickupAddress(s?.pickup_address ?? '');
   }, [studentId, students]);
 
   // Reset form when modal opens
@@ -257,14 +268,41 @@ export function AddLessonModal({ open, onOpenChange, preselectedStudentId, prefi
           )}
 
           {/* Pickup Address */}
-          <div className="space-y-2">
-            <Label>כתובת איסוף</Label>
-            <Input
-              value={pickupAddress}
-              onChange={(e) => setPickupAddress(e.target.value)}
-              placeholder="רחוב, עיר..."
-            />
-          </div>
+          {studentId && (
+            <div className="space-y-2">
+              <Label>כתובת איסוף</Label>
+              {addressShortcuts.length > 0 && (
+                <div className="flex gap-1.5 flex-wrap">
+                  {addressShortcuts.map(s => (
+                    <Button
+                      key={s.key}
+                      type="button"
+                      variant={pickupAddress === s.address ? 'default' : 'outline'}
+                      size="sm"
+                      className="text-xs h-7"
+                      onClick={() => setPickupAddress(s.address)}
+                    >
+                      {s.label}
+                    </Button>
+                  ))}
+                  <Button
+                    type="button"
+                    variant={!addressShortcuts.some(s => s.address === pickupAddress) ? 'default' : 'outline'}
+                    size="sm"
+                    className="text-xs h-7"
+                    onClick={() => setPickupAddress('')}
+                  >
+                    ✏️ אחר
+                  </Button>
+                </div>
+              )}
+              <Input
+                value={pickupAddress}
+                onChange={(e) => setPickupAddress(e.target.value)}
+                placeholder="רחוב, עיר..."
+              />
+            </div>
+          )}
 
           {/* Notes */}
           <div className="space-y-2">
