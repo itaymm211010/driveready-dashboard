@@ -66,10 +66,10 @@ export default function ActiveLesson() {
   const [hasStarted, setHasStarted] = useState(false);
 
   // Derive time tracking data from lesson
-  const actualStartTime = (lessonData?.lesson as any)?.actual_start_time
-    ? new Date((lessonData?.lesson as any).actual_start_time)
+  const actualStartTime = lessonData?.lesson?.actual_start_time
+    ? new Date(lessonData.lesson.actual_start_time)
     : null;
-  const scheduledMinutes = (lessonData?.lesson as any)?.scheduled_duration_minutes as number | null ?? null;
+  const scheduledMinutes = lessonData?.lesson?.scheduled_duration_minutes ?? null;
   const scheduledEndTime = useMemo(() => {
     if (!lessonData?.lesson) return null;
     const { time_end } = lessonData.lesson;

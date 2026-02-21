@@ -79,7 +79,7 @@ export function EditSubstituteModal({ open, onOpenChange, substitute }: EditSubs
           vehicle_type: vehicleType || null,
           notes: notes.trim() || null,
           is_active: isActive,
-        } as any)
+        })
         .eq('id', substitute.id);
       if (error) throw error;
     },

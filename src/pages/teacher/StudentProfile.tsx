@@ -30,6 +30,34 @@ import { cn } from '@/lib/utils';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { FontSizeSelector } from '@/components/FontSizeSelector';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import type { DbSkill } from '@/hooks/use-teacher-data';
+
+interface SkillStudentEntry {
+  id: string;
+  student_id: string;
+  current_score: number;
+  times_practiced: number;
+  last_practiced_date: string | null;
+  last_note: string | null;
+  updated_at: string;
+}
+interface SkillTreeSkill {
+  id: string;
+  name: string;
+  category_id: string;
+  sort_order: number;
+  studentSkill: SkillStudentEntry | null;
+  student_skill: SkillStudentEntry | null;
+  history: { id: string; lesson_date: string; score: number; teacher_note: string | null; lesson_number: number | null; practice_duration_minutes: number | null }[];
+}
+interface SkillTreeCategory {
+  id: string;
+  name: string;
+  sort_order: number | null;
+  icon: string | null;
+  color: string | null;
+  skills: SkillTreeSkill[];
+}
 
 function getScoreBadgeConfig(score: number): { label: string; color: string; icon: React.ReactNode } {
   if (score >= 5) return { label: '5 מוכן לטסט', color: 'bg-blue-500/15 text-blue-600 border-blue-500/30', icon: <CheckCircle className="h-3 w-3" /> };
@@ -57,7 +85,7 @@ const CATEGORY_COLORS: Record<string, string> = {
 };
 
 /** Flatten the skillTree (from useStudentProfile) into the shape calculations.ts expects. */
-function flattenSkillTree(skillTree: any[]): { skills: StudentSkillWithCategory[]; advancedCategoryId: string | undefined } {
+function flattenSkillTree(skillTree: SkillTreeCategory[]): { skills: StudentSkillWithCategory[]; advancedCategoryId: string | undefined } {
   let advancedCategoryId: string | undefined;
   const skills: StudentSkillWithCategory[] = [];
 
@@ -95,7 +123,7 @@ interface ReadinessDisplay {
 }
 
 /** Compute readiness using the canonical calcReadiness, mapped to the UI-friendly shape. */
-function computeReadiness(skillTree: any[]): ReadinessDisplay {
+function computeReadiness(skillTree: SkillTreeCategory[]): ReadinessDisplay {
   const { skills, advancedCategoryId } = flattenSkillTree(skillTree);
   const r = calcReadiness(skills, advancedCategoryId);
   const rated = skills.filter((s) => (s.current_score ?? 0) > 0);
@@ -124,11 +152,11 @@ interface CategoryAverageDisplay {
 }
 
 /** Compute per-category averages using the canonical calculateCategoryAverage. */
-function computeCategoryAverages(skillTree: any[]): CategoryAverageDisplay[] {
+function computeCategoryAverages(skillTree: SkillTreeCategory[]): CategoryAverageDisplay[] {
   const { skills } = flattenSkillTree(skillTree);
   return skillTree.map((cat) => {
-    const rated = cat.skills.filter((s: any) => (s.studentSkill?.current_score ?? 0) > 0);
-    const mastered = cat.skills.filter((s: any) => (s.studentSkill?.current_score ?? 0) >= 4).length;
+    const rated = cat.skills.filter((s) => (s.studentSkill?.current_score ?? 0) > 0);
+    const mastered = cat.skills.filter((s) => (s.studentSkill?.current_score ?? 0) >= 4).length;
     return {
       id: cat.id,
       name: cat.name,
@@ -168,7 +196,7 @@ function useUpdateTeacherNotes() {
     mutationFn: async ({ studentId, notes }: { studentId: string; notes: string }) => {
       const { error } = await supabase
         .from('students')
-        .update({ teacher_notes: notes } as any)
+        .update({ teacher_notes: notes })
         .eq('id', studentId);
       if (error) throw error;
     },
@@ -188,14 +216,14 @@ export default function StudentProfile() {
   const [showEdit, setShowEdit] = useState(false);
   const [showDelete, setShowDelete] = useState(false);
   const [showAddLesson, setShowAddLesson] = useState(false);
-  const [historySkill, setHistorySkill] = useState<any>(null);
+  const [historySkill, setHistorySkill] = useState<SkillTreeSkill | null>(null);
   const [teacherNotes, setTeacherNotes] = useState('');
   const notesInitialized = useRef(false);
   const debounceRef = useRef<ReturnType<typeof setTimeout>>();
 
   useEffect(() => {
     if (data?.student && !notesInitialized.current) {
-      setTeacherNotes((data.student as any).teacher_notes ?? '');
+      setTeacherNotes(data.student.teacher_notes ?? '');
       notesInitialized.current = true;
     }
   }, [data?.student]);
@@ -235,14 +263,14 @@ export default function StudentProfile() {
   const hasDebt = student.balance < 0;
   const totalSkills = data.skillTree.reduce((sum, cat) => sum + cat.skills.length, 0);
   const masteredSkills = data.skillTree.reduce(
-    (sum, cat) => sum + cat.skills.filter((s: any) => (s.studentSkill?.current_score ?? 0) >= 4).length, 0
+    (sum, cat) => sum + cat.skills.filter((s) => (s.studentSkill?.current_score ?? 0) >= 4).length, 0
   );
 
   // Radar chart data
   const radarData = data.skillTree.map((cat) => {
     const total = cat.skills.length;
-    const mastered = cat.skills.filter((s: any) => (s.studentSkill?.current_score ?? 0) >= 4).length;
-    const inProgress = cat.skills.filter((s: any) => { const sc = s.studentSkill?.current_score ?? 0; return sc > 0 && sc < 4; }).length;
+    const mastered = cat.skills.filter((s) => (s.studentSkill?.current_score ?? 0) >= 4).length;
+    const inProgress = cat.skills.filter((s) => { const sc = s.studentSkill?.current_score ?? 0; return sc > 0 && sc < 4; }).length;
     const notLearned = total - mastered - inProgress;
     const score = mastered + inProgress * 0.5;
     return { category: cat.name, value: total > 0 ? Math.round((score / total) * 100) : 0, mastered, inProgress, notLearned, total };
@@ -252,7 +280,7 @@ export default function StudentProfile() {
   const progressData = (() => {
     const allHistory: { date: string; skillId: string; score: number }[] = [];
     for (const cat of data.skillTree) {
-      for (const skill of cat.skills as any[]) {
+      for (const skill of cat.skills) {
         for (const h of skill.history || []) {
           allHistory.push({ date: h.lesson_date, skillId: skill.id, score: h.score ?? 0 });
         }
@@ -592,7 +620,7 @@ export default function StudentProfile() {
               <Progress value={totalSkills > 0 ? (masteredSkills / totalSkills) * 100 : 0} className="h-2.5" />
 
               {skillTree.map((category) => {
-                const catMastered = category.skills.filter((s: any) => (s.studentSkill?.current_score ?? 0) >= 4).length;
+                const catMastered = category.skills.filter((s) => (s.studentSkill?.current_score ?? 0) >= 4).length;
                 return (
                   <div key={category.id}>
                     <div className="flex items-center justify-between mb-2">
@@ -602,7 +630,7 @@ export default function StudentProfile() {
                       <span className="text-xs text-muted-foreground font-body">{catMastered}/{category.skills.length}</span>
                     </div>
                     <div className="flex flex-wrap gap-1.5">
-                      {category.skills.map((skill: any) => {
+                      {category.skills.map((skill) => {
                         const sc = skill.studentSkill?.current_score ?? 0;
                         const cfg = getScoreBadgeConfig(sc);
                         return (
@@ -688,7 +716,7 @@ export default function StudentProfile() {
                 <p className="text-sm text-muted-foreground py-4 text-center font-body">אין שיעורים עדיין.</p>
               ) : (
                 <div className="space-y-2">
-                  {lessons.slice(0, 20).map((lesson: any) => {
+                  {lessons.slice(0, 20).map((lesson) => {
                     const actualStart = lesson.actual_start_time
                       ? new Date(lesson.actual_start_time).toLocaleTimeString('he-IL', { hour: '2-digit', minute: '2-digit' })
                       : null;
@@ -780,9 +808,9 @@ export default function StudentProfile() {
                 <p className="text-sm font-medium font-mono text-foreground">{student.id_number || '—'}</p>
               </div>
               {[
-                { label: '🏠 מגורים', value: (student as any).pickup_address },
-                { label: '🏫 בית ספר', value: (student as any).school_address },
-                { label: '💼 עבודה', value: (student as any).work_address },
+                { label: '🏠 מגורים', value: student.pickup_address },
+                { label: '🏫 בית ספר', value: student.school_address },
+                { label: '💼 עבודה', value: student.work_address },
               ].filter(a => !!a.value).map((addr) => (
                 <div key={addr.label}>
                   <Separator />
@@ -820,12 +848,12 @@ export default function StudentProfile() {
               <Separator />
               <div className="flex items-center justify-between">
                 <p className="text-sm text-muted-foreground font-body">טסט פנימי</p>
-                <p className="text-lg font-heading font-bold text-foreground">₪{(student as any).internal_test_price ?? 0}</p>
+                <p className="text-lg font-heading font-bold text-foreground">₪{student.internal_test_price ?? 0}</p>
               </div>
               <Separator />
               <div className="flex items-center justify-between">
                 <p className="text-sm text-muted-foreground font-body">טסט חיצוני</p>
-                <p className="text-lg font-heading font-bold text-foreground">₪{(student as any).external_test_price ?? 0}</p>
+                <p className="text-lg font-heading font-bold text-foreground">₪{student.external_test_price ?? 0}</p>
               </div>
             </CardContent>
           </Card>
@@ -835,7 +863,7 @@ export default function StudentProfile() {
       <EditStudentModal open={showEdit} onOpenChange={setShowEdit} student={student} />
       <DeleteStudentDialog open={showDelete} onOpenChange={setShowDelete} studentId={student.id} studentName={student.name} />
       <AddLessonModal open={showAddLesson} onOpenChange={setShowAddLesson} preselectedStudentId={student.id} />
-      <SkillHistoryModal open={!!historySkill} onOpenChange={(o) => !o && setHistorySkill(null)} skill={historySkill} />
+      <SkillHistoryModal open={!!historySkill} onOpenChange={(o) => !o && setHistorySkill(null)} skill={historySkill as unknown as DbSkill} />
       <BottomNav />
     </div>
   );
