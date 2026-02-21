@@ -27,11 +27,11 @@ export function useLessonConflicts(
 
       const { data, error } = await query;
       if (error) throw error;
-      return (data ?? []).map((c: any) => ({
+      return (data ?? []).map((c) => ({
         id: c.id,
         time_start: c.time_start,
         time_end: c.time_end,
-        studentName: c.students?.name ?? 'Unknown',
+        studentName: (c.students as { name: string } | null)?.name ?? 'Unknown',
       }));
     },
   });

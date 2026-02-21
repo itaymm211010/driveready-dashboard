@@ -36,8 +36,8 @@ export function AddTeacherModal({ open, onOpenChange }: AddTeacherModalProps) {
       toast.success('מורה נוסף בהצלחה');
       setName(''); setEmail(''); setPassword('');
       onOpenChange(false);
-    } catch (err: any) {
-      toast.error(err.message ?? 'שגיאה ביצירת המורה');
+    } catch (err: unknown) {
+      toast.error(err instanceof Error ? err.message : 'שגיאה ביצירת המורה');
     } finally {
       setLoading(false);
     }

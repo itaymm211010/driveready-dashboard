@@ -1,5 +1,5 @@
 import { useState, useCallback, useRef, useEffect, useMemo } from 'react';
-import { Plus, ArrowLeft, Phone, MessageCircle, TrendingUp, Wallet, BookOpen, CheckCircle, Clock, AlertTriangle, ExternalLink, Pencil, Trash2, Calendar, FileText, CreditCard, StickyNote, Shield, XCircle } from 'lucide-react';
+import { Plus, ArrowLeft, Phone, MessageCircle, TrendingUp, Wallet, BookOpen, CheckCircle, Clock, AlertTriangle, ExternalLink, Pencil, Trash2, Calendar, FileText, CreditCard, StickyNote, Shield, XCircle, Navigation2, Map } from 'lucide-react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { format, formatDistanceToNow } from 'date-fns';
 import { he } from 'date-fns/locale';
@@ -779,6 +779,39 @@ export default function StudentProfile() {
                 <p className="text-sm text-muted-foreground font-body">ת.ז</p>
                 <p className="text-sm font-medium font-mono text-foreground">{student.id_number || '—'}</p>
               </div>
+              {[
+                { label: '🏠 מגורים', value: (student as any).pickup_address },
+                { label: '🏫 בית ספר', value: (student as any).school_address },
+                { label: '💼 עבודה', value: (student as any).work_address },
+              ].filter(a => !!a.value).map((addr) => (
+                <div key={addr.label}>
+                  <Separator />
+                  <div className="flex items-start justify-between gap-2 py-0.5">
+                    <p className="text-sm text-muted-foreground font-body shrink-0 pt-0.5">{addr.label}</p>
+                    <div className="flex items-center gap-1.5 min-w-0">
+                      <p className="text-sm font-medium text-foreground text-left truncate">{addr.value}</p>
+                      <a
+                        href={`https://waze.com/ul?q=${encodeURIComponent(addr.value)}&navigate=yes`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="shrink-0 p-1 rounded-md text-blue-500 hover:bg-blue-500/10 transition-colors"
+                        title="נווט ב-Waze"
+                      >
+                        <Navigation2 className="h-3.5 w-3.5" />
+                      </a>
+                      <a
+                        href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(addr.value)}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="shrink-0 p-1 rounded-md text-green-600 hover:bg-green-600/10 transition-colors"
+                        title="Google Maps"
+                      >
+                        <Map className="h-3.5 w-3.5" />
+                      </a>
+                    </div>
+                  </div>
+                </div>
+              ))}
               <Separator />
               <div className="flex items-center justify-between">
                 <p className="text-sm text-muted-foreground font-body">מחיר שיעור</p>

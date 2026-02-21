@@ -1,6 +1,9 @@
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/use-auth';
+import type { Database } from '@/integrations/supabase/types';
+
+type SkillHistoryRow = Database['public']['Tables']['skill_history']['Row'];
 
 export type DbStudent = {
   id: string;
@@ -156,7 +159,7 @@ export function useStudentSkillTree(studentId: string | undefined) {
       if (ssError) throw ssError;
 
       const ssIds = (studentSkills ?? []).map((ss) => ss.id);
-      let historyRows: any[] = [];
+      let historyRows: SkillHistoryRow[] = [];
       if (ssIds.length > 0) {
         const { data, error: hError } = await supabase
           .from('skill_history')
@@ -169,7 +172,7 @@ export function useStudentSkillTree(studentId: string | undefined) {
       }
 
       const ssMap = new Map((studentSkills ?? []).map((ss) => [ss.skill_id, ss]));
-      const historyBySSId = new Map<string, typeof historyRows>();
+      const historyBySSId = new Map<string, SkillHistoryRow[]>();
       for (const h of historyRows) {
         const arr = historyBySSId.get(h.student_skill_id) ?? [];
         arr.push(h);
@@ -180,7 +183,7 @@ export function useStudentSkillTree(studentId: string | undefined) {
         id: cat.id,
         name: cat.name,
         icon: cat.icon,
-        color: (cat as any).color ?? null,
+        color: cat.color ?? null,
         sort_order: cat.sort_order,
         skills: (skills ?? [])
           .filter((s) => s.category_id === cat.id)

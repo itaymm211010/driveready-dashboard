@@ -27,13 +27,13 @@ export function useStartLesson() {
           status: 'in_progress',
           actual_start_time: now,
           scheduled_duration_minutes: scheduledMinutes,
-        } as any)
+        })
         .eq('id', lessonId);
 
       if (lessonErr) throw lessonErr;
 
       const { error: logErr } = await supabase
-        .from('lesson_time_log' as any)
+        .from('lesson_time_log')
         .insert({
           lesson_id: lessonId,
           event_type: 'started',

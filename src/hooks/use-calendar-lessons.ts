@@ -55,9 +55,17 @@ export function useCalendarLessons(view: CalendarView, date: Date) {
 
       if (error) throw error;
 
-      const lessons: CalendarLesson[] = (data ?? []).map((l: any) => ({
-        ...l,
-        student: l.students,
+      const lessons: CalendarLesson[] = (data ?? []).map((l) => ({
+        id: l.id,
+        date: l.date,
+        time_start: l.time_start,
+        time_end: l.time_end,
+        amount: l.amount,
+        status: l.status,
+        payment_status: l.payment_status,
+        notes: l.notes,
+        student_id: l.student_id,
+        student: l.students!,
       }));
 
       // Group by date
