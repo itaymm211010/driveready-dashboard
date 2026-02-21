@@ -18,7 +18,7 @@ Deno.serve(async (req) => {
       auth: { autoRefreshToken: false, persistSession: false },
     })
 
-    const { email, new_password } = await req.json()
+    const { email, new_password, new_email } = await req.json()
 
     // Find user by email
     const { data: { users }, error: listError } = await adminClient.auth.admin.listUsers()
@@ -35,10 +35,12 @@ Deno.serve(async (req) => {
       })
     }
 
-    // Update password
-    const { error: updateError } = await adminClient.auth.admin.updateUserById(user.id, {
-      password: new_password,
-    })
+    // Update user
+    const updateData: Record<string, string> = {}
+    if (new_password) updateData.password = new_password
+    if (new_email) updateData.email = new_email
+
+    const { error: updateError } = await adminClient.auth.admin.updateUserById(user.id, updateData)
 
     if (updateError) {
       return new Response(JSON.stringify({ error: updateError.message }), {
