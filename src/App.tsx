@@ -22,6 +22,7 @@ import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
 
+
 /** מנתב ל-home הנכון לפי תפקיד */
 function HomeRedirect() {
   const { currentUser, isAdmin, loading } = useAuthContext();
@@ -53,6 +54,7 @@ function AppRoutes() {
   return (
     <Routes>
       <Route path="/login" element={<LoginPage />} />
+      
       <Route path="/" element={<HomeRedirect />} />
 
       {/* Teacher routes */}
