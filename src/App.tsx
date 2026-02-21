@@ -16,6 +16,7 @@ import CalendarPage from "./pages/teacher/CalendarPage";
 import ReportsPage from "./pages/teacher/ReportsPage";
 import SubstitutesPage from "./pages/teacher/SubstitutesPage";
 import TeachersPage from "./pages/admin/TeachersPage";
+import ProjectManagement from "./pages/admin/project-management/Index";
 import LoginPage from "./pages/LoginPage";
 import NotFound from "./pages/NotFound";
 
@@ -65,6 +66,7 @@ function AppRoutes() {
 
       {/* Admin routes */}
       <Route path="/admin/teachers" element={<AdminRoute><TeachersPage /></AdminRoute>} />
+      <Route path="/admin/project-management" element={<AdminRoute><ProjectManagement /></AdminRoute>} />
 
       {/* Public */}
       <Route path="/student/:id/report" element={<StudentReport />} />

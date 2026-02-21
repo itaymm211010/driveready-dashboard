@@ -14,6 +14,110 @@ export type Database = {
   }
   public: {
     Tables: {
+      bug_reports: {
+        Row: {
+          created_at: string
+          description: string
+          id: string
+          reporter_id: string | null
+          resolved_at: string | null
+          severity: string
+          status: string
+          steps_to_reproduce: string | null
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          description: string
+          id?: string
+          reporter_id?: string | null
+          resolved_at?: string | null
+          severity?: string
+          status?: string
+          steps_to_reproduce?: string | null
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          description?: string
+          id?: string
+          reporter_id?: string | null
+          resolved_at?: string | null
+          severity?: string
+          status?: string
+          steps_to_reproduce?: string | null
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "bug_reports_reporter_id_fkey"
+            columns: ["reporter_id"]
+            isOneToOne: false
+            referencedRelation: "teachers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      deployments: {
+        Row: {
+          created_at: string
+          deployed_by: string | null
+          environment: string
+          error_log: string | null
+          git_commit_hash: string | null
+          id: string
+          notes: string | null
+          sprint_id: string | null
+          status: string
+          updated_at: string
+          version: string
+        }
+        Insert: {
+          created_at?: string
+          deployed_by?: string | null
+          environment?: string
+          error_log?: string | null
+          git_commit_hash?: string | null
+          id?: string
+          notes?: string | null
+          sprint_id?: string | null
+          status?: string
+          updated_at?: string
+          version: string
+        }
+        Update: {
+          created_at?: string
+          deployed_by?: string | null
+          environment?: string
+          error_log?: string | null
+          git_commit_hash?: string | null
+          id?: string
+          notes?: string | null
+          sprint_id?: string | null
+          status?: string
+          updated_at?: string
+          version?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "deployments_deployed_by_fkey"
+            columns: ["deployed_by"]
+            isOneToOne: false
+            referencedRelation: "teachers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "deployments_sprint_id_fkey"
+            columns: ["sprint_id"]
+            isOneToOne: false
+            referencedRelation: "sprints"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       lesson_planned_skills: {
         Row: {
           added_at: string
@@ -178,6 +282,30 @@ export type Database = {
           },
         ]
       }
+      project_alerts: {
+        Row: {
+          created_at: string
+          id: string
+          is_read: boolean
+          message: string
+          severity: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_read?: boolean
+          message: string
+          severity?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_read?: boolean
+          message?: string
+          severity?: string
+        }
+        Relationships: []
+      }
       skill_categories: {
         Row: {
           color: string | null
@@ -290,6 +418,50 @@ export type Database = {
             columns: ["category_id"]
             isOneToOne: false
             referencedRelation: "skill_categories"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      sprints: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          description: string | null
+          end_date: string
+          id: string
+          name: string
+          start_date: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          end_date: string
+          id?: string
+          name: string
+          start_date: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          end_date?: string
+          id?: string
+          name?: string
+          start_date?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "sprints_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "teachers"
             referencedColumns: ["id"]
           },
         ]
@@ -428,6 +600,93 @@ export type Database = {
           work_address?: string | null
         }
         Relationships: []
+      }
+      task_logs: {
+        Row: {
+          created_at: string
+          file_path: string | null
+          id: string
+          level: string
+          line_number: number | null
+          message: string
+        }
+        Insert: {
+          created_at?: string
+          file_path?: string | null
+          id?: string
+          level?: string
+          line_number?: number | null
+          message: string
+        }
+        Update: {
+          created_at?: string
+          file_path?: string | null
+          id?: string
+          level?: string
+          line_number?: number | null
+          message?: string
+        }
+        Relationships: []
+      }
+      tasks: {
+        Row: {
+          actual_hours: number | null
+          created_at: string
+          created_by: string | null
+          description: string | null
+          estimated_hours: number | null
+          id: string
+          priority: string
+          sprint_id: string | null
+          status: string
+          title: string
+          type: string
+          updated_at: string
+        }
+        Insert: {
+          actual_hours?: number | null
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          estimated_hours?: number | null
+          id?: string
+          priority?: string
+          sprint_id?: string | null
+          status?: string
+          title: string
+          type?: string
+          updated_at?: string
+        }
+        Update: {
+          actual_hours?: number | null
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          estimated_hours?: number | null
+          id?: string
+          priority?: string
+          sprint_id?: string | null
+          status?: string
+          title?: string
+          type?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tasks_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "teachers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tasks_sprint_id_fkey"
+            columns: ["sprint_id"]
+            isOneToOne: false
+            referencedRelation: "sprints"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       teachers: {
         Row: {
