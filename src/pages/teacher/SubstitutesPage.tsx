@@ -118,6 +118,17 @@ export default function SubstitutesPage() {
                 {sub.vehicle_type && (
                   <p className="text-sm text-muted-foreground">🚗 {sub.vehicle_type}</p>
                 )}
+                {sub.id_number && (
+                  <p className="text-sm text-muted-foreground">ת.ז: {sub.id_number}</p>
+                )}
+                {sub.bank_name && (
+                  <p className="text-sm text-muted-foreground">
+                    🏦 {sub.bank_name}{sub.bank_branch ? ` סניף ${sub.bank_branch}` : ''}{sub.bank_account ? ` · ${sub.bank_account}` : ''}
+                  </p>
+                )}
+                {sub.notes && (
+                  <p className="text-sm text-muted-foreground italic">{sub.notes}</p>
+                )}
               </div>
               <div className="flex gap-1">
                 <Button

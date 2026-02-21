@@ -807,6 +807,56 @@ export default function StudentProfile() {
                 <p className="text-sm text-muted-foreground font-body">ת.ז</p>
                 <p className="text-sm font-medium font-mono text-foreground">{student.id_number || '—'}</p>
               </div>
+              {student.date_of_birth && (
+                <>
+                  <Separator />
+                  <div className="flex items-center justify-between">
+                    <p className="text-sm text-muted-foreground font-body">תאריך לידה</p>
+                    <p className="text-sm font-medium text-foreground">{new Date(student.date_of_birth).toLocaleDateString('he-IL')}</p>
+                  </div>
+                </>
+              )}
+              {student.gender && (
+                <>
+                  <Separator />
+                  <div className="flex items-center justify-between">
+                    <p className="text-sm text-muted-foreground font-body">מגדר</p>
+                    <p className="text-sm font-medium text-foreground">{student.gender}</p>
+                  </div>
+                </>
+              )}
+              {student.license_type && (
+                <>
+                  <Separator />
+                  <div className="flex items-center justify-between">
+                    <p className="text-sm text-muted-foreground font-body">סוג רישיון</p>
+                    <p className="text-sm font-medium text-foreground">{student.license_type}</p>
+                  </div>
+                </>
+              )}
+              {student.theory_test_passed && (
+                <>
+                  <Separator />
+                  <div className="flex items-center justify-between">
+                    <p className="text-sm text-muted-foreground font-body">תיאוריה</p>
+                    <p className="text-sm font-medium text-foreground">
+                      עבר/ה
+                      {student.theory_test_date && ` — ${new Date(student.theory_test_date).toLocaleDateString('he-IL')}`}
+                    </p>
+                  </div>
+                </>
+              )}
+              {(student.emergency_contact_name || student.emergency_contact_phone) && (
+                <>
+                  <Separator />
+                  <div className="flex items-center justify-between">
+                    <p className="text-sm text-muted-foreground font-body">חירום</p>
+                    <p className="text-sm font-medium text-foreground text-left">
+                      {[student.emergency_contact_name, student.emergency_contact_phone].filter(Boolean).join(' · ')}
+                    </p>
+                  </div>
+                </>
+              )}
               {[
                 { label: '🏠 מגורים', value: student.pickup_address },
                 { label: '🏫 בית ספר', value: student.school_address },
