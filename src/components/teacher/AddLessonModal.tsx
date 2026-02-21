@@ -11,6 +11,7 @@ import {
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { TimeInput24h } from '@/components/ui/TimeInput24h';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Calendar } from '@/components/ui/calendar';
@@ -202,7 +203,7 @@ export function AddLessonModal({ open, onOpenChange, preselectedStudentId, prefi
           {/* Time + Duration */}
           <div className="space-y-2">
             <Label>שעת התחלה</Label>
-            <Input type="time" lang="he" value={timeStart} onChange={(e) => setTimeStart(e.target.value)} />
+            <TimeInput24h value={timeStart} onChange={setTimeStart} />
           </div>
 
           <div className="space-y-2">
