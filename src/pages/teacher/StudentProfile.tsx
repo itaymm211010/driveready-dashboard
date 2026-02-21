@@ -1,5 +1,5 @@
 import { useState, useCallback, useRef, useEffect, useMemo } from 'react';
-import { Plus, ArrowLeft, Phone, MessageCircle, TrendingUp, Wallet, BookOpen, CheckCircle, Clock, AlertTriangle, ExternalLink, Pencil, Trash2, Calendar, FileText, CreditCard, StickyNote, Shield, XCircle, Navigation2, Map } from 'lucide-react';
+import { Plus, ArrowLeft, Phone, MessageCircle, TrendingUp, Wallet, BookOpen, CheckCircle, Clock, AlertTriangle, ExternalLink, Pencil, Trash2, Calendar, FileText, CreditCard, StickyNote, Shield, XCircle, Navigation2, Map as MapIcon } from 'lucide-react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { format, formatDistanceToNow } from 'date-fns';
 import { he } from 'date-fns/locale';
@@ -806,7 +806,7 @@ export default function StudentProfile() {
                         className="shrink-0 p-1 rounded-md text-green-600 hover:bg-green-600/10 transition-colors"
                         title="Google Maps"
                       >
-                        <Map className="h-3.5 w-3.5" />
+                        <MapIcon className="h-3.5 w-3.5" />
                       </a>
                     </div>
                   </div>

@@ -11,6 +11,7 @@ interface Substitute {
   id: string;
   name: string;
   phone: string | null;
+  lesson_cost: number | null;
 }
 
 interface EditSubstituteModalProps {
@@ -22,6 +23,7 @@ interface EditSubstituteModalProps {
 export function EditSubstituteModal({ open, onOpenChange, substitute }: EditSubstituteModalProps) {
   const [name, setName] = useState(substitute.name);
   const [phone, setPhone] = useState(substitute.phone ?? '');
+  const [lessonCost, setLessonCost] = useState(substitute.lesson_cost?.toString() ?? '');
   const queryClient = useQueryClient();
 
   const mutation = useMutation({
@@ -31,7 +33,8 @@ export function EditSubstituteModal({ open, onOpenChange, substitute }: EditSubs
         .update({
           name: name.trim(),
           phone: phone.trim() || null,
-        })
+          lesson_cost: lessonCost ? Number(lessonCost) : null,
+        } as any)
         .eq('id', substitute.id);
       if (error) throw error;
     },
@@ -64,6 +67,10 @@ export function EditSubstituteModal({ open, onOpenChange, substitute }: EditSubs
           <div className="space-y-2">
             <Label>טלפון</Label>
             <Input type="tel" value={phone} onChange={e => setPhone(e.target.value)} placeholder="05X-XXXXXXX" />
+          </div>
+          <div className="space-y-2">
+            <Label>עלות שיעור (₪)</Label>
+            <Input type="number" min={0} value={lessonCost} onChange={e => setLessonCost(e.target.value)} placeholder="למשל 120" />
           </div>
           <div className="flex justify-end gap-2 pt-2">
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>ביטול</Button>

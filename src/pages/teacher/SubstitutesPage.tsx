@@ -26,6 +26,7 @@ interface Substitute {
   name: string;
   email: string;
   phone: string | null;
+  lesson_cost: number | null;
 }
 
 export default function SubstitutesPage() {
@@ -99,6 +100,7 @@ export default function SubstitutesPage() {
                 <p className="font-semibold">{sub.name}</p>
                 <p className="text-sm text-muted-foreground">{sub.email}</p>
                 {sub.phone && <p className="text-sm text-muted-foreground">{sub.phone}</p>}
+                {sub.lesson_cost != null && <p className="text-sm text-muted-foreground">עלות שיעור: ₪{sub.lesson_cost}</p>}
               </div>
               <div className="flex gap-1">
                 <Button

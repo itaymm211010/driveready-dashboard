@@ -100,6 +100,7 @@ export type Database = {
           id: string
           notes: string | null
           payment_status: string | null
+          pickup_address: string | null
           scheduled_duration_minutes: number | null
           skills_practiced: string[] | null
           status: string
@@ -124,6 +125,7 @@ export type Database = {
           id?: string
           notes?: string | null
           payment_status?: string | null
+          pickup_address?: string | null
           scheduled_duration_minutes?: number | null
           skills_practiced?: string[] | null
           status?: string
@@ -148,6 +150,7 @@ export type Database = {
           id?: string
           notes?: string | null
           payment_status?: string | null
+          pickup_address?: string | null
           scheduled_duration_minutes?: number | null
           skills_practiced?: string[] | null
           status?: string
