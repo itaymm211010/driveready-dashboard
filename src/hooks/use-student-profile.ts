@@ -1,6 +1,9 @@
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/use-auth';
+import type { Database } from '@/integrations/supabase/types';
+
+type SkillHistoryRow = Database['public']['Tables']['skill_history']['Row'];
 
 export function useStudentProfile(studentId: string | undefined) {
   const { rootTeacherId } = useAuth();
@@ -56,7 +59,7 @@ export function useStudentProfile(studentId: string | undefined) {
 
       // Fetch skill history
       const ssIds = (studentSkills ?? []).map((ss) => ss.id);
-      let historyRows: any[] = [];
+      let historyRows: SkillHistoryRow[] = [];
       if (ssIds.length > 0) {
         const { data: hData } = await supabase
           .from('skill_history')
@@ -65,7 +68,7 @@ export function useStudentProfile(studentId: string | undefined) {
           .order('lesson_date', { ascending: false });
         historyRows = hData ?? [];
       }
-      const historyBySSId = new Map<string, any[]>();
+      const historyBySSId = new Map<string, SkillHistoryRow[]>();
       for (const h of historyRows) {
         const arr = historyBySSId.get(h.student_skill_id) ?? [];
         arr.push(h);
@@ -88,7 +91,7 @@ export function useStudentProfile(studentId: string | undefined) {
       }));
 
       // Annotate lessons with substitute_name
-      const annotatedLessons = (lessons ?? []).map((l: any) => ({
+      const annotatedLessons = (lessons ?? []).map((l) => ({
         ...l,
         substitute_name: l.taught_by_teacher_id && l.taught_by_teacher_id !== rootTeacherId
           ? (substituteMap.get(l.taught_by_teacher_id) ?? null)

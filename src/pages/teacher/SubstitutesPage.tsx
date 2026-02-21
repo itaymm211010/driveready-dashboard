@@ -36,8 +36,6 @@ export default function SubstitutesPage() {
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const queryClient = useQueryClient();
 
-  if (isSubstitute) return <Navigate to="/" replace />;
-
   const { data: substitutes, isLoading } = useQuery({
     queryKey: ['substitutes', rootTeacherId],
     enabled: !!rootTeacherId,
@@ -66,6 +64,8 @@ export default function SubstitutesPage() {
       setDeletingId(null);
     },
   });
+
+  if (isSubstitute) return <Navigate to="/" replace />;
 
   const deletingSubstitute = substitutes?.find(s => s.id === deletingId);
 

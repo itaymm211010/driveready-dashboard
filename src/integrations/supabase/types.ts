@@ -352,11 +352,14 @@ export type Database = {
           lesson_price: number
           name: string
           phone: string | null
+          pickup_address: string | null
           readiness_percentage: number
+          school_address: string | null
           teacher_id: string
           teacher_notes: string | null
           total_lessons: number
           updated_at: string
+          work_address: string | null
         }
         Insert: {
           avatar_url?: string | null
@@ -370,11 +373,14 @@ export type Database = {
           lesson_price?: number
           name: string
           phone?: string | null
+          pickup_address?: string | null
           readiness_percentage?: number
+          school_address?: string | null
           teacher_id: string
           teacher_notes?: string | null
           total_lessons?: number
           updated_at?: string
+          work_address?: string | null
         }
         Update: {
           avatar_url?: string | null
@@ -388,11 +394,14 @@ export type Database = {
           lesson_price?: number
           name?: string
           phone?: string | null
+          pickup_address?: string | null
           readiness_percentage?: number
+          school_address?: string | null
           teacher_id?: string
           teacher_notes?: string | null
           total_lessons?: number
           updated_at?: string
+          work_address?: string | null
         }
         Relationships: []
       }
@@ -402,6 +411,7 @@ export type Database = {
           email: string
           id: string
           is_admin: boolean
+          lesson_cost: number | null
           name: string
           parent_teacher_id: string | null
           phone: string | null
@@ -411,6 +421,7 @@ export type Database = {
           email: string
           id: string
           is_admin?: boolean
+          lesson_cost?: number | null
           name: string
           parent_teacher_id?: string | null
           phone?: string | null
@@ -420,6 +431,7 @@ export type Database = {
           email?: string
           id?: string
           is_admin?: boolean
+          lesson_cost?: number | null
           name?: string
           parent_teacher_id?: string | null
           phone?: string | null

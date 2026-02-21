@@ -80,17 +80,17 @@ export function AddLessonModal({ open, onOpenChange, preselectedStudentId, prefi
       const multiplier = duration / 40;
       setAmount(String(basePrice * multiplier));
     } else {
-      const priceMap = {
-        internal_test: (selected as any).internal_test_price ?? 0,
-        external_test: (selected as any).external_test_price ?? 0,
+      const priceMap: Record<'internal_test' | 'external_test', number> = {
+        internal_test: selected.internal_test_price ?? 0,
+        external_test: selected.external_test_price ?? 0,
       };
-      setAmount(String(priceMap[lessonType]));
+      setAmount(String(priceMap[lessonType as 'internal_test' | 'external_test']));
     }
   }, [studentId, students, lessonType, duration]);
 
   // Build address shortcuts from the selected student's stored addresses
   const addressShortcuts = useMemo(() => {
-    const s = (students ?? []).find((s) => s.id === studentId) as any;
+    const s = (students ?? []).find((s) => s.id === studentId);
     if (!s) return [];
     const opts: { key: string; label: string; address: string }[] = [];
     if (s.pickup_address) opts.push({ key: 'home', label: '🏠 מגורים', address: s.pickup_address });
@@ -101,7 +101,7 @@ export function AddLessonModal({ open, onOpenChange, preselectedStudentId, prefi
 
   // Pre-fill pickup address from student's home address when student changes
   useEffect(() => {
-    const s = (students ?? []).find((s) => s.id === studentId) as any;
+    const s = (students ?? []).find((s) => s.id === studentId);
     setPickupAddress(s?.pickup_address ?? '');
   }, [studentId, students]);
 

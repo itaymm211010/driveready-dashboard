@@ -14,9 +14,6 @@ export default function TeachersPage() {
   const [showAddModal, setShowAddModal] = useState(false);
   const queryClient = useQueryClient();
 
-  if (loading) return null;
-  if (!isAdmin) return <Navigate to="/" replace />;
-
   const { data: teachers, isLoading } = useQuery({
     queryKey: ['admin-teachers'],
     queryFn: async () => {
@@ -42,6 +39,9 @@ export default function TeachersPage() {
     },
     onError: () => toast.error('שגיאה בהסרת המורה'),
   });
+
+  if (loading) return null;
+  if (!isAdmin) return <Navigate to="/" replace />;
 
   return (
     <div className="min-h-screen bg-background" dir="rtl">

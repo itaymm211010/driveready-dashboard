@@ -59,7 +59,7 @@ export function EditStudentModal({ open, onOpenChange, student }: EditStudentMod
           pickup_address: pickupAddress.trim() || null,
           school_address: schoolAddress.trim() || null,
           work_address: workAddress.trim() || null,
-        } as any)
+        })
         .eq('id', student.id);
       if (error) throw error;
     },

@@ -36,8 +36,8 @@ export function useSaveLesson() {
         .eq('id', lessonId)
         .single();
 
-      const actualStartTime = (currentLesson as any)?.actual_start_time;
-      const scheduledDuration = (currentLesson as any)?.scheduled_duration_minutes;
+      const actualStartTime = currentLesson?.actual_start_time;
+      const scheduledDuration = currentLesson?.scheduled_duration_minutes;
       const actualDuration = actualStartTime
         ? Math.round((new Date(now).getTime() - new Date(actualStartTime).getTime()) / 60000)
         : durationMinutes;
@@ -58,13 +58,13 @@ export function useSaveLesson() {
           actual_end_time: now,
           actual_duration_minutes: actualDuration,
           duration_variance_minutes: variance,
-        } as any)
+        })
         .eq('id', lessonId);
 
       if (lessonErr) throw lessonErr;
 
       // 3. Insert time log entry for 'ended'
-      await supabase.from('lesson_time_log' as any).insert({
+      await supabase.from('lesson_time_log').insert({
         lesson_id: lessonId,
         event_type: 'ended',
       });

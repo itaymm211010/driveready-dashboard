@@ -40,8 +40,8 @@ export function AddSubstituteModal({ open, onOpenChange }: AddSubstituteModalPro
       toast.success('מחליף נוסף בהצלחה');
       setName(''); setEmail(''); setPassword(''); setLessonCost('');
       onOpenChange(false);
-    } catch (err: any) {
-      toast.error(err.message ?? 'שגיאה ביצירת המחליף');
+    } catch (err: unknown) {
+      toast.error(err instanceof Error ? err.message : 'שגיאה ביצירת המחליף');
     } finally {
       setLoading(false);
     }
