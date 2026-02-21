@@ -32,12 +32,13 @@ function HomeRedirect() {
   return <Navigate to="/teacher/today" replace />;
 }
 
-/** Route שמגן על דפי מורה — מנתב אדמין ומשתמש לא מחובר החוצה */
+/** Route שמגן על דפי מורה — מנתב אדמין ומשתמש לא מחובר החוצה.
+ *  אדמין שמתחזה למורה (viewingAsTeacherId מוגדר) מורשה להיכנס. */
 function TeacherRoute({ children }: { children: React.ReactNode }) {
-  const { currentUser, isAdmin, loading } = useAuthContext();
+  const { currentUser, isAdmin, viewingAsTeacherId, loading } = useAuthContext();
   if (loading) return null;
   if (!currentUser) return <Navigate to="/login" replace />;
-  if (isAdmin) return <Navigate to="/admin/teachers" replace />;
+  if (isAdmin && !viewingAsTeacherId) return <Navigate to="/admin/teachers" replace />;
   return <>{children}</>;
 }
 

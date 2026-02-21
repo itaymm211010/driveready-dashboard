@@ -1,5 +1,6 @@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { AdminBottomNav } from "@/components/admin/AdminBottomNav";
 import { OverviewTab } from "./OverviewTab";
 import { TasksTab } from "./TasksTab";
 import { SprintsTab } from "./SprintsTab";
@@ -9,7 +10,7 @@ import { DeploymentsTab } from "./DeploymentsTab";
 
 const ProjectManagement = () => {
   return (
-    <div className="min-h-screen bg-background p-4 md:p-6 space-y-6" dir="rtl">
+    <div className="min-h-screen bg-background pb-20 p-4 md:p-6 space-y-6" dir="rtl">
       <div>
         <h1 className="text-3xl font-bold">ניהול פרויקט</h1>
         <p className="text-muted-foreground">
@@ -48,6 +49,7 @@ const ProjectManagement = () => {
           <DeploymentsTab />
         </TabsContent>
       </Tabs>
+      <AdminBottomNav />
     </div>
   );
 };

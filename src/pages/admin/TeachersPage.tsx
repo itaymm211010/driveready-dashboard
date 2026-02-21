@@ -1,18 +1,20 @@
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Navigate } from 'react-router-dom';
+import { Navigate, useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/use-auth';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import { Users, Trash2, Plus, LogOut } from 'lucide-react';
+import { Users, Trash2, Plus, Eye } from 'lucide-react';
 import { toast } from 'sonner';
 import { AddTeacherModal } from '@/components/admin/AddTeacherModal';
+import { AdminBottomNav } from '@/components/admin/AdminBottomNav';
 
 export default function TeachersPage() {
-  const { isAdmin, loading, teacherProfile, signOut } = useAuth();
+  const { isAdmin, loading, teacherProfile, setViewingAs } = useAuth();
   const [showAddModal, setShowAddModal] = useState(false);
   const queryClient = useQueryClient();
+  const navigate = useNavigate();
 
   const { data: teachers, isLoading } = useQuery({
     queryKey: ['admin-teachers'],
@@ -43,8 +45,13 @@ export default function TeachersPage() {
   if (loading) return null;
   if (!isAdmin) return <Navigate to="/" replace />;
 
+  function viewTeacher(id: string, name: string) {
+    setViewingAs(id, name);
+    navigate('/teacher/today');
+  }
+
   return (
-    <div className="min-h-screen bg-background" dir="rtl">
+    <div className="min-h-screen bg-background pb-20" dir="rtl">
       {/* Header */}
       <div className="sticky top-0 z-40 bg-background/80 backdrop-blur border-b border-border/50 px-4 py-3">
         <div className="flex items-center justify-between max-w-lg mx-auto">
@@ -55,15 +62,10 @@ export default function TeachersPage() {
             </h1>
             <p className="text-xs text-muted-foreground">{teacherProfile?.name}</p>
           </div>
-          <div className="flex gap-2">
-            <Button size="sm" onClick={() => setShowAddModal(true)}>
-              <Plus className="h-4 w-4 ms-1" />
-              הוסף מורה
-            </Button>
-            <Button size="sm" variant="ghost" onClick={signOut}>
-              <LogOut className="h-4 w-4" />
-            </Button>
-          </div>
+          <Button size="sm" onClick={() => setShowAddModal(true)}>
+            <Plus className="h-4 w-4 ms-1" />
+            הוסף מורה
+          </Button>
         </div>
       </div>
 
@@ -91,21 +93,32 @@ export default function TeachersPage() {
                   <p className="text-sm text-muted-foreground">{teacher.phone}</p>
                 )}
               </div>
-              <Button
-                variant="ghost"
-                size="sm"
-                className="text-destructive hover:text-destructive hover:bg-destructive/10"
-                onClick={() => deleteMutation.mutate(teacher.id)}
-                disabled={deleteMutation.isPending}
-              >
-                <Trash2 className="h-4 w-4" />
-              </Button>
+              <div className="flex gap-1">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => viewTeacher(teacher.id, teacher.name)}
+                  title="צפה בנתונים"
+                >
+                  <Eye className="h-4 w-4" />
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="text-destructive hover:text-destructive hover:bg-destructive/10"
+                  onClick={() => deleteMutation.mutate(teacher.id)}
+                  disabled={deleteMutation.isPending}
+                >
+                  <Trash2 className="h-4 w-4" />
+                </Button>
+              </div>
             </CardContent>
           </Card>
         ))}
       </div>
 
       <AddTeacherModal open={showAddModal} onOpenChange={setShowAddModal} />
+      <AdminBottomNav />
     </div>
   );
 }
