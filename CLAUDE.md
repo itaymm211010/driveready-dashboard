@@ -11,7 +11,9 @@ Driving school management app (Hebrew RTL). Built with React + TypeScript + Supa
 - **Hosting:** Lovable (synced via GitHub)
 
 ## Key Architecture
-- **Teacher ID:** Hardcoded `a1b2c3d4-e5f6-7890-abcd-ef1234567890` (no auth yet)
+- **Auth:** Supabase Auth. Teachers log in with email/password. Admins have `is_admin = true` in `teachers` table.
+- **rootTeacherId:** Sourced from `AuthContext`. For teachers = their own ID (or parent if substitute). For admins = `null` unless impersonating.
+- **Admin impersonation:** Admin can view any teacher's data via `setViewingAs(id, name)` in `AuthContext`. This sets `rootTeacherId` to the target teacher's ID, enabling all existing hooks to work without changes. Exit via `ImpersonationBanner`.
 - **State management:** React Query for server state, local useState for UI
 - **DB types:** Auto-generated at `src/integrations/supabase/types.ts` — update manually when adding columns, Lovable will regenerate on sync
 
@@ -43,9 +45,12 @@ Lesson duration presets: **40, 80, 120, 160** minutes. Default: **40**.
 ## File Structure
 ```
 src/
-  components/teacher/     # Teacher UI components (modals, cards, calendar)
+  components/teacher/     # Teacher UI components (modals, cards, calendar, BottomNav)
+  components/admin/       # Admin components (AdminBottomNav, ImpersonationBanner)
   pages/teacher/          # Page-level components (TeacherToday, CalendarPage, StudentProfile, ActiveLesson)
+  pages/admin/            # Admin pages (TeachersPage, project-management/)
   hooks/                  # React Query hooks (use-teacher-data, use-students-list, etc.)
+  contexts/               # AuthContext — auth + impersonation state
   integrations/supabase/  # Supabase client + types
   lib/                    # Utilities (calculations, scoring, utils)
 supabase/migrations/      # SQL migrations (run manually in Lovable SQL Editor)
