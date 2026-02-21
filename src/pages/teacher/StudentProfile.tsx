@@ -65,9 +65,15 @@ function flattenSkillTree(skillTree: any[]): { skills: StudentSkillWithCategory[
       advancedCategoryId = cat.id;
     }
     for (const skill of cat.skills) {
-      if (!skill.studentSkill) continue;
       skills.push({
-        ...skill.studentSkill,
+        id: skill.studentSkill?.id ?? `virtual-${skill.id}`,
+        student_id: skill.studentSkill?.student_id ?? '',
+        skill_id: skill.id,
+        current_score: skill.studentSkill?.current_score ?? 0,
+        times_practiced: skill.studentSkill?.times_practiced ?? 0,
+        last_practiced_date: skill.studentSkill?.last_practiced_date ?? null,
+        last_note: skill.studentSkill?.last_note ?? null,
+        updated_at: skill.studentSkill?.updated_at ?? new Date().toISOString(),
         skill: { id: skill.id, category_id: cat.id, name: skill.name },
       });
     }
