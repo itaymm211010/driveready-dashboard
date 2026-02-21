@@ -27,6 +27,13 @@ export function useStudentProfile(studentId: string | undefined) {
 
       if (lErr) throw lErr;
 
+      // Fetch substitute names for display in lesson history
+      const { data: substitutes } = await supabase
+        .from('teachers')
+        .select('id, name')
+        .eq('parent_teacher_id', rootTeacherId!);
+      const substituteMap = new Map((substitutes ?? []).map((s) => [s.id, s.name]));
+
       // Skill tree
       const { data: categories } = await supabase
         .from('skill_categories')
@@ -80,7 +87,15 @@ export function useStudentProfile(studentId: string | undefined) {
           }),
       }));
 
-      return { student, lessons: lessons ?? [], skillTree };
+      // Annotate lessons with substitute_name
+      const annotatedLessons = (lessons ?? []).map((l: any) => ({
+        ...l,
+        substitute_name: l.taught_by_teacher_id && l.taught_by_teacher_id !== rootTeacherId
+          ? (substituteMap.get(l.taught_by_teacher_id) ?? null)
+          : null,
+      }));
+
+      return { student, lessons: annotatedLessons, skillTree };
     },
   });
 }

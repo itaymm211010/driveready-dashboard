@@ -16,6 +16,7 @@ export function AddSubstituteModal({ open, onOpenChange }: AddSubstituteModalPro
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [lessonCost, setLessonCost] = useState('');
   const [loading, setLoading] = useState(false);
   const queryClient = useQueryClient();
 
@@ -25,14 +26,19 @@ export function AddSubstituteModal({ open, onOpenChange }: AddSubstituteModalPro
     setLoading(true);
     try {
       const { data, error } = await supabase.functions.invoke('create-substitute', {
-        body: { name: name.trim(), email: email.trim(), password },
+        body: {
+          name: name.trim(),
+          email: email.trim(),
+          password,
+          lesson_cost: lessonCost ? Number(lessonCost) : undefined,
+        },
       });
       if (error) throw error;
       if (data?.error) throw new Error(data.error);
 
       queryClient.invalidateQueries({ queryKey: ['substitutes'] });
       toast.success('מחליף נוסף בהצלחה');
-      setName(''); setEmail(''); setPassword('');
+      setName(''); setEmail(''); setPassword(''); setLessonCost('');
       onOpenChange(false);
     } catch (err: any) {
       toast.error(err.message ?? 'שגיאה ביצירת המחליף');
@@ -60,6 +66,10 @@ export function AddSubstituteModal({ open, onOpenChange }: AddSubstituteModalPro
           <div className="space-y-2">
             <Label>סיסמא *</Label>
             <Input type="password" value={password} onChange={e => setPassword(e.target.value)} placeholder="לפחות 6 תווים" minLength={6} required />
+          </div>
+          <div className="space-y-2">
+            <Label>עלות שיעור למחליף (₪)</Label>
+            <Input type="number" min={0} value={lessonCost} onChange={e => setLessonCost(e.target.value)} placeholder="למשל 120" />
           </div>
           <div className="flex justify-end gap-2 pt-2">
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>ביטול</Button>
