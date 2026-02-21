@@ -16,7 +16,7 @@ import { Label } from '@/components/ui/label';
 interface EditStudentModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  student: { id: string; name: string; phone: string | null; email: string | null; lesson_price: number; internal_test_price?: number; external_test_price?: number; id_number?: string | null };
+  student: { id: string; name: string; phone: string | null; email: string | null; lesson_price: number; internal_test_price?: number; external_test_price?: number; id_number?: string | null; pickup_address?: string | null };
 }
 
 export function EditStudentModal({ open, onOpenChange, student }: EditStudentModalProps) {
@@ -27,6 +27,7 @@ export function EditStudentModal({ open, onOpenChange, student }: EditStudentMod
   const [lessonPrice, setLessonPrice] = useState(String(student.lesson_price ?? 0));
   const [internalTestPrice, setInternalTestPrice] = useState(String(student.internal_test_price ?? 0));
   const [externalTestPrice, setExternalTestPrice] = useState(String(student.external_test_price ?? 0));
+  const [pickupAddress, setPickupAddress] = useState(student.pickup_address ?? '');
   const queryClient = useQueryClient();
 
   const mutation = useMutation({
@@ -41,7 +42,8 @@ export function EditStudentModal({ open, onOpenChange, student }: EditStudentMod
           lesson_price: Number(lessonPrice) || 0,
           internal_test_price: Number(internalTestPrice) || 0,
           external_test_price: Number(externalTestPrice) || 0,
-        })
+          pickup_address: pickupAddress.trim() || null,
+        } as any)
         .eq('id', student.id);
       if (error) throw error;
     },
@@ -137,6 +139,16 @@ export function EditStudentModal({ open, onOpenChange, student }: EditStudentMod
               min={0}
               value={externalTestPrice}
               onChange={(e) => setExternalTestPrice(e.target.value)}
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="edit-pickup-address">כתובת איסוף</Label>
+            <Input
+              id="edit-pickup-address"
+              value={pickupAddress}
+              onChange={(e) => setPickupAddress(e.target.value)}
+              placeholder="רחוב, עיר..."
+              maxLength={200}
             />
           </div>
           <div className="flex justify-end gap-2 pt-2">

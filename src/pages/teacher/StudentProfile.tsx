@@ -779,6 +779,15 @@ export default function StudentProfile() {
                 <p className="text-sm text-muted-foreground font-body">ת.ז</p>
                 <p className="text-sm font-medium font-mono text-foreground">{student.id_number || '—'}</p>
               </div>
+              {(student as any).pickup_address && (
+                <>
+                  <Separator />
+                  <div className="flex items-center justify-between gap-3">
+                    <p className="text-sm text-muted-foreground font-body shrink-0">כתובת איסוף</p>
+                    <p className="text-sm font-medium text-foreground text-left">{(student as any).pickup_address}</p>
+                  </div>
+                </>
+              )}
               <Separator />
               <div className="flex items-center justify-between">
                 <p className="text-sm text-muted-foreground font-body">מחיר שיעור</p>

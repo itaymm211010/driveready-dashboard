@@ -17,6 +17,7 @@ interface LessonCardProps {
     teacher_id?: string;
     taught_by_teacher_id?: string | null;
     substitute_name?: string | null;
+    pickup_address?: string | null;
   };
   student: {
     id: string;
@@ -97,7 +98,13 @@ export function LessonCard({ lesson, student }: LessonCardProps) {
 
         <div className="flex gap-2">
           <Button variant="outline" size="sm" className="flex-1 min-h-[44px] transition-smooth"
-            onClick={() => window.open(`https://waze.com/ul`, '_blank')}>
+            onClick={() => {
+              const addr = lesson.pickup_address;
+              const url = addr
+                ? `https://waze.com/ul?q=${encodeURIComponent(addr)}&navigate=yes`
+                : 'https://waze.com/ul';
+              window.open(url, '_blank');
+            }}>
             <MapPin className="h-4 w-4" /> נווט
           </Button>
           <Button variant="outline" size="sm" className="flex-1 min-h-[44px] transition-smooth"

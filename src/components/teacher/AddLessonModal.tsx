@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { format, addMinutes, parse } from 'date-fns';
 import { CalendarIcon, AlertTriangle } from 'lucide-react';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
@@ -19,6 +19,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { useStudentsList } from '@/hooks/use-students-list';
 import { useLessonConflicts } from '@/hooks/use-lesson-conflicts';
 import { useAuth } from '@/hooks/use-auth';
+
 const DURATION_PRESETS = [40, 80, 120, 160];
 
 interface AddLessonModalProps {
@@ -34,6 +35,20 @@ export function AddLessonModal({ open, onOpenChange, preselectedStudentId, prefi
   const { rootTeacherId, teacherProfile } = useAuth();
   const { data: students } = useStudentsList();
 
+  // Fetch substitutes for this teacher
+  const { data: substitutes } = useQuery({
+    queryKey: ['substitutes', rootTeacherId],
+    enabled: !!rootTeacherId,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('teachers')
+        .select('id, name')
+        .eq('parent_teacher_id', rootTeacherId!);
+      if (error) throw error;
+      return data ?? [];
+    },
+  });
+
   const [studentId, setStudentId] = useState(preselectedStudentId ?? '');
   const [date, setDate] = useState<Date>(prefilledDate ?? new Date());
   const [timeStart, setTimeStart] = useState(prefilledTime ?? '');
@@ -41,6 +56,8 @@ export function AddLessonModal({ open, onOpenChange, preselectedStudentId, prefi
   const [amount, setAmount] = useState('');
   const [notes, setNotes] = useState('');
   const [lessonType, setLessonType] = useState<'regular' | 'internal_test' | 'external_test'>('regular');
+  const [taughtById, setTaughtById] = useState<string>(teacherProfile?.id ?? '');
+  const [pickupAddress, setPickupAddress] = useState('');
 
   const timeEnd = timeStart
     ? format(addMinutes(parse(timeStart, 'HH:mm', new Date()), duration), 'HH:mm')
@@ -52,20 +69,30 @@ export function AddLessonModal({ open, onOpenChange, preselectedStudentId, prefi
     timeEnd || null
   );
 
-  // Auto-fill amount when student or lesson type changes
+  // Auto-fill amount when student, lesson type, or duration changes
   useEffect(() => {
     const selected = (students ?? []).find((s) => s.id === studentId);
     if (!selected) return;
-    const priceMap = {
-      regular: selected.lesson_price,
-      internal_test: (selected as any).internal_test_price ?? 0,
-      external_test: (selected as any).external_test_price ?? 0,
-    };
-    const price = priceMap[lessonType];
-    if (price != null) {
-      setAmount(String(price));
+
+    if (lessonType === 'regular') {
+      // Multiply base price by number of 40-min slots
+      const basePrice = selected.lesson_price ?? 0;
+      const multiplier = duration / 40;
+      setAmount(String(basePrice * multiplier));
+    } else {
+      const priceMap = {
+        internal_test: (selected as any).internal_test_price ?? 0,
+        external_test: (selected as any).external_test_price ?? 0,
+      };
+      setAmount(String(priceMap[lessonType]));
     }
-  }, [studentId, students, lessonType]);
+  }, [studentId, students, lessonType, duration]);
+
+  // Pre-fill pickup address from student's default
+  useEffect(() => {
+    const selected = (students ?? []).find((s) => s.id === studentId);
+    setPickupAddress((selected as any)?.pickup_address ?? '');
+  }, [studentId, students]);
 
   // Reset form when modal opens
   const handleOpenChange = (next: boolean) => {
@@ -77,6 +104,8 @@ export function AddLessonModal({ open, onOpenChange, preselectedStudentId, prefi
       setAmount('');
       setNotes('');
       setLessonType('regular');
+      setTaughtById(teacherProfile?.id ?? '');
+      setPickupAddress('');
     }
     onOpenChange(next);
   };
@@ -86,13 +115,14 @@ export function AddLessonModal({ open, onOpenChange, preselectedStudentId, prefi
       const { error } = await supabase.from('lessons').insert({
         student_id: studentId,
         teacher_id: rootTeacherId!,
-        taught_by_teacher_id: teacherProfile?.id,
+        taught_by_teacher_id: taughtById || teacherProfile?.id,
         date: format(date, 'yyyy-MM-dd'),
         time_start: timeStart,
         time_end: timeEnd,
         amount: Number(amount),
         status: 'scheduled',
         payment_status: 'pending',
+        pickup_address: pickupAddress.trim() || null,
         notes: lessonType !== 'regular'
           ? [lessonType === 'internal_test' ? '[טסט פנימי]' : '[טסט חיצוני]', notes].filter(Boolean).join(' ')
           : notes || null,
@@ -112,6 +142,11 @@ export function AddLessonModal({ open, onOpenChange, preselectedStudentId, prefi
   });
 
   const canSubmit = studentId && timeStart && timeEnd && (Number(amount) > 0 || lessonType !== 'regular');
+
+  const teacherOptions = [
+    { id: teacherProfile?.id ?? '', name: `${teacherProfile?.name ?? 'אני'} (מורה ראשי)` },
+    ...(substitutes ?? []).map(s => ({ id: s.id, name: s.name })),
+  ];
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
@@ -202,6 +237,33 @@ export function AddLessonModal({ open, onOpenChange, preselectedStudentId, prefi
           <div className="space-y-2">
             <Label>סכום (₪)</Label>
             <Input type="number" min={0} value={amount} onChange={(e) => setAmount(e.target.value)} placeholder="0" />
+          </div>
+
+          {/* Who teaches */}
+          {teacherOptions.length > 1 && (
+            <div className="space-y-2">
+              <Label>מועבר על ידי</Label>
+              <Select value={taughtById} onValueChange={setTaughtById}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent className="bg-background z-[100]">
+                  {teacherOptions.map(t => (
+                    <SelectItem key={t.id} value={t.id}>{t.name}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          )}
+
+          {/* Pickup Address */}
+          <div className="space-y-2">
+            <Label>כתובת איסוף</Label>
+            <Input
+              value={pickupAddress}
+              onChange={(e) => setPickupAddress(e.target.value)}
+              placeholder="רחוב, עיר..."
+            />
           </div>
 
           {/* Notes */}
