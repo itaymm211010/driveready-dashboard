@@ -27,6 +27,13 @@ interface Substitute {
   email: string;
   phone: string | null;
   lesson_cost: number | null;
+  id_number: string | null;
+  bank_name: string | null;
+  bank_branch: string | null;
+  bank_account: string | null;
+  vehicle_type: string | null;
+  notes: string | null;
+  is_active: boolean;
 }
 
 export default function SubstitutesPage() {
@@ -94,14 +101,22 @@ export default function SubstitutesPage() {
           </div>
         )}
         {(substitutes ?? []).map((sub) => (
-          <Card key={sub.id}>
+          <Card key={sub.id} className={!sub.is_active ? 'opacity-60' : ''}>
             <CardContent className="p-4 flex items-center justify-between">
               <div>
-                <p className="font-semibold">{sub.name}</p>
+                <div className="flex items-center gap-2">
+                  <p className="font-semibold">{sub.name}</p>
+                  {!sub.is_active && (
+                    <span className="text-xs bg-muted text-muted-foreground px-1.5 py-0.5 rounded">לא פעיל</span>
+                  )}
+                </div>
                 <p className="text-sm text-muted-foreground">{sub.email}</p>
                 {sub.phone && <p className="text-sm text-muted-foreground">{sub.phone}</p>}
                 {sub.lesson_cost != null && (
                   <p className="text-sm text-muted-foreground">עלות שיעור: ₪{sub.lesson_cost}</p>
+                )}
+                {sub.vehicle_type && (
+                  <p className="text-sm text-muted-foreground">🚗 {sub.vehicle_type}</p>
                 )}
               </div>
               <div className="flex gap-1">
