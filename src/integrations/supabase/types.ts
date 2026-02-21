@@ -347,12 +347,17 @@ export type Database = {
           avatar_url: string | null
           balance: number
           created_at: string
+          date_of_birth: string | null
           email: string | null
+          emergency_contact_name: string | null
+          emergency_contact_phone: string | null
           external_test_price: number | null
+          gender: string | null
           id: string
           id_number: string | null
           internal_test_price: number | null
           lesson_price: number
+          license_type: string | null
           name: string
           phone: string | null
           pickup_address: string | null
@@ -360,6 +365,8 @@ export type Database = {
           school_address: string | null
           teacher_id: string
           teacher_notes: string | null
+          theory_test_date: string | null
+          theory_test_passed: boolean
           total_lessons: number
           updated_at: string
           work_address: string | null
@@ -368,12 +375,17 @@ export type Database = {
           avatar_url?: string | null
           balance?: number
           created_at?: string
+          date_of_birth?: string | null
           email?: string | null
+          emergency_contact_name?: string | null
+          emergency_contact_phone?: string | null
           external_test_price?: number | null
+          gender?: string | null
           id?: string
           id_number?: string | null
           internal_test_price?: number | null
           lesson_price?: number
+          license_type?: string | null
           name: string
           phone?: string | null
           pickup_address?: string | null
@@ -381,6 +393,8 @@ export type Database = {
           school_address?: string | null
           teacher_id: string
           teacher_notes?: string | null
+          theory_test_date?: string | null
+          theory_test_passed?: boolean
           total_lessons?: number
           updated_at?: string
           work_address?: string | null
@@ -389,12 +403,17 @@ export type Database = {
           avatar_url?: string | null
           balance?: number
           created_at?: string
+          date_of_birth?: string | null
           email?: string | null
+          emergency_contact_name?: string | null
+          emergency_contact_phone?: string | null
           external_test_price?: number | null
+          gender?: string | null
           id?: string
           id_number?: string | null
           internal_test_price?: number | null
           lesson_price?: number
+          license_type?: string | null
           name?: string
           phone?: string | null
           pickup_address?: string | null
@@ -402,6 +421,8 @@ export type Database = {
           school_address?: string | null
           teacher_id?: string
           teacher_notes?: string | null
+          theory_test_date?: string | null
+          theory_test_passed?: boolean
           total_lessons?: number
           updated_at?: string
           work_address?: string | null
@@ -410,34 +431,55 @@ export type Database = {
       }
       teachers: {
         Row: {
+          bank_account: string | null
+          bank_branch: string | null
+          bank_name: string | null
           created_at: string
           email: string
           id: string
+          id_number: string | null
+          is_active: boolean
           is_admin: boolean
           lesson_cost: number | null
           name: string
+          notes: string | null
           parent_teacher_id: string | null
           phone: string | null
+          vehicle_type: string | null
         }
         Insert: {
+          bank_account?: string | null
+          bank_branch?: string | null
+          bank_name?: string | null
           created_at?: string
           email: string
           id: string
+          id_number?: string | null
+          is_active?: boolean
           is_admin?: boolean
           lesson_cost?: number | null
           name: string
+          notes?: string | null
           parent_teacher_id?: string | null
           phone?: string | null
+          vehicle_type?: string | null
         }
         Update: {
+          bank_account?: string | null
+          bank_branch?: string | null
+          bank_name?: string | null
           created_at?: string
           email?: string
           id?: string
+          id_number?: string | null
+          is_active?: boolean
           is_admin?: boolean
           lesson_cost?: number | null
           name?: string
+          notes?: string | null
           parent_teacher_id?: string | null
           phone?: string | null
+          vehicle_type?: string | null
         }
         Relationships: [
           {
