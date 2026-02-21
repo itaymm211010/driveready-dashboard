@@ -128,7 +128,7 @@ export function EditLessonModal({ lesson, open, onOpenChange }: EditLessonModalP
           {/* Time + Duration */}
           <div className="space-y-2">
             <Label>שעת התחלה</Label>
-            <Input type="time" value={timeStart} onChange={(e) => setTimeStart(e.target.value)} />
+            <Input type="time" lang="he" value={timeStart} onChange={(e) => setTimeStart(e.target.value)} />
           </div>
 
           <div className="space-y-2">
