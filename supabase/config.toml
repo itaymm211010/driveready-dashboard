@@ -1,4 +1,10 @@
 project_id = "nixykpnemupvcyjincri"
 
+[functions.create-teacher]
+verify_jwt = false
+
+[functions.create-substitute]
+verify_jwt = false
+
 [functions.reset-password]
 verify_jwt = false
