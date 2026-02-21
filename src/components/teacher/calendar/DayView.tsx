@@ -70,6 +70,9 @@ export function DayView({ date, lessons, onLessonClick, onEmptySlotClick }: DayV
                           {lesson.notes?.startsWith('[טסט פנימי]') && <span className="text-blue-600 font-normal text-xs"> · טסט פנימי</span>}
                           {lesson.notes?.startsWith('[טסט חיצוני]') && <span className="text-purple-600 font-normal text-xs"> · טסט חיצוני</span>}
                         </p>
+                        {lesson.taught_by_teacher_name && (
+                          <p className="text-[10px] text-amber-600 font-medium">מחליף: {lesson.taught_by_teacher_name}</p>
+                        )}
                         <p className="text-xs text-muted-foreground" dir="ltr">{lesson.time_start} - {lesson.time_end}</p>
                         <p className="text-xs font-medium mt-0.5">₪{Number(lesson.amount).toLocaleString()}</p>
                         {lesson.student.balance < 0 && (

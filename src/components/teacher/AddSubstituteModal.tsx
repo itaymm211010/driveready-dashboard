@@ -16,6 +16,7 @@ export function AddSubstituteModal({ open, onOpenChange }: AddSubstituteModalPro
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [phone, setPhone] = useState('');
   const [lessonCost, setLessonCost] = useState('');
   const [loading, setLoading] = useState(false);
   const queryClient = useQueryClient();
@@ -36,9 +37,17 @@ export function AddSubstituteModal({ open, onOpenChange }: AddSubstituteModalPro
       if (error) throw error;
       if (data?.error) throw new Error(data.error);
 
+      // If phone provided, update the newly created teacher record
+      if (phone.trim() && data?.userId) {
+        await supabase
+          .from('teachers')
+          .update({ phone: phone.trim() })
+          .eq('id', data.userId);
+      }
+
       queryClient.invalidateQueries({ queryKey: ['substitutes'] });
       toast.success('מחליף נוסף בהצלחה');
-      setName(''); setEmail(''); setPassword(''); setLessonCost('');
+      setName(''); setEmail(''); setPassword(''); setPhone(''); setLessonCost('');
       onOpenChange(false);
     } catch (err: unknown) {
       toast.error(err instanceof Error ? err.message : 'שגיאה ביצירת המחליף');
@@ -66,6 +75,10 @@ export function AddSubstituteModal({ open, onOpenChange }: AddSubstituteModalPro
           <div className="space-y-2">
             <Label>סיסמא *</Label>
             <Input type="password" value={password} onChange={e => setPassword(e.target.value)} placeholder="לפחות 6 תווים" minLength={6} required />
+          </div>
+          <div className="space-y-2">
+            <Label>טלפון</Label>
+            <Input type="tel" value={phone} onChange={e => setPhone(e.target.value)} placeholder="05X-XXXXXXX" maxLength={20} />
           </div>
           <div className="space-y-2">
             <Label>עלות שיעור למחליף (₪)</Label>

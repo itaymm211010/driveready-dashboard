@@ -30,6 +30,9 @@ export function CalendarLessonCard({ lesson, compact, onClick }: CalendarLessonC
         {lesson.notes?.startsWith('[טסט פנימי]') && <span className="text-blue-600 font-normal"> · טסט פנימי</span>}
         {lesson.notes?.startsWith('[טסט חיצוני]') && <span className="text-purple-600 font-normal"> · טסט חיצוני</span>}
       </p>
+      {lesson.taught_by_teacher_name && (
+        <p className="text-amber-600 truncate">↪ {lesson.taught_by_teacher_name}</p>
+      )}
       {!compact && (
         <p className="text-muted-foreground">
           {lesson.time_start} - {lesson.time_end}

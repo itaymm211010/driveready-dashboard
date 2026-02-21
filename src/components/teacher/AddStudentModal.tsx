@@ -12,7 +12,18 @@ import {
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Switch } from '@/components/ui/switch';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { useAuth } from '@/hooks/use-auth';
+
+const LICENSE_TYPES = ['B ידני', 'B אוטומט', 'A1', 'A2', 'A', 'C', 'D', 'CE'] as const;
+const GENDERS = ['זכר', 'נקבה', 'אחר'] as const;
 
 interface AddStudentModalProps {
   open: boolean;
@@ -25,6 +36,13 @@ export function AddStudentModal({ open, onOpenChange }: AddStudentModalProps) {
   const [phone, setPhone] = useState('');
   const [email, setEmail] = useState('');
   const [idNumber, setIdNumber] = useState('');
+  const [dateOfBirth, setDateOfBirth] = useState('');
+  const [gender, setGender] = useState('');
+  const [licenseType, setLicenseType] = useState('');
+  const [theoryTestPassed, setTheoryTestPassed] = useState(false);
+  const [theoryTestDate, setTheoryTestDate] = useState('');
+  const [emergencyContactName, setEmergencyContactName] = useState('');
+  const [emergencyContactPhone, setEmergencyContactPhone] = useState('');
   const [lessonPrice, setLessonPrice] = useState('');
   const [internalTestPrice, setInternalTestPrice] = useState('');
   const [externalTestPrice, setExternalTestPrice] = useState('');
@@ -37,6 +55,13 @@ export function AddStudentModal({ open, onOpenChange }: AddStudentModalProps) {
         phone: phone.trim() || null,
         email: email.trim() || null,
         id_number: idNumber.trim() || null,
+        date_of_birth: dateOfBirth || null,
+        gender: gender || null,
+        license_type: licenseType || null,
+        theory_test_passed: theoryTestPassed,
+        theory_test_date: theoryTestPassed && theoryTestDate ? theoryTestDate : null,
+        emergency_contact_name: emergencyContactName.trim() || null,
+        emergency_contact_phone: emergencyContactPhone.trim() || null,
         lesson_price: Number(lessonPrice) || 0,
         internal_test_price: Number(internalTestPrice) || 0,
         external_test_price: Number(externalTestPrice) || 0,
@@ -59,6 +84,13 @@ export function AddStudentModal({ open, onOpenChange }: AddStudentModalProps) {
     setPhone('');
     setEmail('');
     setIdNumber('');
+    setDateOfBirth('');
+    setGender('');
+    setLicenseType('');
+    setTheoryTestPassed(false);
+    setTheoryTestDate('');
+    setEmergencyContactName('');
+    setEmergencyContactPhone('');
     setLessonPrice('');
     setInternalTestPrice('');
     setExternalTestPrice('');
@@ -73,12 +105,14 @@ export function AddStudentModal({ open, onOpenChange }: AddStudentModalProps) {
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className="sm:max-w-md top-2 translate-y-0 sm:top-[50%] sm:translate-y-[-50%] max-h-[calc(100dvh-1rem)] sm:max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>הוספת תלמיד חדש</DialogTitle>
           <DialogDescription>הזן את פרטי התלמיד למטה.</DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4 pt-2">
+
+          {/* Basic info */}
           <div className="space-y-2">
             <Label htmlFor="student-name">שם *</Label>
             <Input
@@ -122,6 +156,89 @@ export function AddStudentModal({ open, onOpenChange }: AddStudentModalProps) {
               maxLength={20}
             />
           </div>
+
+          {/* Personal */}
+          <div className="space-y-2">
+            <Label htmlFor="student-dob">תאריך לידה</Label>
+            <Input
+              id="student-dob"
+              type="date"
+              value={dateOfBirth}
+              onChange={(e) => setDateOfBirth(e.target.value)}
+            />
+          </div>
+          <div className="space-y-2">
+            <Label>מגדר</Label>
+            <Select value={gender} onValueChange={setGender}>
+              <SelectTrigger>
+                <SelectValue placeholder="בחר מגדר" />
+              </SelectTrigger>
+              <SelectContent className="bg-background z-[100]">
+                {GENDERS.map((g) => (
+                  <SelectItem key={g} value={g}>{g}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          {/* License */}
+          <div className="space-y-2">
+            <Label>סוג רישיון</Label>
+            <Select value={licenseType} onValueChange={setLicenseType}>
+              <SelectTrigger>
+                <SelectValue placeholder="בחר סוג רישיון" />
+              </SelectTrigger>
+              <SelectContent className="bg-background z-[100]">
+                {LICENSE_TYPES.map((t) => (
+                  <SelectItem key={t} value={t}>{t}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="flex items-center justify-between">
+            <Label htmlFor="student-theory">עבר תיאוריה</Label>
+            <Switch
+              id="student-theory"
+              checked={theoryTestPassed}
+              onCheckedChange={setTheoryTestPassed}
+            />
+          </div>
+          {theoryTestPassed && (
+            <div className="space-y-2">
+              <Label htmlFor="student-theory-date">תאריך תיאוריה</Label>
+              <Input
+                id="student-theory-date"
+                type="date"
+                value={theoryTestDate}
+                onChange={(e) => setTheoryTestDate(e.target.value)}
+              />
+            </div>
+          )}
+
+          {/* Emergency contact */}
+          <div className="space-y-2">
+            <Label htmlFor="student-emergency-name">איש קשר לחירום</Label>
+            <Input
+              id="student-emergency-name"
+              placeholder="שם"
+              value={emergencyContactName}
+              onChange={(e) => setEmergencyContactName(e.target.value)}
+              maxLength={100}
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="student-emergency-phone">טלפון חירום</Label>
+            <Input
+              id="student-emergency-phone"
+              placeholder="מספר טלפון"
+              type="tel"
+              value={emergencyContactPhone}
+              onChange={(e) => setEmergencyContactPhone(e.target.value)}
+              maxLength={20}
+            />
+          </div>
+
+          {/* Pricing */}
           <div className="space-y-2">
             <Label htmlFor="student-lesson-price">מחיר שיעור (₪)</Label>
             <Input
@@ -155,6 +272,7 @@ export function AddStudentModal({ open, onOpenChange }: AddStudentModalProps) {
               onChange={(e) => setExternalTestPrice(e.target.value)}
             />
           </div>
+
           <div className="flex justify-end gap-2 pt-2">
             <Button type="button" variant="outline" onClick={resetAndClose}>
               ביטול

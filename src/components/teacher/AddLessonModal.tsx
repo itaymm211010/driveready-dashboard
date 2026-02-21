@@ -161,7 +161,7 @@ export function AddLessonModal({ open, onOpenChange, preselectedStudentId, prefi
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className="sm:max-w-md top-2 translate-y-0 sm:top-[50%] sm:translate-y-[-50%] max-h-[calc(100dvh-1rem)] sm:max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>שיעור חדש</DialogTitle>
           <DialogDescription>הוסף שיעור חדש לתלמיד</DialogDescription>
