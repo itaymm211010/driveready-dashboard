@@ -6,13 +6,34 @@ import { useState } from 'react';
 import { BottomNav } from '@/components/teacher/BottomNav';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import { UserCheck, Trash2, Plus } from 'lucide-react';
+import { UserCheck, Trash2, Plus, Pencil } from 'lucide-react';
 import { toast } from 'sonner';
 import { AddSubstituteModal } from '@/components/teacher/AddSubstituteModal';
+import { EditSubstituteModal } from '@/components/teacher/EditSubstituteModal';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
+
+interface Substitute {
+  id: string;
+  name: string;
+  email: string;
+  phone: string | null;
+  lesson_cost: number | null;
+}
 
 export default function SubstitutesPage() {
   const { rootTeacherId, isSubstitute } = useAuth();
   const [showAddModal, setShowAddModal] = useState(false);
+  const [editingSubstitute, setEditingSubstitute] = useState<Substitute | null>(null);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
   const queryClient = useQueryClient();
 
   if (isSubstitute) return <Navigate to="/" replace />;
@@ -26,7 +47,7 @@ export default function SubstitutesPage() {
         .select('*')
         .eq('parent_teacher_id', rootTeacherId!);
       if (error) throw error;
-      return data ?? [];
+      return (data ?? []) as Substitute[];
     },
   });
 
@@ -38,9 +59,15 @@ export default function SubstitutesPage() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['substitutes'] });
       toast.success('מחליף הוסר בהצלחה');
+      setDeletingId(null);
     },
-    onError: () => toast.error('שגיאה בהסרת המחליף'),
+    onError: () => {
+      toast.error('שגיאה בהסרת המחליף');
+      setDeletingId(null);
+    },
   });
+
+  const deletingSubstitute = substitutes?.find(s => s.id === deletingId);
 
   return (
     <div className="min-h-screen bg-background pb-24" dir="rtl">
@@ -73,22 +100,64 @@ export default function SubstitutesPage() {
                 <p className="font-semibold">{sub.name}</p>
                 <p className="text-sm text-muted-foreground">{sub.email}</p>
                 {sub.phone && <p className="text-sm text-muted-foreground">{sub.phone}</p>}
+                {sub.lesson_cost != null && (
+                  <p className="text-sm text-muted-foreground">עלות שיעור: ₪{sub.lesson_cost}</p>
+                )}
               </div>
-              <Button
-                variant="ghost"
-                size="sm"
-                className="text-destructive hover:text-destructive"
-                onClick={() => deleteMutation.mutate(sub.id)}
-                disabled={deleteMutation.isPending}
-              >
-                <Trash2 className="h-4 w-4" />
-              </Button>
+              <div className="flex gap-1">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setEditingSubstitute(sub)}
+                >
+                  <Pencil className="h-4 w-4" />
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="text-destructive hover:text-destructive"
+                  onClick={() => setDeletingId(sub.id)}
+                  disabled={deleteMutation.isPending}
+                >
+                  <Trash2 className="h-4 w-4" />
+                </Button>
+              </div>
             </CardContent>
           </Card>
         ))}
       </div>
 
       <AddSubstituteModal open={showAddModal} onOpenChange={setShowAddModal} />
+
+      {editingSubstitute && (
+        <EditSubstituteModal
+          open={!!editingSubstitute}
+          onOpenChange={(o) => !o && setEditingSubstitute(null)}
+          substitute={editingSubstitute}
+        />
+      )}
+
+      <AlertDialog open={!!deletingId} onOpenChange={(o) => !o && setDeletingId(null)}>
+        <AlertDialogContent dir="rtl">
+          <AlertDialogHeader>
+            <AlertDialogTitle>הסרת מורה מחליף</AlertDialogTitle>
+            <AlertDialogDescription>
+              האם להסיר את {deletingSubstitute?.name}? השיעורים שהועברו על ידם יישמרו אך לא יוצגו שם המורה.
+              שים לב: חשבון הכניסה שלהם ישאר פעיל — פנה לתמיכה להסרה מלאה.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>ביטול</AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              onClick={() => deletingId && deleteMutation.mutate(deletingId)}
+            >
+              הסר
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
       <BottomNav />
     </div>
   );

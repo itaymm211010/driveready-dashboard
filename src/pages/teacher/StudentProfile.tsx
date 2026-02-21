@@ -7,6 +7,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { RadarChart, PolarGrid, PolarAngleAxis, Radar, ResponsiveContainer, LineChart, Line, XAxis, YAxis, Tooltip, CartesianGrid } from 'recharts';
 import { supabase } from '@/integrations/supabase/client';
 import { useStudentProfile } from '@/hooks/use-student-profile';
+import { useAuth } from '@/hooks/use-auth';
 import {
   calculateReadiness as calcReadiness,
   calculateCategoryAverage,
@@ -180,6 +181,7 @@ function useUpdateTeacherNotes() {
 export default function StudentProfile() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const { isSubstitute } = useAuth();
   const { data, isLoading } = useStudentProfile(id);
   const { data: nextLesson } = useNextLesson(id);
   const updateNotes = useUpdateTeacherNotes();
@@ -294,12 +296,16 @@ export default function StudentProfile() {
           <div className="flex items-center gap-1">
             <FontSizeSelector />
             <ThemeToggle />
-            <Button variant="outline" size="icon" className="rounded-full h-9 w-9" onClick={() => setShowEdit(true)}>
-              <Pencil className="h-4 w-4" />
-            </Button>
-            <Button variant="outline" size="icon" className="rounded-full h-9 w-9 text-destructive hover:text-destructive" onClick={() => setShowDelete(true)}>
-              <Trash2 className="h-4 w-4" />
-            </Button>
+            {!isSubstitute && (
+              <>
+                <Button variant="outline" size="icon" className="rounded-full h-9 w-9" onClick={() => setShowEdit(true)}>
+                  <Pencil className="h-4 w-4" />
+                </Button>
+                <Button variant="outline" size="icon" className="rounded-full h-9 w-9 text-destructive hover:text-destructive" onClick={() => setShowDelete(true)}>
+                  <Trash2 className="h-4 w-4" />
+                </Button>
+              </>
+            )}
           </div>
         </div>
       </header>
@@ -729,6 +735,9 @@ export default function StudentProfile() {
                               ? `${actualStart} - ${actualEnd}${actualDuration ? ` (${actualDuration} דק')` : ''}`
                               : `${lesson.time_start} – ${lesson.time_end}`}
                             {lesson.skills_practiced?.length ? ` · ${lesson.skills_practiced.length} מיומנויות` : ''}
+                            {lesson.substitute_name && (
+                              <span className="text-orange-600"> · מחליף: {lesson.substitute_name}</span>
+                            )}
                           </p>
                         </div>
                         <div className="text-left shrink-0 flex flex-col items-end gap-1">

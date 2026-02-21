@@ -67,7 +67,7 @@ Deno.serve(async (req) => {
     }
 
     // Parse request body
-    const { name, email, password } = await req.json()
+    const { name, email, password, lesson_cost } = await req.json()
     if (!name || !email || !password) {
       return new Response(JSON.stringify({ error: 'Missing required fields: name, email, password' }), {
         status: 400,
@@ -95,14 +95,18 @@ Deno.serve(async (req) => {
     }
 
     // Create teacher profile
+    const insertData: Record<string, unknown> = {
+      id: newUser.user.id,
+      name,
+      email,
+      parent_teacher_id: user.id,
+    }
+    if (lesson_cost !== undefined && lesson_cost !== null && lesson_cost !== '') {
+      insertData.lesson_cost = Number(lesson_cost)
+    }
     const { error: profileError } = await adminClient
       .from('teachers')
-      .insert({
-        id: newUser.user.id,
-        name,
-        email,
-        parent_teacher_id: user.id,
-      })
+      .insert(insertData)
 
     if (profileError) {
       // Rollback: delete the auth user
