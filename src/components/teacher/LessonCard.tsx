@@ -1,6 +1,7 @@
 import { MapPin, Phone, Play, CheckCircle } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import { cn } from '@/lib/utils';
+import { toast } from 'sonner';
+import { cn, canStartLesson } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -9,6 +10,7 @@ import { useStartLesson } from '@/hooks/use-start-lesson';
 interface LessonCardProps {
   lesson: {
     id: string;
+    date: string;
     time_start: string;
     time_end: string;
     status: string;
@@ -40,6 +42,10 @@ export function LessonCard({ lesson, student }: LessonCardProps) {
   const handleStartLesson = () => {
     if (isInProgress) {
       navigate(`/teacher/lesson/${lesson.id}`);
+      return;
+    }
+    if (!canStartLesson(lesson.date, lesson.time_start)) {
+      toast.warning(`ניתן להתחיל שיעור החל מ-${lesson.time_start}`);
       return;
     }
     startLessonMutation.mutate(
