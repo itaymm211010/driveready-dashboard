@@ -41,32 +41,32 @@ export function CreateSprintDialog() {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button><Plus className="h-4 w-4 ml-2" />ספרינט חדש</Button>
+        <Button><Plus className="h-4 w-4 ms-1" />ספרינט חדש</Button>
       </DialogTrigger>
-      <DialogContent className="max-w-2xl">
+      <DialogContent className="max-w-2xl" dir="rtl">
         <DialogHeader><DialogTitle>יצירת ספרינט חדש</DialogTitle></DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
             <Label>שם הספרינט</Label>
-            <Input required value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })} />
+            <Input required value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })} dir="rtl" />
           </div>
           <div>
             <Label>תיאור</Label>
-            <Textarea value={formData.description} onChange={(e) => setFormData({ ...formData, description: e.target.value })} rows={3} />
+            <Textarea value={formData.description} onChange={(e) => setFormData({ ...formData, description: e.target.value })} rows={3} dir="rtl" />
           </div>
           <div className="grid grid-cols-2 gap-4">
             <div>
               <Label>תאריך התחלה</Label>
-              <Input type="date" required value={formData.start_date} onChange={(e) => setFormData({ ...formData, start_date: e.target.value })} />
+              <Input type="date" required value={formData.start_date} onChange={(e) => setFormData({ ...formData, start_date: e.target.value })} dir="ltr" />
             </div>
             <div>
               <Label>תאריך סיום</Label>
-              <Input type="date" required value={formData.end_date} onChange={(e) => setFormData({ ...formData, end_date: e.target.value })} />
+              <Input type="date" required value={formData.end_date} onChange={(e) => setFormData({ ...formData, end_date: e.target.value })} dir="ltr" />
             </div>
           </div>
           <div>
             <Label>סטטוס</Label>
-            <Select value={formData.status} onValueChange={(v) => setFormData({ ...formData, status: v })}>
+            <Select dir="rtl" value={formData.status} onValueChange={(v) => setFormData({ ...formData, status: v })}>
               <SelectTrigger><SelectValue /></SelectTrigger>
               <SelectContent>
                 <SelectItem value="planned">מתוכנן</SelectItem>
@@ -75,9 +75,9 @@ export function CreateSprintDialog() {
               </SelectContent>
             </Select>
           </div>
-          <div className="flex justify-end gap-2">
-            <Button type="button" variant="outline" onClick={() => setOpen(false)}>ביטול</Button>
+          <div className="flex justify-start gap-2">
             <Button type="submit" disabled={createSprint.isPending}>{createSprint.isPending ? "יוצר..." : "צור ספרינט"}</Button>
+            <Button type="button" variant="outline" onClick={() => setOpen(false)}>ביטול</Button>
           </div>
         </form>
       </DialogContent>

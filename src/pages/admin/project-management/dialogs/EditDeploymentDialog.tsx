@@ -48,9 +48,9 @@ export const EditDeploymentDialog = ({ deployment }: EditDeploymentDialogProps) 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button variant="ghost" size="sm"><Pencil className="h-4 w-4 ml-2" />ערוך</Button>
+        <Button variant="ghost" size="sm"><Pencil className="h-4 w-4 ms-1" />ערוך</Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-[500px]">
+      <DialogContent className="sm:max-w-[500px]" dir="rtl">
         <DialogHeader>
           <DialogTitle>עריכת פריסה</DialogTitle>
           <DialogDescription>ערוך את פרטי הפריסה</DialogDescription>
@@ -59,11 +59,11 @@ export const EditDeploymentDialog = ({ deployment }: EditDeploymentDialogProps) 
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label>גרסה</Label>
-              <Input value={formData.version} onChange={(e) => setFormData({ ...formData, version: e.target.value })} required />
+              <Input value={formData.version} onChange={(e) => setFormData({ ...formData, version: e.target.value })} required dir="ltr" />
             </div>
             <div className="space-y-2">
               <Label>סביבה</Label>
-              <Select value={formData.environment} onValueChange={(v) => setFormData({ ...formData, environment: v })}>
+              <Select dir="rtl" value={formData.environment} onValueChange={(v) => setFormData({ ...formData, environment: v })}>
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="development">פיתוח</SelectItem>
@@ -75,11 +75,11 @@ export const EditDeploymentDialog = ({ deployment }: EditDeploymentDialogProps) 
           </div>
           <div className="space-y-2">
             <Label>Git Commit Hash</Label>
-            <Input value={formData.git_commit_hash} onChange={(e) => setFormData({ ...formData, git_commit_hash: e.target.value })} />
+            <Input value={formData.git_commit_hash} onChange={(e) => setFormData({ ...formData, git_commit_hash: e.target.value })} dir="ltr" />
           </div>
           <div className="space-y-2">
             <Label>סטטוס</Label>
-            <Select value={formData.status} onValueChange={(v) => setFormData({ ...formData, status: v })}>
+            <Select dir="rtl" value={formData.status} onValueChange={(v) => setFormData({ ...formData, status: v })}>
               <SelectTrigger><SelectValue /></SelectTrigger>
               <SelectContent>
                 <SelectItem value="pending">ממתין</SelectItem>
@@ -91,7 +91,7 @@ export const EditDeploymentDialog = ({ deployment }: EditDeploymentDialogProps) 
           </div>
           <div className="space-y-2">
             <Label>ספרינט (אופציונלי)</Label>
-            <Select value={formData.sprint_id} onValueChange={(v) => setFormData({ ...formData, sprint_id: v })}>
+            <Select dir="rtl" value={formData.sprint_id} onValueChange={(v) => setFormData({ ...formData, sprint_id: v })}>
               <SelectTrigger><SelectValue placeholder="בחר ספרינט" /></SelectTrigger>
               <SelectContent>
                 {sprints?.map((s) => (<SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>))}
@@ -100,11 +100,11 @@ export const EditDeploymentDialog = ({ deployment }: EditDeploymentDialogProps) 
           </div>
           <div className="space-y-2">
             <Label>הערות</Label>
-            <Textarea value={formData.notes} onChange={(e) => setFormData({ ...formData, notes: e.target.value })} />
+            <Textarea value={formData.notes} onChange={(e) => setFormData({ ...formData, notes: e.target.value })} dir="rtl" />
           </div>
-          <div className="flex justify-end gap-2">
-            <Button type="button" variant="outline" onClick={() => setOpen(false)}>ביטול</Button>
+          <div className="flex justify-start gap-2">
             <Button type="submit" disabled={updateDeployment.isPending}>{updateDeployment.isPending ? "שומר..." : "שמור"}</Button>
+            <Button type="button" variant="outline" onClick={() => setOpen(false)}>ביטול</Button>
           </div>
         </form>
       </DialogContent>

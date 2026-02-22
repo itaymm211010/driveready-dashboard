@@ -54,19 +54,19 @@ export function CreateDeploymentDialog() {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button><Plus className="h-4 w-4 ml-2" />פריסה חדשה</Button>
+        <Button><Plus className="h-4 w-4 ms-1" />פריסה חדשה</Button>
       </DialogTrigger>
-      <DialogContent className="max-w-2xl">
+      <DialogContent className="max-w-2xl" dir="rtl">
         <DialogHeader><DialogTitle>יצירת פריסה חדשה</DialogTitle></DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="grid grid-cols-2 gap-4">
             <div>
               <Label>גרסה</Label>
-              <Input required placeholder="1.0.0" value={formData.version} onChange={(e) => setFormData({ ...formData, version: e.target.value })} />
+              <Input required placeholder="1.0.0" value={formData.version} onChange={(e) => setFormData({ ...formData, version: e.target.value })} dir="ltr" />
             </div>
             <div>
               <Label>סביבה</Label>
-              <Select value={formData.environment} onValueChange={(v) => setFormData({ ...formData, environment: v })}>
+              <Select dir="rtl" value={formData.environment} onValueChange={(v) => setFormData({ ...formData, environment: v })}>
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="development">פיתוח</SelectItem>
@@ -78,11 +78,11 @@ export function CreateDeploymentDialog() {
           </div>
           <div>
             <Label>Git Commit Hash</Label>
-            <Input placeholder="abc123def456" value={formData.git_commit_hash} onChange={(e) => setFormData({ ...formData, git_commit_hash: e.target.value })} />
+            <Input placeholder="abc123def456" value={formData.git_commit_hash} onChange={(e) => setFormData({ ...formData, git_commit_hash: e.target.value })} dir="ltr" />
           </div>
           <div>
             <Label>סטטוס</Label>
-            <Select value={formData.status} onValueChange={(v) => setFormData({ ...formData, status: v })}>
+            <Select dir="rtl" value={formData.status} onValueChange={(v) => setFormData({ ...formData, status: v })}>
               <SelectTrigger><SelectValue /></SelectTrigger>
               <SelectContent>
                 <SelectItem value="pending">ממתין</SelectItem>
@@ -94,7 +94,7 @@ export function CreateDeploymentDialog() {
           </div>
           <div>
             <Label>ספרינט</Label>
-            <Select value={formData.sprint_id} onValueChange={(v) => setFormData({ ...formData, sprint_id: v })}>
+            <Select dir="rtl" value={formData.sprint_id} onValueChange={(v) => setFormData({ ...formData, sprint_id: v })}>
               <SelectTrigger><SelectValue placeholder="בחר ספרינט (אופציונלי)" /></SelectTrigger>
               <SelectContent>
                 {sprints?.map((s) => (<SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>))}
@@ -103,11 +103,11 @@ export function CreateDeploymentDialog() {
           </div>
           <div>
             <Label>הערות</Label>
-            <Textarea value={formData.notes} onChange={(e) => setFormData({ ...formData, notes: e.target.value })} rows={3} />
+            <Textarea value={formData.notes} onChange={(e) => setFormData({ ...formData, notes: e.target.value })} rows={3} dir="rtl" />
           </div>
-          <div className="flex justify-end gap-2">
-            <Button type="button" variant="outline" onClick={() => setOpen(false)}>ביטול</Button>
+          <div className="flex justify-start gap-2">
             <Button type="submit" disabled={createDeployment.isPending}>{createDeployment.isPending ? "יוצר..." : "צור פריסה"}</Button>
+            <Button type="button" variant="outline" onClick={() => setOpen(false)}>ביטול</Button>
           </div>
         </form>
       </DialogContent>

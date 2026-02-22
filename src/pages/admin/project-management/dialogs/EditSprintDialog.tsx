@@ -40,9 +40,9 @@ export const EditSprintDialog = ({ sprint }: EditSprintDialogProps) => {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button variant="ghost" size="sm"><Pencil className="h-4 w-4 ml-2" />ערוך</Button>
+        <Button variant="ghost" size="sm"><Pencil className="h-4 w-4 ms-1" />ערוך</Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-[500px]">
+      <DialogContent className="sm:max-w-[500px]" dir="rtl">
         <DialogHeader>
           <DialogTitle>עריכת ספרינט</DialogTitle>
           <DialogDescription>ערוך את פרטי הספרינט</DialogDescription>
@@ -50,25 +50,25 @@ export const EditSprintDialog = ({ sprint }: EditSprintDialogProps) => {
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
             <Label>שם הספרינט</Label>
-            <Input value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })} required />
+            <Input value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })} required dir="rtl" />
           </div>
           <div className="space-y-2">
             <Label>תיאור</Label>
-            <Textarea value={formData.description} onChange={(e) => setFormData({ ...formData, description: e.target.value })} />
+            <Textarea value={formData.description} onChange={(e) => setFormData({ ...formData, description: e.target.value })} dir="rtl" />
           </div>
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label>תאריך התחלה</Label>
-              <Input type="date" value={formData.start_date} onChange={(e) => setFormData({ ...formData, start_date: e.target.value })} required />
+              <Input type="date" value={formData.start_date} onChange={(e) => setFormData({ ...formData, start_date: e.target.value })} required dir="ltr" />
             </div>
             <div className="space-y-2">
               <Label>תאריך סיום</Label>
-              <Input type="date" value={formData.end_date} onChange={(e) => setFormData({ ...formData, end_date: e.target.value })} required />
+              <Input type="date" value={formData.end_date} onChange={(e) => setFormData({ ...formData, end_date: e.target.value })} required dir="ltr" />
             </div>
           </div>
           <div className="space-y-2">
             <Label>סטטוס</Label>
-            <Select value={formData.status} onValueChange={(v) => setFormData({ ...formData, status: v })}>
+            <Select dir="rtl" value={formData.status} onValueChange={(v) => setFormData({ ...formData, status: v })}>
               <SelectTrigger><SelectValue /></SelectTrigger>
               <SelectContent>
                 <SelectItem value="planned">מתוכנן</SelectItem>
@@ -77,9 +77,9 @@ export const EditSprintDialog = ({ sprint }: EditSprintDialogProps) => {
               </SelectContent>
             </Select>
           </div>
-          <div className="flex justify-end gap-2">
-            <Button type="button" variant="outline" onClick={() => setOpen(false)}>ביטול</Button>
+          <div className="flex justify-start gap-2">
             <Button type="submit" disabled={updateSprint.isPending}>{updateSprint.isPending ? "שומר..." : "שמור"}</Button>
+            <Button type="button" variant="outline" onClick={() => setOpen(false)}>ביטול</Button>
           </div>
         </form>
       </DialogContent>

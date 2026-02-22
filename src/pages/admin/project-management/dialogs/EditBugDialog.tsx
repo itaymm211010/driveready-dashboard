@@ -38,9 +38,9 @@ export const EditBugDialog = ({ bug }: EditBugDialogProps) => {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button variant="ghost" size="sm"><Pencil className="h-4 w-4 ml-2" />ערוך</Button>
+        <Button variant="ghost" size="sm"><Pencil className="h-4 w-4 ms-1" />ערוך</Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-[500px]">
+      <DialogContent className="sm:max-w-[500px]" dir="rtl">
         <DialogHeader>
           <DialogTitle>עריכת באג</DialogTitle>
           <DialogDescription>ערוך את פרטי הבאג</DialogDescription>
@@ -48,16 +48,16 @@ export const EditBugDialog = ({ bug }: EditBugDialogProps) => {
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
             <Label>כותרת</Label>
-            <Input value={formData.title} onChange={(e) => setFormData({ ...formData, title: e.target.value })} required />
+            <Input value={formData.title} onChange={(e) => setFormData({ ...formData, title: e.target.value })} required dir="rtl" />
           </div>
           <div className="space-y-2">
             <Label>תיאור</Label>
-            <Textarea value={formData.description} onChange={(e) => setFormData({ ...formData, description: e.target.value })} required />
+            <Textarea value={formData.description} onChange={(e) => setFormData({ ...formData, description: e.target.value })} required dir="rtl" />
           </div>
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label>חומרה</Label>
-              <Select value={formData.severity} onValueChange={(v) => setFormData({ ...formData, severity: v })}>
+              <Select dir="rtl" value={formData.severity} onValueChange={(v) => setFormData({ ...formData, severity: v })}>
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="minor">קל</SelectItem>
@@ -70,7 +70,7 @@ export const EditBugDialog = ({ bug }: EditBugDialogProps) => {
             </div>
             <div className="space-y-2">
               <Label>סטטוס</Label>
-              <Select value={formData.status} onValueChange={(v) => setFormData({ ...formData, status: v })}>
+              <Select dir="rtl" value={formData.status} onValueChange={(v) => setFormData({ ...formData, status: v })}>
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="open">פתוח</SelectItem>
@@ -83,11 +83,11 @@ export const EditBugDialog = ({ bug }: EditBugDialogProps) => {
           </div>
           <div className="space-y-2">
             <Label>שלבים לשחזור</Label>
-            <Textarea value={formData.steps_to_reproduce} onChange={(e) => setFormData({ ...formData, steps_to_reproduce: e.target.value })} />
+            <Textarea value={formData.steps_to_reproduce} onChange={(e) => setFormData({ ...formData, steps_to_reproduce: e.target.value })} dir="rtl" />
           </div>
-          <div className="flex justify-end gap-2">
-            <Button type="button" variant="outline" onClick={() => setOpen(false)}>ביטול</Button>
+          <div className="flex justify-start gap-2">
             <Button type="submit" disabled={updateBug.isPending}>{updateBug.isPending ? "שומר..." : "שמור"}</Button>
+            <Button type="button" variant="outline" onClick={() => setOpen(false)}>ביטול</Button>
           </div>
         </form>
       </DialogContent>

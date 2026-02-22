@@ -42,27 +42,27 @@ export function CreateBugDialog() {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button><Plus className="h-4 w-4 ml-2" />באג חדש</Button>
+        <Button><Plus className="h-4 w-4 ms-1" />באג חדש</Button>
       </DialogTrigger>
-      <DialogContent className="max-w-2xl">
+      <DialogContent className="max-w-2xl" dir="rtl">
         <DialogHeader><DialogTitle>דיווח באג חדש</DialogTitle></DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
             <Label>כותרת</Label>
-            <Input required value={formData.title} onChange={(e) => setFormData({ ...formData, title: e.target.value })} />
+            <Input required value={formData.title} onChange={(e) => setFormData({ ...formData, title: e.target.value })} dir="rtl" />
           </div>
           <div>
             <Label>תיאור</Label>
-            <Textarea required value={formData.description} onChange={(e) => setFormData({ ...formData, description: e.target.value })} rows={4} />
+            <Textarea required value={formData.description} onChange={(e) => setFormData({ ...formData, description: e.target.value })} rows={4} dir="rtl" />
           </div>
           <div>
             <Label>צעדים לשחזור</Label>
-            <Textarea value={formData.steps_to_reproduce} onChange={(e) => setFormData({ ...formData, steps_to_reproduce: e.target.value })} rows={3} placeholder={"1. לחץ על...\n2. מלא את...\n3. הבאג מופיע..."} />
+            <Textarea value={formData.steps_to_reproduce} onChange={(e) => setFormData({ ...formData, steps_to_reproduce: e.target.value })} rows={3} dir="rtl" placeholder={"1. לחץ על...\n2. מלא את...\n3. הבאג מופיע..."} />
           </div>
           <div className="grid grid-cols-2 gap-4">
             <div>
               <Label>חומרה</Label>
-              <Select value={formData.severity} onValueChange={(v) => setFormData({ ...formData, severity: v })}>
+              <Select dir="rtl" value={formData.severity} onValueChange={(v) => setFormData({ ...formData, severity: v })}>
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="minor">קל</SelectItem>
@@ -75,7 +75,7 @@ export function CreateBugDialog() {
             </div>
             <div>
               <Label>סטטוס</Label>
-              <Select value={formData.status} onValueChange={(v) => setFormData({ ...formData, status: v })}>
+              <Select dir="rtl" value={formData.status} onValueChange={(v) => setFormData({ ...formData, status: v })}>
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="open">פתוח</SelectItem>
@@ -85,9 +85,9 @@ export function CreateBugDialog() {
               </Select>
             </div>
           </div>
-          <div className="flex justify-end gap-2">
-            <Button type="button" variant="outline" onClick={() => setOpen(false)}>ביטול</Button>
+          <div className="flex justify-start gap-2">
             <Button type="submit" disabled={createBug.isPending}>{createBug.isPending ? "יוצר..." : "צור דיווח"}</Button>
+            <Button type="button" variant="outline" onClick={() => setOpen(false)}>ביטול</Button>
           </div>
         </form>
       </DialogContent>
