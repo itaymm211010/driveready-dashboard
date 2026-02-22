@@ -17,6 +17,7 @@ import { Plus } from "lucide-react";
 
 export function CreateTaskDialog() {
   const [open, setOpen] = useState(false);
+  const [previewDesc, setPreviewDesc] = useState(false);
   const { currentUser } = useAuthContext();
   const queryClient = useQueryClient();
   const [formData, setFormData] = useState({
@@ -48,6 +49,7 @@ export function CreateTaskDialog() {
       queryClient.invalidateQueries({ queryKey: ["pm_tasks"] });
       toast.success("המשימה נוצרה בהצלחה");
       setOpen(false);
+      setPreviewDesc(false);
       setFormData({ title: "", description: "", type: "feature", status: "todo", priority: "medium", sprint_id: "", estimated_hours: "" });
     },
     onError: (error) => { toast.error("שגיאה ביצירת המשימה"); console.error(error); },
@@ -58,23 +60,35 @@ export function CreateTaskDialog() {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button><Plus className="h-4 w-4 ml-2" />משימה חדשה</Button>
+        <Button><Plus className="h-4 w-4 ms-1" />משימה חדשה</Button>
       </DialogTrigger>
-      <DialogContent className="max-w-2xl">
+      <DialogContent className="max-w-2xl" dir="rtl">
         <DialogHeader><DialogTitle>יצירת משימה חדשה</DialogTitle></DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
             <Label htmlFor="title">כותרת</Label>
-            <Input id="title" required value={formData.title} onChange={(e) => setFormData({ ...formData, title: e.target.value })} />
+            <Input id="title" required value={formData.title} onChange={(e) => setFormData({ ...formData, title: e.target.value })} dir="rtl" />
           </div>
-          <div>
-            <Label htmlFor="description">תיאור</Label>
-            <Textarea id="description" value={formData.description} onChange={(e) => setFormData({ ...formData, description: e.target.value })} rows={4} />
+          <div className="space-y-1">
+            <div className="flex items-center justify-between">
+              <Label htmlFor="description">תיאור</Label>
+              <div className="flex gap-1">
+                <Button type="button" size="sm" variant={!previewDesc ? "secondary" : "ghost"} className="h-6 px-2 text-xs" onClick={() => setPreviewDesc(false)}>ערוך</Button>
+                <Button type="button" size="sm" variant={previewDesc ? "secondary" : "ghost"} className="h-6 px-2 text-xs" onClick={() => setPreviewDesc(true)}>תצוגה מקדימה</Button>
+              </div>
+            </div>
+            {previewDesc ? (
+              <div className="min-h-[96px] rounded-md border bg-muted/30 px-3 py-2 text-sm whitespace-pre-wrap">
+                {formData.description || <span className="text-muted-foreground italic">אין תיאור</span>}
+              </div>
+            ) : (
+              <Textarea id="description" value={formData.description} onChange={(e) => setFormData({ ...formData, description: e.target.value })} rows={4} dir="rtl" />
+            )}
           </div>
           <div className="grid grid-cols-2 gap-4">
             <div>
               <Label>סוג</Label>
-              <Select value={formData.type} onValueChange={(v) => setFormData({ ...formData, type: v })}>
+              <Select dir="rtl" value={formData.type} onValueChange={(v) => setFormData({ ...formData, type: v })}>
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="feature">תכונה</SelectItem>
@@ -86,7 +100,7 @@ export function CreateTaskDialog() {
             </div>
             <div>
               <Label>עדיפות</Label>
-              <Select value={formData.priority} onValueChange={(v) => setFormData({ ...formData, priority: v })}>
+              <Select dir="rtl" value={formData.priority} onValueChange={(v) => setFormData({ ...formData, priority: v })}>
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="low">נמוכה</SelectItem>
@@ -99,7 +113,7 @@ export function CreateTaskDialog() {
           <div className="grid grid-cols-2 gap-4">
             <div>
               <Label>סטטוס</Label>
-              <Select value={formData.status} onValueChange={(v) => setFormData({ ...formData, status: v })}>
+              <Select dir="rtl" value={formData.status} onValueChange={(v) => setFormData({ ...formData, status: v })}>
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="todo">לביצוע</SelectItem>
@@ -110,21 +124,21 @@ export function CreateTaskDialog() {
             </div>
             <div>
               <Label>שעות משוערות</Label>
-              <Input type="number" step="0.5" value={formData.estimated_hours} onChange={(e) => setFormData({ ...formData, estimated_hours: e.target.value })} />
+              <Input type="number" step="0.5" value={formData.estimated_hours} onChange={(e) => setFormData({ ...formData, estimated_hours: e.target.value })} dir="ltr" />
             </div>
           </div>
           <div>
             <Label>ספרינט</Label>
-            <Select value={formData.sprint_id} onValueChange={(v) => setFormData({ ...formData, sprint_id: v })}>
+            <Select dir="rtl" value={formData.sprint_id} onValueChange={(v) => setFormData({ ...formData, sprint_id: v })}>
               <SelectTrigger><SelectValue placeholder="בחר ספרינט (אופציונלי)" /></SelectTrigger>
               <SelectContent>
                 {sprints?.map((s) => (<SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>))}
               </SelectContent>
             </Select>
           </div>
-          <div className="flex justify-end gap-2">
-            <Button type="button" variant="outline" onClick={() => setOpen(false)}>ביטול</Button>
+          <div className="flex justify-start gap-2">
             <Button type="submit" disabled={createTask.isPending}>{createTask.isPending ? "יוצר..." : "צור משימה"}</Button>
+            <Button type="button" variant="outline" onClick={() => setOpen(false)}>ביטול</Button>
           </div>
         </form>
       </DialogContent>
