@@ -46,7 +46,7 @@ export function MonthView({ date, lessons, onDayClick }: MonthViewProps) {
       {/* Day headers */}
       <div className="grid grid-cols-7 gap-1">
         {dayNames.map(d => (
-          <div key={d} className="text-center text-[10px] font-medium text-muted-foreground py-1">{d}</div>
+          <div key={d} className="text-center text-[0.625rem] font-medium text-muted-foreground py-1">{d}</div>
         ))}
       </div>
 
@@ -76,7 +76,7 @@ export function MonthView({ date, lessons, onDayClick }: MonthViewProps) {
                   {format(day, 'd')}
                 </span>
                 {activeLessons.length > 0 && (
-                  <span className="text-[9px] bg-primary/20 text-primary rounded-full px-1.5 font-medium">
+                  <span className="text-[0.5625rem] bg-primary/20 text-primary rounded-full px-1.5 font-medium">
                     {activeLessons.length}
                   </span>
                 )}

@@ -14,7 +14,7 @@ interface DayViewProps {
   onEmptySlotClick: (time: string) => void;
 }
 
-const HOURS = Array.from({ length: 15 }, (_, i) => i + 6); // 06:00-20:00
+const HOURS = Array.from({ length: 17 }, (_, i) => i + 6); // 06:00-22:00
 
 function getStatusColor(lesson: CalendarLesson) {
   if (lesson.status === 'cancelled') return 'border-muted-foreground/30 bg-muted/40 opacity-60';
@@ -47,7 +47,7 @@ export function DayView({ date, lessons, onLessonClick, onEmptySlotClick }: DayV
         const timeStr = `${String(hour).padStart(2, '0')}:00`;
         return (
           <div key={hour} className="flex flex-row-reverse gap-2 min-h-[56px]">
-            <span className="text-[10px] text-muted-foreground w-10 pt-1 text-left shrink-0" dir="ltr">
+            <span className="text-[0.625rem] text-muted-foreground w-10 pt-1 text-left shrink-0" dir="ltr">
               {timeStr}
             </span>
             <div className="flex-1 border-t border-border/30">
@@ -71,12 +71,12 @@ export function DayView({ date, lessons, onLessonClick, onEmptySlotClick }: DayV
                           {lesson.notes?.startsWith('[טסט חיצוני]') && <span className="text-purple-600 font-normal text-xs"> · טסט חיצוני</span>}
                         </p>
                         {lesson.taught_by_teacher_name && (
-                          <p className="text-[10px] text-amber-600 font-medium">מחליף: {lesson.taught_by_teacher_name}</p>
+                          <p className="text-[0.625rem] text-amber-600 font-medium">מחליף: {lesson.taught_by_teacher_name}</p>
                         )}
                         <p className="text-xs text-muted-foreground" dir="ltr">{lesson.time_start} - {lesson.time_end}</p>
                         <p className="text-xs font-medium mt-0.5">₪{Number(lesson.amount).toLocaleString()}</p>
                         {lesson.student.balance < 0 && (
-                          <p className="text-[10px] text-destructive">חוב: ₪{Math.abs(lesson.student.balance)}</p>
+                          <p className="text-[0.625rem] text-destructive">חוב: ₪{Math.abs(lesson.student.balance)}</p>
                         )}
                       </div>
                       <div className="flex gap-1 shrink-0 me-2">
@@ -117,7 +117,7 @@ export function DayView({ date, lessons, onLessonClick, onEmptySlotClick }: DayV
               ) : (
                 <button
                   onClick={() => onEmptySlotClick(timeStr)}
-                  className="w-full h-10 border border-dashed border-border/40 rounded-lg text-[10px] text-muted-foreground hover:border-primary/40 hover:bg-primary/5 transition-smooth"
+                  className="w-full h-10 border border-dashed border-border/40 rounded-lg text-[0.625rem] text-muted-foreground hover:border-primary/40 hover:bg-primary/5 transition-smooth"
                 >
                   + הוסף שיעור
                 </button>

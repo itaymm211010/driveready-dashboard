@@ -22,7 +22,7 @@ export function CalendarLessonCard({ lesson, compact, onClick }: CalendarLessonC
       className={cn(
         'w-full text-right rounded-lg border p-2 transition-smooth hover:scale-[1.02] cursor-pointer',
         getStatusColor(lesson),
-        compact ? 'text-[10px] leading-tight' : 'text-xs'
+        compact ? 'text-[0.625rem] leading-tight' : 'text-xs'
       )}
     >
       <p className="font-semibold truncate">

@@ -10,7 +10,7 @@ interface WeekViewProps {
   onEmptySlotClick: (date: Date, time: string) => void;
 }
 
-const HOURS = Array.from({ length: 15 }, (_, i) => i + 6);
+const HOURS = Array.from({ length: 17 }, (_, i) => i + 6); // 06:00-22:00
 
 export function WeekView({ date, lessons, onLessonClick, onEmptySlotClick }: WeekViewProps) {
   const weekStart = startOfWeek(date, { weekStartsOn: 0 });
@@ -35,7 +35,7 @@ export function WeekView({ date, lessons, onLessonClick, onEmptySlotClick }: Wee
           {days.map((d) => (
             <div
               key={d.toISOString()}
-              className={`text-center text-[10px] font-medium py-1.5 rounded-lg ${isSameDay(d, today) ? 'bg-primary/15 text-primary font-bold' : 'text-muted-foreground'}`}
+              className={`text-center text-[0.625rem] font-medium py-1.5 rounded-lg ${isSameDay(d, today) ? 'bg-primary/15 text-primary font-bold' : 'text-muted-foreground'}`}
             >
               <div>{format(d, 'EEE', { locale: he })}</div>
               <div className="text-sm font-heading">{format(d, 'd')}</div>
@@ -64,7 +64,7 @@ export function WeekView({ date, lessons, onLessonClick, onEmptySlotClick }: Wee
                   </div>
                 );
               })}
-              <span className="text-[9px] text-muted-foreground pt-1 text-center" dir="ltr">{`${String(hour).padStart(2, '0')}:00`}</span>
+              <span className="text-[0.5625rem] text-muted-foreground pt-1 text-center" dir="ltr">{`${String(hour).padStart(2, '0')}:00`}</span>
             </div>
           ))}
         </div>
