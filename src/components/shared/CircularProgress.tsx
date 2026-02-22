@@ -46,7 +46,7 @@ export function CircularProgress({
         />
       </svg>
       <div className="absolute inset-0 flex flex-col items-center justify-center">
-        {label && <span className={cn('font-bold text-foreground', size <= 50 ? 'text-[10px]' : 'text-2xl')}>{label}</span>}
+        {label && <span className={cn('font-bold text-foreground', size <= 50 ? 'text-[0.625rem]' : 'text-2xl')}>{label}</span>}
         {sublabel && <span className="text-xs text-muted-foreground">{sublabel}</span>}
       </div>
     </div>

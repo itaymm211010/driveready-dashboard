@@ -110,22 +110,22 @@ export default function ReportsPage() {
                 <Card>
                   <CardContent className="p-2.5 text-center">
                     <p className="text-sm font-heading font-bold text-foreground">{data.currentMonthStats.regularLessons}</p>
-                    <p className="text-[10px] text-muted-foreground font-body">שיעורים רגילים</p>
-                    <p className="text-[10px] text-primary font-body">₪{data.currentMonthStats.regularIncome.toLocaleString()}</p>
+                    <p className="text-[0.625rem] text-muted-foreground font-body">שיעורים רגילים</p>
+                    <p className="text-[0.625rem] text-primary font-body">₪{data.currentMonthStats.regularIncome.toLocaleString()}</p>
                   </CardContent>
                 </Card>
                 <Card>
                   <CardContent className="p-2.5 text-center">
                     <p className="text-sm font-heading font-bold text-foreground">{data.currentMonthStats.internalTests}</p>
-                    <p className="text-[10px] text-muted-foreground font-body">טסט פנימי</p>
-                    <p className="text-[10px] text-primary font-body">₪{data.currentMonthStats.internalTestIncome.toLocaleString()}</p>
+                    <p className="text-[0.625rem] text-muted-foreground font-body">טסט פנימי</p>
+                    <p className="text-[0.625rem] text-primary font-body">₪{data.currentMonthStats.internalTestIncome.toLocaleString()}</p>
                   </CardContent>
                 </Card>
                 <Card>
                   <CardContent className="p-2.5 text-center">
                     <p className="text-sm font-heading font-bold text-foreground">{data.currentMonthStats.externalTests}</p>
-                    <p className="text-[10px] text-muted-foreground font-body">טסט חיצוני</p>
-                    <p className="text-[10px] text-primary font-body">₪{data.currentMonthStats.externalTestIncome.toLocaleString()}</p>
+                    <p className="text-[0.625rem] text-muted-foreground font-body">טסט חיצוני</p>
+                    <p className="text-[0.625rem] text-primary font-body">₪{data.currentMonthStats.externalTestIncome.toLocaleString()}</p>
                   </CardContent>
                 </Card>
               </motion.div>

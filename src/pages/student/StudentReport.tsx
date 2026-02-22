@@ -102,7 +102,7 @@ export default function StudentReport() {
                 </div>
               )}
               {/* Level indicator */}
-              <div className="absolute -bottom-1 -right-1 h-7 w-7 rounded-full bg-neon-purple flex items-center justify-center text-[10px] font-heading font-bold text-white ring-2 ring-background">
+              <div className="absolute -bottom-1 -right-1 h-7 w-7 rounded-full bg-neon-purple flex items-center justify-center text-[0.625rem] font-heading font-bold text-white ring-2 ring-background">
                 {student.total_lessons}
               </div>
             </div>

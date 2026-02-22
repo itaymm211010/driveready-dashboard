@@ -376,7 +376,7 @@ export default function StudentProfile() {
                 'text-2xl font-heading font-bold',
                 readiness.ready ? 'text-emerald-500' : 'text-foreground'
               )}>{Math.round(readiness.overallAvg)}%</p>
-              <p className="text-[10px] uppercase tracking-wider text-muted-foreground">מוכנות</p>
+              <p className="text-[0.625rem] uppercase tracking-wider text-muted-foreground">מוכנות</p>
             </CardContent>
           </Card>
           <Card className={cn('overflow-hidden', hasDebt && 'border-destructive/40 border-2')}>
@@ -387,7 +387,7 @@ export default function StudentProfile() {
               <p className={cn('text-2xl font-heading font-bold', hasDebt ? 'text-destructive' : 'text-foreground')}>
                 ₪{Math.abs(student.balance)}
               </p>
-              <p className="text-[10px] uppercase tracking-wider text-muted-foreground">{hasDebt ? 'חוב' : 'יתרה'}</p>
+              <p className="text-[0.625rem] uppercase tracking-wider text-muted-foreground">{hasDebt ? 'חוב' : 'יתרה'}</p>
             </CardContent>
           </Card>
           <Card className="overflow-hidden">
@@ -396,7 +396,7 @@ export default function StudentProfile() {
                 <BookOpen className="h-5 w-5 text-secondary" />
               </div>
               <p className="text-2xl font-heading font-bold text-foreground">{student.total_lessons}</p>
-              <p className="text-[10px] uppercase tracking-wider text-muted-foreground">שיעורים</p>
+              <p className="text-[0.625rem] uppercase tracking-wider text-muted-foreground">שיעורים</p>
             </CardContent>
           </Card>
         </motion.div>
@@ -560,7 +560,7 @@ export default function StudentProfile() {
                         transition={{ duration: 0.7, ease: [0.25, 0.46, 0.45, 0.94] }}
                       />
                     </div>
-                    <p className="text-[10px] text-muted-foreground mt-0.5 font-body">
+                    <p className="text-[0.625rem] text-muted-foreground mt-0.5 font-body">
                       {cat.mastered}/{cat.totalCount} נשלטו
                     </p>
                   </div>
@@ -751,7 +751,7 @@ export default function StudentProfile() {
                             </p>
                             {isTest && (
                               <Badge variant="outline" className={cn(
-                                'text-[10px] px-1.5',
+                                'text-[0.625rem] px-1.5',
                                 isInternalTest ? 'text-blue-600 border-blue-500/30' : 'text-purple-600 border-purple-500/30'
                               )}>
                                 {lessonTypeLabel}
@@ -773,7 +773,7 @@ export default function StudentProfile() {
                           <div className="flex gap-1">
                             {variance != null && variance !== 0 && (
                               <Badge variant="outline" className={cn(
-                                'text-[10px] px-1.5',
+                                'text-[0.625rem] px-1.5',
                                 variance > 0 ? 'text-destructive border-destructive/30' : 'text-success border-success/30'
                               )}>
                                 {variance > 0 ? `+${variance}` : variance} דק'
@@ -782,7 +782,7 @@ export default function StudentProfile() {
                             <Badge
                               variant="outline"
                               className={cn(
-                                'text-[10px] px-1.5',
+                                'text-[0.625rem] px-1.5',
                                 lesson.payment_status === 'paid' ? 'text-success border-success/30' : 'text-warning border-warning/30'
                               )}
                             >
