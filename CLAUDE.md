@@ -66,6 +66,33 @@ For completed lessons, `LessonDetailsModal` allows:
 - All pages use `dir="rtl"`.
 - Date formatting uses `he` locale from date-fns.
 
+#### RTL in Tables
+`TableHead` in `src/components/ui/table.tsx` uses `text-start` (not `text-left`) — direction-aware, aligns right in RTL automatically. Do not use `text-left` or `text-right` in table headers.
+
+#### RTL in Dialogs & Forms
+Pattern to follow for all Hebrew dialogs:
+- `<DialogContent dir="rtl">` — required, Radix doesn't inherit from parent
+- `<Select dir="rtl">` — required on the root Select element
+- `<Textarea dir="rtl">` and `<Input dir="rtl">` for Hebrew text fields
+- Technical/numeric fields (dates, hashes, numbers): `<Input dir="ltr">`
+- Form footer: `flex justify-start` with primary action first, cancel second
+  ```tsx
+  <div className="flex justify-start gap-2">
+    <Button type="submit">שמור</Button>
+    <Button type="button" variant="outline">ביטול</Button>
+  </div>
+  ```
+- Icon margins on trigger buttons: use `ms-1` (not `ml-2`)
+
+#### RTL in Mobile Cards (label–value rows)
+Label first in DOM (→ right in RTL), value second (→ left in RTL):
+```tsx
+<div className="flex justify-between">
+  <span className="text-muted-foreground">יוצר:</span>
+  <span dir="ltr">{value}</span>  {/* dir="ltr" only for dates/numbers */}
+</div>
+```
+
 ## File Structure
 ```
 src/
