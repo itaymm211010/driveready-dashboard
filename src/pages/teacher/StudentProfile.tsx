@@ -1,5 +1,5 @@
 import { useState, useCallback, useRef, useEffect, useMemo } from 'react';
-import { Plus, ArrowLeft, Phone, MessageCircle, TrendingUp, Wallet, BookOpen, CheckCircle, Clock, AlertTriangle, ExternalLink, Pencil, Trash2, Calendar, FileText, CreditCard, StickyNote, Shield, XCircle, Navigation2, Map as MapIcon } from 'lucide-react';
+import { Plus, ArrowLeft, Phone, MessageCircle, TrendingUp, Wallet, BookOpen, CheckCircle, Clock, AlertTriangle, ExternalLink, Pencil, Trash2, Calendar, FileText, CreditCard, StickyNote, Shield, XCircle, Navigation2, Map as MapIcon, Home, GraduationCap, Briefcase } from 'lucide-react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { format, formatDistanceToNow } from 'date-fns';
 import { he } from 'date-fns/locale';
@@ -590,9 +590,9 @@ export default function StudentProfile() {
                         <div className="rounded-lg border bg-background p-2.5 text-xs shadow-xl" dir="rtl">
                           <p className="font-semibold text-foreground mb-1.5">{d.category}</p>
                           <div className="space-y-0.5 text-muted-foreground">
-                            <p>✅ טוב ויציב+ (4-5): <span className="text-foreground font-medium">{d.mastered}</span></p>
-                            <p>🔄 בתרגול (1-3): <span className="text-foreground font-medium">{d.inProgress}</span></p>
-                            <p>⬜ לא דורגו (0): <span className="text-foreground font-medium">{d.notLearned}</span></p>
+                            <p className="flex items-center gap-1"><span className="inline-block h-2 w-2 rounded-full bg-success shrink-0" /> טוב ויציב+ (4-5): <span className="text-foreground font-medium">{d.mastered}</span></p>
+                            <p className="flex items-center gap-1"><span className="inline-block h-2 w-2 rounded-full bg-warning shrink-0" /> בתרגול (1-3): <span className="text-foreground font-medium">{d.inProgress}</span></p>
+                            <p className="flex items-center gap-1"><span className="inline-block h-2 w-2 rounded-full bg-muted-foreground/40 shrink-0" /> לא דורגו (0): <span className="text-foreground font-medium">{d.notLearned}</span></p>
                           </div>
                           <p className="mt-1.5 text-primary font-semibold">{d.value}%</p>
                         </div>
@@ -857,15 +857,18 @@ export default function StudentProfile() {
                   </div>
                 </>
               )}
-              {[
-                { label: '🏠 מגורים', value: student.pickup_address },
-                { label: '🏫 בית ספר', value: student.school_address },
-                { label: '💼 עבודה', value: student.work_address },
-              ].filter(a => !!a.value).map((addr) => (
-                <div key={addr.label}>
+              {(([
+                { key: 'home', label: 'מגורים', Icon: Home, value: student.pickup_address },
+                { key: 'school', label: 'בית ספר', Icon: GraduationCap, value: student.school_address },
+                { key: 'work', label: 'עבודה', Icon: Briefcase, value: student.work_address },
+              ]) as { key: string; label: string; Icon: React.ComponentType<{ className?: string }>; value: string | null | undefined }[])
+                .filter(a => !!a.value).map((addr) => (
+                <div key={addr.key}>
                   <Separator />
                   <div className="flex items-start justify-between gap-2 py-0.5">
-                    <p className="text-sm text-muted-foreground font-body shrink-0 pt-0.5">{addr.label}</p>
+                    <p className="text-sm text-muted-foreground font-body shrink-0 pt-0.5 flex items-center gap-1">
+                      <addr.Icon className="h-3.5 w-3.5" /> {addr.label}
+                    </p>
                     <div className="flex items-center gap-1.5 min-w-0">
                       <p className="text-sm font-medium text-foreground text-left truncate">{addr.value}</p>
                       <a

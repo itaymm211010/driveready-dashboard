@@ -158,9 +158,9 @@ export default function StudentReport() {
                         <div className="rounded-lg border bg-background p-2.5 text-xs shadow-xl" dir="rtl">
                           <p className="font-semibold text-foreground mb-1.5">{d.category}</p>
                           <div className="space-y-0.5 text-muted-foreground">
-                            <p>✅ טוב ויציב+ (4-5): <span className="text-foreground font-medium">{d.mastered}</span></p>
-                            <p>🔄 בתרגול (1-3): <span className="text-foreground font-medium">{d.inProgress}</span></p>
-                            <p>⬜ לא דורגו (0): <span className="text-foreground font-medium">{d.notLearned}</span></p>
+                            <p className="flex items-center gap-1"><span className="inline-block h-2 w-2 rounded-full bg-success shrink-0" /> טוב ויציב+ (4-5): <span className="text-foreground font-medium">{d.mastered}</span></p>
+                            <p className="flex items-center gap-1"><span className="inline-block h-2 w-2 rounded-full bg-warning shrink-0" /> בתרגול (1-3): <span className="text-foreground font-medium">{d.inProgress}</span></p>
+                            <p className="flex items-center gap-1"><span className="inline-block h-2 w-2 rounded-full bg-muted-foreground/40 shrink-0" /> לא דורגו (0): <span className="text-foreground font-medium">{d.notLearned}</span></p>
                           </div>
                           <p className="mt-1.5 text-primary font-semibold">{d.value}%</p>
                         </div>

@@ -1,4 +1,4 @@
-import { MapPin, Phone, Play, CheckCircle } from 'lucide-react';
+import { MapPin, Phone, Play, CheckCircle, Clock, AlertTriangle } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import { cn, canStartLesson } from '@/lib/utils';
@@ -75,8 +75,8 @@ export function LessonCard({ lesson, student }: LessonCardProps) {
             )}>
               {student.name}
             </h3>
-            <p className="text-sm text-muted-foreground font-body">
-              ⏰ {lesson.time_start} - {lesson.time_end}
+            <p className="text-sm text-muted-foreground font-body flex items-center gap-1 flex-wrap">
+              <Clock className="h-3.5 w-3.5 shrink-0" /> {lesson.time_start} - {lesson.time_end}
               {isInternalTest && <span className="text-blue-600 font-medium"> · טסט פנימי</span>}
               {isExternalTest && <span className="text-purple-600 font-medium"> · טסט חיצוני</span>}
               {isSubstituteLesson && <span className="text-xs text-orange-600 font-medium"> · מחליף</span>}
@@ -88,16 +88,19 @@ export function LessonCard({ lesson, student }: LessonCardProps) {
               הושלם
             </Badge>
           ) : isInProgress ? (
-            <Badge className="shrink-0 bg-primary/15 text-primary border border-primary/30 animate-pulse">
-              🔴 בשיעור
+            <Badge className="shrink-0 bg-primary/15 text-primary border border-primary/30 animate-pulse gap-1">
+              <span className="h-2 w-2 rounded-full bg-primary shrink-0" />
+              בשיעור
             </Badge>
           ) : hasDebt ? (
-            <Badge variant="destructive" className="shrink-0 animate-pulse-glow">
-              ⚠️ חייב ₪{Math.abs(student.balance)}
+            <Badge variant="destructive" className="shrink-0 animate-pulse-glow gap-1">
+              <AlertTriangle className="h-3.5 w-3.5" />
+              חייב ₪{Math.abs(student.balance)}
             </Badge>
           ) : (
-            <Badge className="shrink-0 bg-success/15 text-success border border-success/30">
-              ✅ תקין
+            <Badge className="shrink-0 bg-success/15 text-success border border-success/30 gap-1">
+              <CheckCircle className="h-3.5 w-3.5" />
+              תקין
             </Badge>
           )}
         </div>

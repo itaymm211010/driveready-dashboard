@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft, Plus, BookOpen } from 'lucide-react';
+import { ArrowLeft, Plus, BookOpen, Timer, CheckCircle2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
@@ -222,8 +222,8 @@ export default function ActiveLesson() {
           <div className="flex-1 min-w-0">
             <h1 className="text-lg font-heading font-bold text-foreground truncate">{student.name}</h1>
             <div className="flex items-center gap-2 text-xs text-muted-foreground font-body flex-wrap">
-              <span className={cn('font-mono text-sm font-bold', timerColor)}>
-                ⏱️ {formatTimer(timer)}
+              <span className={cn('font-mono text-sm font-bold flex items-center gap-1', timerColor)}>
+                <Timer className="h-3.5 w-3.5 shrink-0" /> {formatTimer(timer)}
               </span>
               {startedAtDisplay && (
                 <span>התחלה: {startedAtDisplay}</span>
@@ -279,8 +279,8 @@ export default function ActiveLesson() {
         ) : (
           <>
             <div className="flex items-center justify-between">
-              <h2 className="text-sm font-heading font-semibold text-foreground">
-                📚 מיומנויות להיום ({selectedSkills.length})
+              <h2 className="text-sm font-heading font-semibold text-foreground flex items-center gap-1.5">
+                <BookOpen className="h-4 w-4" /> מיומנויות להיום ({selectedSkills.length})
               </h2>
             </div>
 
@@ -323,10 +323,10 @@ export default function ActiveLesson() {
       {/* Sticky Bottom Bar */}
       <div className="fixed bottom-0 inset-x-0 z-50 nav-glass border-t border-border/50 p-4 safe-area-bottom">
         <Button
-          className="w-full min-h-[52px] text-base font-heading font-bold bg-success hover:bg-success/90 text-success-foreground glow-primary transition-smooth"
+          className="w-full min-h-[52px] text-base font-heading font-bold bg-success hover:bg-success/90 text-success-foreground glow-primary transition-smooth gap-2"
           onClick={() => setShowEndModal(true)}
         >
-          ✅ סיים שיעור וחייב
+          <CheckCircle2 className="h-5 w-5" /> סיים שיעור וחייב
         </Button>
       </div>
 

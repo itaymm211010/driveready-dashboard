@@ -11,7 +11,7 @@ import {
   DialogTitle,
   DialogDescription,
 } from '@/components/ui/dialog';
-import { CheckCircle2, Clock, Timer, TrendingDown, TrendingUp } from 'lucide-react';
+import { CheckCircle2, Clock, Timer, TrendingDown, TrendingUp, AlertTriangle, Receipt } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface EndLessonModalProps {
@@ -70,7 +70,9 @@ export function EndLessonModal({
         ) : (
           <>
             <DialogHeader>
-              <DialogTitle>✅ סיום שיעור</DialogTitle>
+              <DialogTitle className="flex items-center gap-2">
+                <CheckCircle2 className="h-5 w-5 text-success" /> סיום שיעור
+              </DialogTitle>
               <DialogDescription>
                 {studentName} • משך: {duration} • סכום: ₪{amount}
               </DialogDescription>
@@ -139,25 +141,25 @@ export function EndLessonModal({
               <p className="text-sm font-medium text-foreground">התלמיד שילם?</p>
 
               <Button
-                className="w-full min-h-[52px] justify-start text-base bg-success hover:bg-success/90 text-success-foreground"
+                className="w-full min-h-[52px] justify-start text-base gap-2 bg-success hover:bg-success/90 text-success-foreground"
                 onClick={() => handlePayment('cash')}
               >
-                ✅ כן – מזומן
+                <CheckCircle2 className="h-5 w-5" /> כן – מזומן
               </Button>
 
               <Button
-                className="w-full min-h-[52px] justify-start text-base"
+                className="w-full min-h-[52px] justify-start text-base gap-2"
                 onClick={() => handlePayment('receipt')}
               >
-                🧾 כן – הפק קבלה
+                <Receipt className="h-5 w-5" /> כן – הפק קבלה
               </Button>
 
               <Button
                 variant="destructive"
-                className="w-full min-h-[52px] justify-start text-base"
+                className="w-full min-h-[52px] justify-start text-base gap-2"
                 onClick={() => handlePayment('debt')}
               >
-                ⚠️ לא – הוסף לחוב
+                <AlertTriangle className="h-5 w-5" /> לא – הוסף לחוב
               </Button>
 
               <Button
