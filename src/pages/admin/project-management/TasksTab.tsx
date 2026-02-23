@@ -11,6 +11,7 @@ import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 import { CreateTaskDialog } from "./dialogs/CreateTaskDialog";
 import { EditTaskDialog } from "./dialogs/EditTaskDialog";
+import { DeleteTaskDialog } from "./dialogs/DeleteTaskDialog";
 
 export const TasksTab = () => {
   const [expandedId, setExpandedId] = useState<string | null>(null);
@@ -132,7 +133,10 @@ export const TasksTab = () => {
                     {format(new Date(task.created_at), "dd/MM/yyyy")}
                   </TableCell>
                   <TableCell>
-                    <EditTaskDialog task={task} />
+                    <div className="flex items-center gap-1">
+                      <EditTaskDialog task={task} />
+                      <DeleteTaskDialog task={task} />
+                    </div>
                   </TableCell>
                 </TableRow>
               ))}
@@ -170,7 +174,10 @@ export const TasksTab = () => {
                       </p>
                     )}
                   </div>
-                  <EditTaskDialog task={task} />
+                  <div className="flex items-center gap-1 shrink-0">
+                    <EditTaskDialog task={task} />
+                    <DeleteTaskDialog task={task} />
+                  </div>
                 </div>
                 <div className="flex flex-wrap gap-2">
                   <Badge variant={getStatusColor(task.status)}>
@@ -183,16 +190,16 @@ export const TasksTab = () => {
                 </div>
                 <div className="text-sm space-y-1">
                   <div className="flex justify-between">
+                    <span className="text-muted-foreground">יוצר:</span>
                     <span>{(task.creator as any)?.name || '-'}</span>
-                    <span className="text-muted-foreground">:יוצר</span>
                   </div>
                   <div className="flex justify-between">
+                    <span className="text-muted-foreground">שעות משוערות:</span>
                     <span dir="ltr">{task.estimated_hours || "-"}</span>
-                    <span className="text-muted-foreground">:שעות משוערות</span>
                   </div>
                   <div className="flex justify-between">
+                    <span className="text-muted-foreground">נוצר:</span>
                     <span dir="ltr">{format(new Date(task.created_at), "dd/MM/yyyy")}</span>
-                    <span className="text-muted-foreground">:נוצר</span>
                   </div>
                 </div>
               </div>

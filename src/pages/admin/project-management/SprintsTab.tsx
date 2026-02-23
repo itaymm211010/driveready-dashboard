@@ -33,11 +33,11 @@ export const SprintsTab = () => {
     }
   };
 
-  if (isLoading) return <div>טוען ספרינטים...</div>;
+  if (isLoading) return <div className="text-right p-4">טוען ספרינטים...</div>;
 
   return (
-    <div className="space-y-4">
-      <div className="flex justify-end">
+    <div className="space-y-4" dir="rtl">
+      <div className="flex justify-start">
         <CreateSprintDialog />
       </div>
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
@@ -56,19 +56,19 @@ export const SprintsTab = () => {
                 <p className="text-sm text-muted-foreground">{sprint.description}</p>
               )}
               <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                <Calendar className="h-4 w-4" />
-                <span>
+                <Calendar className="h-4 w-4 shrink-0" />
+                <span dir="ltr">
                   {format(new Date(sprint.start_date), "dd/MM")} -{" "}
                   {format(new Date(sprint.end_date), "dd/MM/yyyy")}
                 </span>
               </div>
               {(sprint.creator as any)?.name && (
                 <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                  <User className="h-4 w-4" />
+                  <User className="h-4 w-4 shrink-0" />
                   <span>{(sprint.creator as any).name}</span>
                 </div>
               )}
-              <div className="flex justify-end mt-2">
+              <div className="flex justify-start mt-2">
                 <EditSprintDialog sprint={sprint} />
               </div>
             </CardContent>

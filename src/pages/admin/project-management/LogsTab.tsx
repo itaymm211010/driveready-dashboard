@@ -32,7 +32,7 @@ export const LogsTab = () => {
   if (isLoading) return <div>טוען לוגים...</div>;
 
   return (
-    <Card>
+    <Card dir="rtl">
       <CardHeader>
         <CardTitle>לוגי מערכת</CardTitle>
       </CardHeader>
@@ -50,15 +50,15 @@ export const LogsTab = () => {
           <TableBody>
             {logs?.map((log) => (
               <TableRow key={log.id}>
-                <TableCell className="text-xs">
+                <TableCell className="text-xs" dir="ltr">
                   {format(new Date(log.created_at), "dd/MM HH:mm:ss")}
                 </TableCell>
                 <TableCell>
                   <Badge variant={getLevelColor(log.level)}>{log.level}</Badge>
                 </TableCell>
                 <TableCell className="max-w-md truncate">{log.message}</TableCell>
-                <TableCell className="text-xs">{log.file_path || "-"}</TableCell>
-                <TableCell className="text-xs">{log.line_number || "-"}</TableCell>
+                <TableCell className="text-xs" dir="ltr">{log.file_path || "-"}</TableCell>
+                <TableCell className="text-xs" dir="ltr">{log.line_number || "-"}</TableCell>
               </TableRow>
             ))}
           </TableBody>

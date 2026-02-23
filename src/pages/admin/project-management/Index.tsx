@@ -18,8 +18,8 @@ const ProjectManagement = () => {
         </p>
       </div>
 
-      <Tabs defaultValue="overview" className="space-y-4">
-        <ScrollArea className="w-full">
+      <Tabs defaultValue="overview" className="space-y-4" dir="rtl">
+        <ScrollArea className="w-full" dir="rtl">
           <TabsList className="inline-flex w-auto">
             <TabsTrigger value="overview">סקירה</TabsTrigger>
             <TabsTrigger value="tasks">משימות</TabsTrigger>

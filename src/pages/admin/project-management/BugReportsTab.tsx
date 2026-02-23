@@ -48,7 +48,7 @@ export const BugReportsTab = () => {
   if (isLoading) return <div>טוען באגים...</div>;
 
   return (
-    <Card>
+    <Card dir="rtl">
       <CardHeader>
         <div className="flex items-center justify-between">
           <CardTitle>דיווחי באגים</CardTitle>
@@ -86,8 +86,8 @@ export const BugReportsTab = () => {
                   </TableCell>
                   <TableCell>{(bug.reporter as any)?.name || '-'}</TableCell>
                   <TableCell className="max-w-md truncate">{bug.description}</TableCell>
-                  <TableCell>{format(new Date(bug.created_at), "dd/MM/yyyy")}</TableCell>
-                  <TableCell>
+                  <TableCell dir="ltr" className="text-end">{format(new Date(bug.created_at), "dd/MM/yyyy")}</TableCell>
+                  <TableCell dir="ltr" className="text-end">
                     {bug.resolved_at ? format(new Date(bug.resolved_at), "dd/MM/yyyy") : "-"}
                   </TableCell>
                   <TableCell><EditBugDialog bug={bug} /></TableCell>
@@ -121,7 +121,7 @@ export const BugReportsTab = () => {
                   </div>
                   <div className="flex justify-between">
                     <span className="text-muted-foreground">נוצר:</span>
-                    <span>{format(new Date(bug.created_at), "dd/MM/yyyy")}</span>
+                    <span dir="ltr">{format(new Date(bug.created_at), "dd/MM/yyyy")}</span>
                   </div>
                 </div>
               </div>
