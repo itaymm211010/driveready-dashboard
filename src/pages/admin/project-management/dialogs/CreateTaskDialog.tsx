@@ -17,7 +17,6 @@ import { Plus } from "lucide-react";
 
 export function CreateTaskDialog() {
   const [open, setOpen] = useState(false);
-  const [previewDesc, setPreviewDesc] = useState(false);
   const { currentUser } = useAuthContext();
   const queryClient = useQueryClient();
   const [formData, setFormData] = useState({
@@ -49,7 +48,6 @@ export function CreateTaskDialog() {
       queryClient.invalidateQueries({ queryKey: ["pm_tasks"] });
       toast.success("המשימה נוצרה בהצלחה");
       setOpen(false);
-      setPreviewDesc(false);
       setFormData({ title: "", description: "", type: "feature", status: "todo", priority: "medium", sprint_id: "", estimated_hours: "" });
     },
     onError: (error) => { toast.error("שגיאה ביצירת המשימה"); console.error(error); },
@@ -69,21 +67,9 @@ export function CreateTaskDialog() {
             <Label htmlFor="title">כותרת</Label>
             <Input id="title" required value={formData.title} onChange={(e) => setFormData({ ...formData, title: e.target.value })} dir="rtl" />
           </div>
-          <div className="space-y-1">
-            <div className="flex items-center justify-between">
-              <Label htmlFor="description">תיאור</Label>
-              <div className="flex gap-1">
-                <Button type="button" size="sm" variant={!previewDesc ? "secondary" : "ghost"} className="h-6 px-2 text-xs" onClick={() => setPreviewDesc(false)}>ערוך</Button>
-                <Button type="button" size="sm" variant={previewDesc ? "secondary" : "ghost"} className="h-6 px-2 text-xs" onClick={() => setPreviewDesc(true)}>תצוגה מקדימה</Button>
-              </div>
-            </div>
-            {previewDesc ? (
-              <div className="min-h-[96px] rounded-md border bg-muted/30 px-3 py-2 text-sm whitespace-pre-wrap">
-                {formData.description || <span className="text-muted-foreground italic">אין תיאור</span>}
-              </div>
-            ) : (
-              <Textarea id="description" value={formData.description} onChange={(e) => setFormData({ ...formData, description: e.target.value })} rows={4} dir="rtl" />
-            )}
+          <div>
+            <Label htmlFor="description">תיאור</Label>
+            <Textarea id="description" value={formData.description} onChange={(e) => setFormData({ ...formData, description: e.target.value })} rows={4} dir="rtl" />
           </div>
           <div className="grid grid-cols-2 gap-4">
             <div>

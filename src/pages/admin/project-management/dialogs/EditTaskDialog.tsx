@@ -18,7 +18,6 @@ interface EditTaskDialogProps { task: any; }
 
 export const EditTaskDialog = ({ task }: EditTaskDialogProps) => {
   const [open, setOpen] = useState(false);
-  const [previewDesc, setPreviewDesc] = useState(false);
   const queryClient = useQueryClient();
   const [formData, setFormData] = useState({
     title: task.title,
@@ -41,7 +40,6 @@ export const EditTaskDialog = ({ task }: EditTaskDialogProps) => {
         estimated_hours: task.estimated_hours ?? "",
         sprint_id: task.sprint_id || "",
       });
-      setPreviewDesc(false);
     }
     setOpen(isOpen);
   };
@@ -95,20 +93,8 @@ export const EditTaskDialog = ({ task }: EditTaskDialogProps) => {
           </div>
 
           <div className="space-y-2">
-            <div className="flex items-center justify-between">
-              <Label>תיאור</Label>
-              <div className="flex gap-1">
-                <Button type="button" size="sm" variant={!previewDesc ? "secondary" : "ghost"} className="h-6 px-2 text-xs" onClick={() => setPreviewDesc(false)}>ערוך</Button>
-                <Button type="button" size="sm" variant={previewDesc ? "secondary" : "ghost"} className="h-6 px-2 text-xs" onClick={() => setPreviewDesc(true)}>תצוגה מקדימה</Button>
-              </div>
-            </div>
-            {previewDesc ? (
-              <div className="min-h-[80px] rounded-md border bg-muted/30 px-3 py-2 text-sm whitespace-pre-wrap">
-                {formData.description || <span className="text-muted-foreground italic">אין תיאור</span>}
-              </div>
-            ) : (
-              <Textarea value={formData.description} onChange={(e) => setFormData({ ...formData, description: e.target.value })} rows={3} dir="rtl" />
-            )}
+            <Label>תיאור</Label>
+            <Textarea value={formData.description} onChange={(e) => setFormData({ ...formData, description: e.target.value })} rows={3} dir="rtl" />
           </div>
 
           <div className="grid grid-cols-2 gap-4">

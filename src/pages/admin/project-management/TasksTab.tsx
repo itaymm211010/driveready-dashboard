@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import {
@@ -5,11 +6,15 @@ import {
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { ChevronDown } from "lucide-react";
 import { format } from "date-fns";
+import { cn } from "@/lib/utils";
 import { CreateTaskDialog } from "./dialogs/CreateTaskDialog";
 import { EditTaskDialog } from "./dialogs/EditTaskDialog";
 
 export const TasksTab = () => {
+  const [expandedId, setExpandedId] = useState<string | null>(null);
+
   const { data: tasks, isLoading } = useQuery({
     queryKey: ["pm_tasks"],
     queryFn: async () => {
@@ -50,10 +55,15 @@ export const TasksTab = () => {
     feature: "תכונה", bug: "באג", improvement: "שיפור", documentation: "תיעוד",
   };
 
-  if (isLoading) return <div>טוען משימות...</div>;
+  const toggleExpanded = (id: string, hasDesc: boolean) => {
+    if (!hasDesc) return;
+    setExpandedId(prev => prev === id ? null : id);
+  };
+
+  if (isLoading) return <div className="text-right p-4">טוען משימות...</div>;
 
   return (
-    <Card>
+    <Card dir="rtl">
       <CardHeader>
         <div className="flex items-center justify-between">
           <CardTitle>כל המשימות</CardTitle>
@@ -79,8 +89,31 @@ export const TasksTab = () => {
             </TableHeader>
             <TableBody>
               {tasks?.map((task) => (
-                <TableRow key={task.id}>
-                  <TableCell className="font-medium">{task.title}</TableCell>
+                <TableRow key={task.id} className={cn(expandedId === task.id && "bg-muted/20")}>
+                  <TableCell>
+                    <button
+                      onClick={() => toggleExpanded(task.id, !!task.description)}
+                      className={cn(
+                        "text-start w-full",
+                        task.description && "cursor-pointer hover:text-primary transition-colors"
+                      )}
+                    >
+                      <span className="flex items-center gap-1 font-medium">
+                        {task.title}
+                        {task.description && (
+                          <ChevronDown className={cn(
+                            "h-3.5 w-3.5 text-muted-foreground flex-shrink-0 transition-transform duration-200",
+                            expandedId === task.id && "rotate-180"
+                          )} />
+                        )}
+                      </span>
+                      {expandedId === task.id && task.description && (
+                        <p className="mt-1.5 text-xs text-muted-foreground font-normal whitespace-pre-wrap">
+                          {task.description}
+                        </p>
+                      )}
+                    </button>
+                  </TableCell>
                   <TableCell>
                     <Badge variant={getStatusColor(task.status)}>
                       {statusLabels[task.status] || task.status}
@@ -93,9 +126,9 @@ export const TasksTab = () => {
                   </TableCell>
                   <TableCell>{typeLabels[task.type] || task.type}</TableCell>
                   <TableCell>{(task.creator as any)?.name || '-'}</TableCell>
-                  <TableCell>{task.estimated_hours || "-"}</TableCell>
-                  <TableCell>{task.actual_hours || 0}</TableCell>
-                  <TableCell>
+                  <TableCell dir="ltr" className="text-end">{task.estimated_hours || "-"}</TableCell>
+                  <TableCell dir="ltr" className="text-end">{task.actual_hours || 0}</TableCell>
+                  <TableCell dir="ltr" className="text-end">
                     {format(new Date(task.created_at), "dd/MM/yyyy")}
                   </TableCell>
                   <TableCell>
@@ -112,8 +145,31 @@ export const TasksTab = () => {
           {tasks?.map((task) => (
             <Card key={task.id} className="p-4">
               <div className="space-y-3">
-                <div className="flex items-start justify-between">
-                  <h3 className="font-medium text-lg">{task.title}</h3>
+                <div className="flex items-start justify-between gap-2">
+                  <div className="flex-1 min-w-0">
+                    <button
+                      onClick={() => toggleExpanded(task.id, !!task.description)}
+                      className={cn(
+                        "font-medium text-lg text-start w-full",
+                        task.description && "cursor-pointer hover:text-primary transition-colors"
+                      )}
+                    >
+                      <span className="flex items-center gap-1">
+                        {task.title}
+                        {task.description && (
+                          <ChevronDown className={cn(
+                            "h-3.5 w-3.5 text-muted-foreground flex-shrink-0 transition-transform duration-200",
+                            expandedId === task.id && "rotate-180"
+                          )} />
+                        )}
+                      </span>
+                    </button>
+                    {expandedId === task.id && task.description && (
+                      <p className="mt-1.5 text-sm text-muted-foreground whitespace-pre-wrap">
+                        {task.description}
+                      </p>
+                    )}
+                  </div>
                   <EditTaskDialog task={task} />
                 </div>
                 <div className="flex flex-wrap gap-2">
@@ -127,16 +183,16 @@ export const TasksTab = () => {
                 </div>
                 <div className="text-sm space-y-1">
                   <div className="flex justify-between">
-                    <span className="text-muted-foreground">יוצר:</span>
                     <span>{(task.creator as any)?.name || '-'}</span>
+                    <span className="text-muted-foreground">:יוצר</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-muted-foreground">שעות משוערות:</span>
-                    <span>{task.estimated_hours || "-"}</span>
+                    <span dir="ltr">{task.estimated_hours || "-"}</span>
+                    <span className="text-muted-foreground">:שעות משוערות</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-muted-foreground">נוצר:</span>
-                    <span>{format(new Date(task.created_at), "dd/MM/yyyy")}</span>
+                    <span dir="ltr">{format(new Date(task.created_at), "dd/MM/yyyy")}</span>
+                    <span className="text-muted-foreground">:נוצר</span>
                   </div>
                 </div>
               </div>
